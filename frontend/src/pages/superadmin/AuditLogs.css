@@ -1,0 +1,260 @@
+.audit-logs {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.content-header {
+  margin-bottom: 30px;
+}
+
+.content-header h2 {
+  color: #2c3e50;
+  font-size: 2rem;
+  margin-bottom: 10px;
+  font-weight: 700;
+}
+
+.content-header p {
+  color: #7f8c8d;
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.logs-filter {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+}
+
+.filter-select,
+.filter-date {
+  padding: 10px 15px;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  font-size: 1rem;
+  background: white;
+  cursor: pointer;
+  transition: border-color 0.3s ease;
+  min-width: 150px;
+}
+
+.filter-select:focus,
+.filter-date:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.logs-stats {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+}
+
+.stat-item {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 3px 15px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  flex: 1;
+  min-width: 120px;
+}
+
+.stat-number {
+  display: block;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #667eea;
+  margin-bottom: 5px;
+}
+
+.stat-label {
+  color: #7f8c8d;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.logs-list {
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.log-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  padding: 20px;
+  border-bottom: 1px solid #f1f3f4;
+  transition: background-color 0.3s ease;
+}
+
+.log-item:hover {
+  background-color: #f8f9fa;
+}
+
+.log-item:last-child {
+  border-bottom: none;
+}
+
+.log-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: white;
+  flex-shrink: 0;
+}
+
+.log-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.log-header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.log-user {
+  font-weight: 700;
+  color: #2c3e50;
+  font-size: 1rem;
+}
+
+.log-action {
+  background: #e9ecef;
+  color: #495057;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.log-time {
+  color: #7f8c8d;
+  font-size: 0.9rem;
+  margin-left: auto;
+}
+
+.log-details {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.log-target {
+  color: #495057;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.log-description {
+  color: #6c757d;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+}
+
+.empty-icon {
+  font-size: 4rem;
+  margin-bottom: 20px;
+  opacity: 0.6;
+}
+
+.empty-state h3 {
+  color: #2c3e50;
+  font-size: 1.5rem;
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+.empty-state p {
+  color: #7f8c8d;
+  font-size: 1rem;
+  margin: 0;
+  max-width: 400px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+@media (max-width: 768px) {
+  .audit-logs {
+    padding: 15px;
+  }
+  
+  .content-header h2 {
+    font-size: 1.7rem;
+  }
+  
+  .logs-filter {
+    flex-direction: column;
+  }
+  
+  .filter-select,
+  .filter-date {
+    min-width: 0;
+  }
+  
+  .logs-stats {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .stat-item {
+    min-width: 0;
+  }
+  
+  .log-item {
+    padding: 15px;
+    gap: 15px;
+  }
+  
+  .log-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 1.2rem;
+  }
+  
+  .log-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .log-time {
+    margin-left: 0;
+    font-size: 0.85rem;
+  }
+  
+  .log-details {
+    gap: 3px;
+  }
+  
+  .empty-state {
+    padding: 40px 15px;
+  }
+  
+  .empty-icon {
+    font-size: 3rem;
+  }
+}

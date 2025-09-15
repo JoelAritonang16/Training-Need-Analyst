@@ -1,0 +1,278 @@
+.system-config {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.content-header {
+  margin-bottom: 30px;
+}
+
+.content-header h2 {
+  color: #2c3e50;
+  font-size: 2rem;
+  margin-bottom: 10px;
+  font-weight: 700;
+}
+
+.content-header p {
+  color: #7f8c8d;
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.config-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  margin-bottom: 40px;
+}
+
+.config-section {
+  background: white;
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+}
+
+.config-section h3 {
+  color: #2c3e50;
+  font-size: 1.5rem;
+  margin-bottom: 25px;
+  font-weight: 600;
+  border-bottom: 2px solid #e9ecef;
+  padding-bottom: 10px;
+}
+
+.config-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.config-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.config-item.checkbox-item {
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+}
+
+.config-item label {
+  color: #2c3e50;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.config-item.checkbox-item label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.config-item input[type="number"],
+.config-item input[type="text"],
+.config-item select {
+  padding: 12px 15px;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border-color 0.3s ease;
+}
+
+.config-item input[type="number"]:focus,
+.config-item input[type="text"]:focus,
+.config-item select:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.config-item input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.roles-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.role-item {
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 10px;
+  border: 1px solid #e9ecef;
+}
+
+.role-item h4 {
+  color: #2c3e50;
+  margin-bottom: 15px;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.permissions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.permission-badge {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 15px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.backup-actions {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.btn-backup,
+.btn-restore {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 15px 25px;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  flex: 1;
+  min-width: 200px;
+  justify-content: center;
+}
+
+.btn-backup {
+  background: linear-gradient(135deg, #00b894, #00cec9);
+  color: white;
+}
+
+.btn-backup:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 184, 148, 0.4);
+}
+
+.btn-restore {
+  background: linear-gradient(135deg, #fdcb6e, #e17055);
+  color: white;
+}
+
+.btn-restore:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(253, 203, 110, 0.4);
+}
+
+.btn-icon {
+  font-size: 1.2rem;
+}
+
+.config-actions {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  padding: 30px;
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+}
+
+.btn-save,
+.btn-cancel {
+  padding: 15px 40px;
+  border: none;
+  border-radius: 10px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 150px;
+}
+
+.btn-save {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.btn-save:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+}
+
+.btn-cancel {
+  background: #f8f9fa;
+  color: #495057;
+  border: 2px solid #e9ecef;
+}
+
+.btn-cancel:hover {
+  background: #e9ecef;
+  transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+  .system-config {
+    padding: 15px;
+  }
+  
+  .content-header h2 {
+    font-size: 1.7rem;
+  }
+  
+  .config-section {
+    padding: 20px;
+  }
+  
+  .config-grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+  
+  .config-item.checkbox-item {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+  
+  .backup-actions {
+    flex-direction: column;
+  }
+  
+  .btn-backup,
+  .btn-restore {
+    min-width: 0;
+  }
+  
+  .config-actions {
+    flex-direction: column;
+    padding: 20px;
+  }
+  
+  .btn-save,
+  .btn-cancel {
+    min-width: 0;
+  }
+  
+  .permissions {
+    gap: 6px;
+  }
+  
+  .permission-badge {
+    font-size: 0.8rem;
+    padding: 4px 8px;
+  }
+}
