@@ -1,7 +1,7 @@
 .sidebar {
   width: 280px;
   height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #0271B6 0%, #30B0E1 100%);
   color: white;
   position: fixed;
   left: 0;
@@ -14,7 +14,7 @@
 }
 
 .sidebar.collapsed {
-  width: 70px;
+  width: 90px; /* agar logo dan ikon pas */
 }
 
 .sidebar-header {
@@ -24,19 +24,44 @@
   justify-content: space-between;
   align-items: center;
   min-height: 80px;
+  box-sizing: border-box;
 }
 
-.sidebar-brand h2 {
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 15px; /* Jarak antara logo dan teks */
+  overflow: hidden;
+}
+
+.sidebar-logo {
+  width: 50px;
+  height: 50px;
+  flex-shrink: 0; /* Mencegah logo mengecil */
+}
+
+.brand-text {
+  white-space: nowrap; /* Mencegah teks turun ke bawah */
+}
+
+/* === MODIFIKASI: Selector disesuaikan dengan struktur baru === */
+.brand-text h2 {
   margin: 0;
-  font-size: 1.4rem;
+  font-size: 1.1rem;
   font-weight: 600;
   color: white;
 }
 
-.sidebar-brand p {
+.brand-text p {
   margin: 5px 0 0 0;
   font-size: 0.9rem;
   opacity: 0.8;
+}
+
+
+.sidebar.collapsed .sidebar-header {
+    justify-content: center;
 }
 
 .sidebar-toggle {
@@ -51,6 +76,7 @@
   align-items: center;
   justify-content: center;
   transition: background-color 0.3s ease;
+  flex-shrink: 0; /* Mencegah tombol mengecil */
 }
 
 .sidebar-toggle:hover {
@@ -66,8 +92,8 @@
 }
 
 .user-avatar {
-  width: 50px;
-  height: 50px;
+  width: 40px; /* Disesuaikan agar konsisten */
+  height: 40px;
   background: rgba(255, 255, 255, 0.2);
   border-radius: 50%;
   display: flex;
@@ -82,12 +108,14 @@
   margin: 0;
   font-size: 1rem;
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .user-info p {
   margin: 2px 0;
   font-size: 0.85rem;
   opacity: 0.8;
+  white-space: nowrap;
 }
 
 .user-unit {
@@ -128,27 +156,19 @@
   gap: 15px;
   transition: all 0.3s ease;
   font-size: 0.95rem;
-  position: relative;
+  border-right: 4px solid transparent; /* Dibuat transparan by default */
+  box-sizing: border-box;
 }
 
 .nav-link:hover {
   background: rgba(255, 255, 255, 0.1);
-  padding-left: 25px;
+  border-right-color: rgba(255, 255, 255, 0.5); /* Highlight saat hover */
 }
 
 .nav-link.active {
   background: rgba(255, 255, 255, 0.2);
-  border-right: 4px solid white;
-}
-
-.nav-link.active::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 4px;
-  background: white;
+  border-right-color: white; /* Border putih solid saat aktif */
+  font-weight: 600; /* Teks lebih tebal saat aktif */
 }
 
 .nav-icon {
@@ -160,6 +180,7 @@
 
 .nav-label {
   font-weight: 500;
+  white-space: nowrap;
 }
 
 .sidebar-footer {
@@ -177,10 +198,11 @@
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 10px;
-  justify-content: center;
+  gap: 15px; /* Disesuaikan agar sama dengan menu lain */
+  justify-content: flex-start; /* Dimulai dari kiri */
   transition: all 0.3s ease;
   font-size: 0.95rem;
+  box-sizing: border-box;
 }
 
 .logout-button:hover {
@@ -188,37 +210,25 @@
   transform: translateY(-1px);
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-  .sidebar {
-    width: 100%;
-    transform: translateX(-100%);
-    transition: transform 0.3s ease;
-  }
-  
-  .sidebar.mobile-open {
-    transform: translateX(0);
-  }
-  
-  .sidebar.collapsed {
-    width: 100%;
-  }
+/* === TAMBAHAN: Menengahkan logout saat collapsed === */
+.sidebar.collapsed .logout-button {
+    justify-content: center;
+}
+.sidebar.collapsed .logout-button .nav-label {
+    display: none; /* Sembunyikan label saat collapsed */
 }
 
 /* Scrollbar Styling */
 .sidebar-nav::-webkit-scrollbar {
   width: 4px;
 }
-
 .sidebar-nav::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.1);
+  background: transparent;
 }
-
 .sidebar-nav::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.3);
   border-radius: 2px;
 }
-
 .sidebar-nav::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.5);
 }

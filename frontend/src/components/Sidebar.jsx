@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import './Sidebar.css';
+// Impor ikon logout jika Anda menggunakan library ikon seperti react-icons
+// import { FiLogOut } from 'react-icons/fi';
 
 const Sidebar = ({ user, activeMenu, onMenuChange, onLogout }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   const getUserMenuItems = () => {
+    // Fungsi ini tidak diubah
     const role = user?.role?.toLowerCase();
     
     const baseMenus = {
@@ -45,11 +48,12 @@ const Sidebar = ({ user, activeMenu, onMenuChange, onLogout }) => {
     <div className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
       <div className="sidebar-header">
         <div className="sidebar-brand">
+          <img src="/LogoNonBG.png" alt="Logo Pelindo" className="sidebar-logo" />
           {!isCollapsed && (
-            <>
+            <div className="brand-text">
               <h2>Sistem Pelatihan</h2>
               <p>PT Pelindo</p>
-            </>
+            </div>
           )}
         </div>
         <button 
@@ -67,7 +71,7 @@ const Sidebar = ({ user, activeMenu, onMenuChange, onLogout }) => {
         {!isCollapsed && (
           <div className="user-info">
             <h4>{user?.username}</h4>
-            <p>{user?.role}</p>
+            <p className="user-role">{user?.role}</p>
             <p className="user-unit">{user?.unit || 'Unit/Divisi'}</p>
           </div>
         )}
@@ -96,8 +100,8 @@ const Sidebar = ({ user, activeMenu, onMenuChange, onLogout }) => {
           onClick={onLogout}
           title={isCollapsed ? 'Logout' : ''}
         >
-          <span className="nav-icon">🚪</span>
-          {!isCollapsed && <span>Logout</span>}
+          <span className="nav-icon"></span> {/* Mengganti dengan ikon emoji yang relevan */}
+          {!isCollapsed && <span className="nav-label">Logout</span>}
         </button>
       </div>
     </div>

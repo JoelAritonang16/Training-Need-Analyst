@@ -10,7 +10,7 @@ const DashboardOverview = ({ user, proposals, onNavigate }) => {
     <div className="dashboard-overview">
       <div className="content-header">
         <h1>Dashboard User</h1>
-        <p>Selamat datang di sistem manajemen pelatihan PT Pelindo</p>
+        <p>Selamat datang di Sistem Manajemen Pelatihan PT Pelindo!</p>
       </div>
       
       <div className="stats-grid">

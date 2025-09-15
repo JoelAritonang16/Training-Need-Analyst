@@ -6,6 +6,7 @@
   background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
   font-family: 'Arial', sans-serif;
   padding: 20px;
+  box-sizing: border-box;
 }
 
 .login-card {
@@ -16,15 +17,17 @@
   width: 100%;
   max-width: 450px;
   text-align: center;
+  box-sizing: border-box;
 }
 
 .login-header {
   margin-bottom: 2rem;
 }
 
+/* === MODIFIKASI: Style untuk Logo === */
 .login-logo {
-  width: 80px;
-  height: 80px;
+  width: 100px; /* Ukuran logo disesuaikan */
+  height: auto; /* Menjaga rasio aspek gambar */
   margin-bottom: 1rem;
 }
 
@@ -33,6 +36,7 @@
   margin-bottom: 0.5rem;
   font-size: 2.2rem;
   font-weight: bold;
+  margin-top: 0;
 }
 
 .login-header h2 {
@@ -44,7 +48,7 @@
 
 .login-form {
   text-align: left;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem; 
 }
 
 .form-group {
@@ -111,27 +115,34 @@
   font-size: 0.9rem;
 }
 
+
+.success-message {
+  color: #27ae60;
+  text-align: center;
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background: #e6faed;
+  border: 1px solid #c8e6c9;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
 .login-footer {
   border-top: 1px solid #e1e5e9;
   padding-top: 1.5rem;
-  text-align: left;
+  text-align: center; 
 }
 
-.demo-credentials h4 {
-  color: #1e3c72;
-  margin-bottom: 0.5rem;
-  font-size: 1rem;
+.login-footer a {
+    color: #1e3c72;
+    text-decoration: none;
+    font-weight: bold;
 }
 
-.demo-credentials p {
-  margin: 0.3rem 0;
-  font-size: 0.85rem;
-  color: #666;
+.login-footer a:hover {
+    text-decoration: underline;
 }
 
-.demo-credentials strong {
-  color: #333;
-}
 
 @media (max-width: 480px) {
   .login-container {

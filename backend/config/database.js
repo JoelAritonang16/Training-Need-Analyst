@@ -1,15 +1,15 @@
-import dotenv from 'dotenv';
+import dotenv from "dotenv";
 
 dotenv.config();
 
 // Default database configuration
 const defaultConfig = {
-  username: 'root',
-  password: '',
-  database: 'pelindo_tna',
-  host: 'localhost',
+  username: "root",
+  password: "",
+  database: "spmt",
+  host: "localhost",
   port: 3306,
-  dialect: 'mysql',
+  dialect: "mysql",
   logging: console.log,
   pool: {
     max: 5,
@@ -20,8 +20,8 @@ const defaultConfig = {
   define: {
     timestamps: true,
     underscored: true,
-    freezeTableName: true
-  }
+    freezeTableName: true,
+  },
 };
 
 // Environment-specific configurations
@@ -33,7 +33,7 @@ export const config = {
     database: process.env.DB_NAME || defaultConfig.database,
     host: process.env.DB_HOST || defaultConfig.host,
     port: process.env.DB_PORT || defaultConfig.port,
-    logging: console.log
+    logging: console.log,
   },
   test: {
     ...defaultConfig,
@@ -42,7 +42,7 @@ export const config = {
     database: process.env.DB_NAME || defaultConfig.database,
     host: process.env.DB_HOST || defaultConfig.host,
     port: process.env.DB_PORT || defaultConfig.port,
-    logging: false
+    logging: false,
   },
   production: {
     ...defaultConfig,
@@ -51,8 +51,8 @@ export const config = {
     database: process.env.DB_NAME || defaultConfig.database,
     host: process.env.DB_HOST || defaultConfig.host,
     port: process.env.DB_PORT || defaultConfig.port,
-    logging: false
-  }
+    logging: false,
+  },
 };
 
 export default config;

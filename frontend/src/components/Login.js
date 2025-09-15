@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import './Login.css';
 
 const Login = ({ onLoginSuccess }) => {
+  // Semua state dan fungsi Anda tetap sama (tidak ada perubahan di sini)
   const [formData, setFormData] = useState({
     username: '',
     password: ''
@@ -31,23 +32,20 @@ const Login = ({ onLoginSuccess }) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(formData),
-        credentials: 'include' // Untuk session cookies
+        credentials: 'include'
       });
 
       const data = await response.json();
 
       if (data.success) {
         setSuccess(data.message);
-        // Simpan token ke localStorage
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
         
-        // Panggil callback untuk update state parent
         if (onLoginSuccess) {
           onLoginSuccess(data.user);
         }
         
-        // Reset form
         setFormData({ username: '', password: '' });
       } else {
         setError(data.message);
@@ -64,8 +62,9 @@ const Login = ({ onLoginSuccess }) => {
     <div className="login-container">
       <div className="login-card">
         <div className="login-header">
-          <h2>Login</h2>
-          <p>Silakan masuk ke akun Anda</p>
+          <img src="/LogoPelindo.png" alt="Logo Pelindo" className="login-logo" />
+          <h1>Login</h1>
+          <h2>Masukkan Username dan Password Anda</h2>
         </div>
 
         {error && <div className="error-message">{error}</div>}
@@ -110,7 +109,7 @@ const Login = ({ onLoginSuccess }) => {
         </form>
 
         <div className="login-footer">
-          <p>Belum punya akun? <a href="#register">Daftar disini</a></p>
+      
         </div>
       </div>
     </div>
