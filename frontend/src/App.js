@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import ConfirmModal from "./components/ConfirmModal.jsx";
 import Login from "./components/Login";
 import AdminDashboard from "./components/dashboards/AdminDashboard.jsx";
 import SuperadminDashboard from "./components/dashboards/SuperadminDashboard.jsx";
@@ -8,6 +9,7 @@ import "./App.css";
 function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   // Check authentication on app load
   useEffect(() => {
@@ -40,7 +42,7 @@ function App() {
     setUser(userData); 
   };
   
-  const handleLogout = async () => { 
+  const actuallyLogout = async () => {
     try {
       await fetch('http://localhost:5000/api/auth/logout', {
         method: 'POST',
@@ -50,7 +52,12 @@ function App() {
       console.error('Logout error:', error);
     } finally {
       setUser(null);
+      setShowLogoutConfirm(false);
     }
+  };
+
+  const handleLogout = () => {
+    setShowLogoutConfirm(true);
   };
 
   const renderDashboard = () => {
@@ -79,6 +86,15 @@ function App() {
       {user ? renderDashboard() : (
         <Login onLoginSuccess={handleLogin} />
       )}
+      <ConfirmModal
+        open={showLogoutConfirm}
+        
+        message="Anda yakin ingin keluar dari sistem?"
+        confirmText="Logout"
+        cancelText="Batal"
+        onConfirm={actuallyLogout}
+        onCancel={() => setShowLogoutConfirm(false)}
+      />
     </div>
   );
 }

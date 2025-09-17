@@ -8,6 +8,7 @@ import './UserDashboard.css';
 
 const UserDashboard = ({ user, onLogout }) => {
   const [activeMenu, setActiveMenu] = useState('dashboard');
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [proposals, setProposals] = useState([
     {
       id: 1,
@@ -89,6 +90,27 @@ const UserDashboard = ({ user, onLogout }) => {
         onLogout={onLogout}
       />
       <main className="main-content">
+        <div className="topbar">
+          <div className="topbar-spacer" />
+          <div className="user-menu">
+            <button 
+              className="user-button" 
+              onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+              aria-haspopup="true"
+              aria-expanded={isUserMenuOpen}
+            >
+              <span className="user-avatar">{user?.username?.charAt(0)?.toUpperCase() || 'U'}</span>
+              <span className="user-name">{user?.username || 'User'}</span>
+              <span className={`chevron ${isUserMenuOpen ? 'open' : ''}`}>▾</span>
+            </button>
+            {isUserMenuOpen && (
+              <div className="user-dropdown">
+                <button className="dropdown-item" onClick={() => { setActiveMenu('profile'); setIsUserMenuOpen(false); }}>Profile</button>
+                <button className="dropdown-item danger" onClick={onLogout}>Logout</button>
+              </div>
+            )}
+          </div>
+        </div>
         {renderContent()}
       </main>
     </div>

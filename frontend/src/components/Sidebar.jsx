@@ -1,13 +1,10 @@
 import React, { useState } from 'react';
 import './Sidebar.css';
-// Impor ikon logout jika Anda menggunakan library ikon seperti react-icons
-// import { FiLogOut } from 'react-icons/fi';
 
 const Sidebar = ({ user, activeMenu, onMenuChange, onLogout }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   const getUserMenuItems = () => {
-    // Fungsi ini tidak diubah
     const role = user?.role?.toLowerCase();
     
     const baseMenus = {
@@ -46,65 +43,52 @@ const Sidebar = ({ user, activeMenu, onMenuChange, onLogout }) => {
 
   return (
     <div className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
-      <div className="sidebar-header">
-        <div className="sidebar-brand">
-          <img src="/LogoNonBG.png" alt="Logo Pelindo" className="sidebar-logo" />
-          {!isCollapsed && (
-            <div className="brand-text">
-              <h2>Sistem Pelatihan</h2>
-              <p>PT Pelindo</p>
-            </div>
-          )}
+  <div className="sidebar-header">
+    <div className="sidebar-brand">
+      <img src="/LogoNonBG.png" alt="Logo Pelindo" className="sidebar-logo" />
+      {!isCollapsed && (
+        <div className="brand-text">
+          <h2>Sistem Pelatihan</h2>
+          <p>PT Pelindo</p>
         </div>
-        <button 
-          className="sidebar-toggle"
-          onClick={() => setIsCollapsed(!isCollapsed)}
-        >
-          {isCollapsed ? '→' : '←'}
-        </button>
-      </div>
-
-      <div className="sidebar-user">
-        <div className="user-avatar">
-          {user?.username?.charAt(0).toUpperCase() || 'U'}
-        </div>
-        {!isCollapsed && (
-          <div className="user-info">
-            <h4>{user?.username}</h4>
-            <p className="user-role">{user?.role}</p>
-            <p className="user-unit">{user?.unit || 'Unit/Divisi'}</p>
-          </div>
-        )}
-      </div>
-
-      <nav className="sidebar-nav">
-        <ul className="nav-menu">
-          {menuItems.map((item) => (
-            <li key={item.id} className="nav-item">
-              <button
-                className={`nav-link ${activeMenu === item.id ? 'active' : ''}`}
-                onClick={() => onMenuChange(item.id)}
-                title={isCollapsed ? item.label : ''}
-              >
-                <span className="nav-icon">{item.icon}</span>
-                {!isCollapsed && <span className="nav-label">{item.label}</span>}
-              </button>
-            </li>
-          ))}
-        </ul>
-      </nav>
-
-      <div className="sidebar-footer">
-        <button 
-          className="logout-button"
-          onClick={onLogout}
-          title={isCollapsed ? 'Logout' : ''}
-        >
-          <span className="nav-icon"></span> {/* Mengganti dengan ikon emoji yang relevan */}
-          {!isCollapsed && <span className="nav-label">Logout</span>}
-        </button>
-      </div>
+      )}
     </div>
+    <button 
+      className="sidebar-toggle"
+      onClick={() => setIsCollapsed(!isCollapsed)}
+      title={isCollapsed ? 'Expand' : 'Collapse'}
+    >
+      {isCollapsed ? '→' : '←'}
+    </button>
+  </div>
+
+  <div className="sidebar-user">
+	  {/* User section removed as requested */}
+  </div>
+
+  <nav className="sidebar-nav">
+    <ul className="nav-menu">
+      {menuItems.map((item) => (
+        <li key={item.id} className="nav-item">
+          <button
+            className={`nav-link ${activeMenu === item.id ? 'active' : ''}`}
+            onClick={() => onMenuChange(item.id)}
+            title={isCollapsed ? item.label : ''}
+          >
+            <span className="nav-icon">{item.icon}</span>
+            {!isCollapsed && <span className="nav-label">{item.label}</span>}
+          </button>
+        </li>
+      ))}
+    </ul>
+  </nav>
+
+  {/* Gambar Batik Pelindo sebagai latar belakang */}
+  <div className="batik-background">
+    <img src="/batikpelindo.png" alt="Motif Batik Pelindo" className="batik-image" />
+  </div>
+</div>
+
   );
 };
 

@@ -57,8 +57,17 @@ const Login = ({ onLogin }) => {
     }
   };
 
+  const backgroundImageUrl = `${process.env.PUBLIC_URL}/BatikPelindo.png`;
+  const loginBackgroundStyle = {
+    background: `linear-gradient(135deg, rgba(30,60,114,0.6) 0%, rgba(42,82,152,0.6) 100%), url(${backgroundImageUrl})`,
+    backgroundSize: 'cover, 320px 320px',
+    backgroundPosition: 'center, top left',
+    backgroundRepeat: 'no-repeat, repeat',
+    backgroundBlendMode: 'multiply'
+  };
+
   return (
-    <div className="login-container">
+    <div className="login-container" style={loginBackgroundStyle}>
       <div className="login-card">
         <div className="login-header">
           <img src="/logo192.png" alt="PT Pelindo" className="login-logo" />

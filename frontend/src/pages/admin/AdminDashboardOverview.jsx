@@ -1,12 +1,14 @@
-import React from 'react';
-import './AdminDashboardOverview.css';
+import React from "react";
+import "./AdminDashboardOverview.css";
 
 const AdminDashboardOverview = ({ users, proposals, onNavigate }) => {
   const totalUsers = users.length;
-  const activeUsers = users.filter(u => u.status === 'active').length;
+  const activeUsers = users.filter((u) => u.status === "active").length;
   const totalProposals = proposals.length;
-  const pendingCount = proposals.filter(p => p.status === 'PENDING').length;
-  const approvedCount = proposals.filter(p => p.status === 'APPROVED_BY_ADMIN').length;
+  const pendingCount = proposals.filter((p) => p.status === "PENDING").length;
+  const approvedCount = proposals.filter(
+    (p) => p.status === "APPROVED_BY_ADMIN"
+  ).length;
 
   return (
     <div className="dashboard-overview">
@@ -14,7 +16,7 @@ const AdminDashboardOverview = ({ users, proposals, onNavigate }) => {
         <h1>Dashboard Admin</h1>
         <p>Kelola pengguna, review usulan pelatihan, dan monitoring sistem</p>
       </div>
-      
+
       <div className="stats-grid">
         <div className="stat-card">
           <div className="stat-icon">👥</div>
@@ -24,7 +26,7 @@ const AdminDashboardOverview = ({ users, proposals, onNavigate }) => {
             <small>{activeUsers} aktif</small>
           </div>
         </div>
-        
+
         <div className="stat-card">
           <div className="stat-icon">📝</div>
           <div className="stat-content">
@@ -33,60 +35,68 @@ const AdminDashboardOverview = ({ users, proposals, onNavigate }) => {
             <small>{pendingCount} menunggu review</small>
           </div>
         </div>
-        
+
         <div className="stat-card">
           <div className="stat-icon">✅</div>
           <div className="stat-content">
             <h3>{approvedCount}</h3>
             <p>Disetujui Admin</p>
-            <small>Siap konfirmasi</small>
+            <small>Siap </small>
           </div>
         </div>
-        
+
         <div className="stat-card">
           <div className="stat-icon">💰</div>
           <div className="stat-content">
-            <h3>Rp {proposals.reduce((sum, p) => sum + p.totalBiaya, 0).toLocaleString('id-ID')}</h3>
+            <h3>
+              Rp{" "}
+              {proposals
+                .reduce((sum, p) => sum + p.totalBiaya, 0)
+                .toLocaleString("id-ID")}
+            </h3>
             <p>Total Anggaran</p>
             <small>Semua usulan</small>
           </div>
         </div>
       </div>
-      
+
       <div className="quick-actions">
         <h3>Aksi Cepat</h3>
         <div className="action-buttons">
-          <button 
+          <button
             className="action-btn primary"
-            onClick={() => onNavigate('proposal-approval')}
+            onClick={() => onNavigate("proposal-approval")}
           >
             <span className="btn-icon">✅</span>
             Review Usulan ({pendingCount})
           </button>
-          <button 
+          <button
             className="action-btn secondary"
-            onClick={() => onNavigate('user-management')}
+            onClick={() => onNavigate("user-management")}
           >
             <span className="btn-icon">👥</span>
             Kelola Pengguna
           </button>
-          <button 
+          <button
             className="action-btn secondary"
-            onClick={() => onNavigate('approved-proposals')}
+            onClick={() => onNavigate("approved-proposals")}
           >
             <span className="btn-icon">📋</span>
             Konfirmasi ke Super Admin ({approvedCount})
           </button>
         </div>
       </div>
-      
+
       <div className="recent-activities">
         <h3>Aktivitas Terbaru</h3>
         <div className="activity-list">
           <div className="activity-item">
             <div className="activity-icon">📝</div>
             <div className="activity-content">
-              <p><strong>john_doe</strong> mengajukan usulan "Pelatihan Leadership Management"</p>
+              <p>
+                <strong>john_doe</strong> mengajukan usulan "Pelatihan
+                Leadership Management"
+              </p>
               <small>2 jam yang lalu</small>
             </div>
           </div>
@@ -100,7 +110,9 @@ const AdminDashboardOverview = ({ users, proposals, onNavigate }) => {
           <div className="activity-item">
             <div className="activity-icon">👤</div>
             <div className="activity-content">
-              <p>Pengguna baru <strong>jane_smith</strong> telah didaftarkan</p>
+              <p>
+                Pengguna baru <strong>jane_smith</strong> telah didaftarkan
+              </p>
               <small>3 hari yang lalu</small>
             </div>
           </div>

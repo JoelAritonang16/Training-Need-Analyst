@@ -3,7 +3,7 @@
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  /* Background set inline to support PUBLIC_URL */
   font-family: 'Arial', sans-serif;
   padding: 20px;
   box-sizing: border-box;

@@ -11,6 +11,7 @@ import './SuperadminDashboard.css';
 
 const SuperadminDashboard = ({ user, onLogout }) => {
   const [activeMenu, setActiveMenu] = useState('dashboard');
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [users, setUsers] = useState([
     { id: 1, username: 'john_doe', role: 'user', unit: 'IT Division', email: 'john@pelindo.com', status: 'active', createdAt: '2024-01-01' },
     { id: 2, username: 'jane_smith', role: 'user', unit: 'HR Division', email: 'jane@pelindo.com', status: 'active', createdAt: '2024-01-02' },
@@ -241,6 +242,27 @@ const SuperadminDashboard = ({ user, onLogout }) => {
         onLogout={onLogout}
       />
       <main className="main-content">
+        <div className="topbar">
+          <div className="topbar-spacer" />
+          <div className="user-menu">
+            <button 
+              className="user-button" 
+              onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+              aria-haspopup="true"
+              aria-expanded={isUserMenuOpen}
+            >
+              <span className="user-avatar">{user?.username?.charAt(0)?.toUpperCase() || 'U'}</span>
+              <span className="user-name">{user?.username || 'User'}</span>
+              <span className={`chevron ${isUserMenuOpen ? 'open' : ''}`}>▾</span>
+            </button>
+            {isUserMenuOpen && (
+              <div className="user-dropdown">
+                <button className="dropdown-item" onClick={() => { setActiveMenu('profile'); setIsUserMenuOpen(false); }}>Profile</button>
+                <button className="dropdown-item danger" onClick={onLogout}>Sign out</button>
+              </div>
+            )}
+          </div>
+        </div>
         {renderContent()}
       </main>
     </div>

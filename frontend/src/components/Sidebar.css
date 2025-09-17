@@ -28,6 +28,14 @@
 }
 
 
+/* Actions di sudut kanan atas (collapse + logout) */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+
 .sidebar-brand {
   display: flex;
   align-items: center;
@@ -84,48 +92,16 @@
 }
 
 .sidebar-user {
-  padding: 20px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  display: flex;
-  align-items: center;
-  gap: 15px;
+  display: none;
 }
 
-.user-avatar {
-  width: 40px; /* Disesuaikan agar konsisten */
-  height: 40px;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  font-size: 1.2rem;
-  flex-shrink: 0;
-}
+.user-avatar { display: none; }
 
-.user-info h4 {
-  margin: 0;
-  font-size: 1rem;
-  font-weight: 600;
-  white-space: nowrap;
-}
+.user-info h4 { display: none; }
 
-.user-info p {
-  margin: 2px 0;
-  font-size: 0.85rem;
-  opacity: 0.8;
-  white-space: nowrap;
-}
+.user-info p { display: none; }
 
-.user-unit {
-  background: rgba(255, 255, 255, 0.1);
-  padding: 2px 8px;
-  border-radius: 12px;
-  font-size: 0.75rem !important;
-  display: inline-block;
-  margin-top: 5px !important;
-}
+.user-unit { display: none; }
 
 .sidebar-nav {
   flex: 1;
@@ -189,26 +165,42 @@
 }
 
 .logout-button {
-  width: 100%;
-  padding: 12px 20px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: white;
+  width: 70%;
+  padding: 10px 15px; /* Memberikan padding lebih besar agar tombol lebih lebar */
+  background: rgba(54, 126, 202, 0.8); ; /* Warna latar belakang lebih mencolok */
+  border: #284D90; /* Border lebih jelas */
+  color: white; /* Mengubah teks menjadi putih agar kontras dengan latar belakang */
   border-radius: 8px;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 15px; /* Disesuaikan agar sama dengan menu lain */
+  gap: 15px; /* Jarak antar ikon dan teks */
   justify-content: flex-start; /* Dimulai dari kiri */
-  transition: all 0.3s ease;
-  font-size: 0.95rem;
+  transition: all 0.3s ease; /* Efek transisi saat hover */
+  font-size: 1rem; /* Ukuran font lebih besar agar lebih jelas */
   box-sizing: border-box;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Tambahkan bayangan untuk efek kedalaman */
+}
+
+/* Versi compact khusus yang berada di header */
+.header-actions .logout-button {
+  width: auto;
+  padding: 8px 12px;
+  justify-content: center;
 }
 
 .logout-button:hover {
-  background: rgba(255, 255, 255, 0.2);
-  transform: translateY(-1px);
+  background: #284D90; /* Warna lebih kuat saat hover */
+  border: 1px #ffff; /* Border lebih tegas saat hover */
+  transform: translateY(-2px); /* Efek mengangkat tombol saat hover */
 }
+
+.logout-button:active {
+  background: #284D90; /* Warna solid saat ditekan */
+  transform: translateY(1px); /* Efek menekan tombol */
+}
+
+
 
 /* === TAMBAHAN: Menengahkan logout saat collapsed === */
 .sidebar.collapsed .logout-button {
@@ -231,4 +223,30 @@
 }
 .sidebar-nav::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.5);
+}
+
+.batik-image-container {
+  margin-top: auto; /* Memastikan gambar berada di bawah konten lainnya */
+  padding: 10px;
+  display: flex;
+  justify-content: center;  /* Menyelaraskan gambar ke tengah */
+}
+
+.batik-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;  /* Menyesuaikan gambar tanpa merusak rasio */
+  border-top: 0px solid #ddd;  /* Bisa ditambahkan border di atas gambar */
+}
+
+.batik-background {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 200px;  /* Tentukan tinggi gambar */
+  z-index: -1;  /* Pastikan gambar berada di belakang konten lainnya */
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
