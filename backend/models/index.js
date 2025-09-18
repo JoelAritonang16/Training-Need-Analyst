@@ -1,12 +1,13 @@
-import { Sequelize } from 'sequelize';
-import sequelize from '../db/db.js';
-import UserModel from './User.js';
+import { Sequelize } from "sequelize";
+import sequelize from "../db/db.js";
+import UserModel from "./User.js";
+import TrainingProposalModel from "./TrainingProposal.js";
 
 const db = {};
 
 // Initialize models
 db.User = UserModel(sequelize, Sequelize);
-
+db.TrainingProposalModel = TrainingProposalModel(sequelize, Sequelize);
 // Add sequelize instance
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
@@ -15,9 +16,9 @@ db.Sequelize = Sequelize;
 const syncDatabase = async () => {
   try {
     await sequelize.sync({ alter: true });
-    console.log('Database synced successfully');
+    console.log("Database synced successfully");
   } catch (error) {
-    console.error('Database sync error:', error);
+    console.error("Database sync error:", error);
   }
 };
 
@@ -25,10 +26,10 @@ const syncDatabase = async () => {
 const initDatabase = async () => {
   try {
     await sequelize.authenticate();
-    console.log('Database connection established successfully.');
+    console.log("Database connection established successfully.");
     await syncDatabase();
   } catch (error) {
-    console.error('Database initialization error:', error);
+    console.error("Database initialization error:", error);
   }
 };
 
@@ -36,5 +37,6 @@ db.initDatabase = initDatabase;
 
 // Export individual models for easier importing
 export const User = db.User;
+export const TrainingProposal = db.TrainingProposalModel;
 
 export default db;

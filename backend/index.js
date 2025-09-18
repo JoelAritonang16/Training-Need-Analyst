@@ -6,6 +6,7 @@ import UserRoute from "./routes/users.js";
 import AuthRoute from "./routes/auth.js";
 import db from "./models/index.js";
 import seedUsers from "./seeders/userSeeder.js";
+import TrainingProposalRoute from "./routes/trainingProposal.js";
 
 dotenv.config();
 
@@ -42,6 +43,7 @@ app.use(
 // API Routes
 app.use("/api/users", UserRoute);
 app.use("/api/auth", AuthRoute);
+app.use("/api/training-proposals", TrainingProposalRoute);
 
 // Health check endpoint
 app.get("/api/health", (req, res) => {
@@ -58,7 +60,7 @@ const PORT = process.env.APP_PORT || process.env.SERVER_PORT || 5000;
 const startServer = async () => {
   try {
     await db.initDatabase();
-    
+
     // Seed sample users
     await seedUsers();
 

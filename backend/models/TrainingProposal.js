@@ -10,108 +10,48 @@ const TrainingProposal = (sequelize, Sequelize) => {
         autoIncrement: true,
         allowNull: false,
       },
-      title: {
+      Uraian: {
         type: DataTypes.STRING(255),
         allowNull: false,
         validate: {
           notEmpty: true,
         },
       },
-      description: {
-        type: DataTypes.TEXT,
-        allowNull: false,
-      },
-      trainingType: {
-        type: DataTypes.ENUM('technical', 'soft_skill', 'leadership', 'compliance', 'other'),
-        allowNull: false,
-      },
-      priority: {
-        type: DataTypes.ENUM('low', 'medium', 'high', 'urgent'),
-        allowNull: false,
-        defaultValue: 'medium',
-      },
-      targetParticipants: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        validate: {
-          min: 1,
-        },
-      },
-      estimatedDuration: {
-        type: DataTypes.INTEGER, // in hours
-        allowNull: false,
-        validate: {
-          min: 1,
-        },
-      },
-      proposedDate: {
+      WaktuPelaksanan: {
         type: DataTypes.DATE,
         allowNull: false,
       },
-      budget: {
-        type: DataTypes.DECIMAL(15, 2),
-        allowNull: true,
-      },
-      justification: {
-        type: DataTypes.TEXT,
-        allowNull: false,
-      },
-      expectedOutcome: {
-        type: DataTypes.TEXT,
-        allowNull: false,
-      },
-      status: {
-        type: DataTypes.ENUM('draft', 'submitted', 'under_review', 'approved', 'rejected', 'completed'),
-        allowNull: false,
-        defaultValue: 'draft',
-      },
-      unit: {
-        type: DataTypes.STRING(100),
-        allowNull: false,
-      },
-      department: {
-        type: DataTypes.STRING(100),
-        allowNull: false,
-      },
-      proposerId: {
+      JumlahPeserta: {
         type: DataTypes.INTEGER,
         allowNull: false,
-        references: {
-          model: 'users',
-          key: 'id',
-        },
       },
-      reviewerId: {
+      JumlahHariPesertaPelatihan: {
         type: DataTypes.INTEGER,
-        allowNull: true,
-        references: {
-          model: 'users',
-          key: 'id',
-        },
+        allowNull: false,
       },
-      approverId: {
-        type: DataTypes.INTEGER,
-        allowNull: true,
-        references: {
-          model: 'users',
-          key: 'id',
-        },
+      LevelTingkatan: {
+        type: DataTypes.ENUM("STRUKTURAL", "NON STRUKTURAL"), // in hours
+        allowNull: false,
       },
-      reviewNotes: {
-        type: DataTypes.TEXT,
-        allowNull: true,
+      Beban: {
+        type: DataTypes.FLOAT,
+        allowNull: false,
       },
-      approvalNotes: {
-        type: DataTypes.TEXT,
-        allowNull: true,
+      BebanTranportasi: {
+        type: DataTypes.FLOAT,
+        allowNull: false,
       },
-      reviewDate: {
-        type: DataTypes.DATE,
-        allowNull: true,
+      BebanAkomodasi: {
+        type: DataTypes.FLOAT,
+        allowNull: false,
       },
-      approvalDate: {
-        type: DataTypes.DATE,
-        allowNull: true,
+      BebanUangSaku: {
+        type: DataTypes.FLOAT,
+        allowNull: false,
+      },
+      TotalUsulan: {
+        type: DataTypes.FLOAT,
+        allowNull: false,
       },
     },
     {
@@ -119,23 +59,6 @@ const TrainingProposal = (sequelize, Sequelize) => {
       timestamps: true,
       createdAt: "created_at",
       updatedAt: "updated_at",
-      indexes: [
-        {
-          fields: ["proposerId"],
-        },
-        {
-          fields: ["status"],
-        },
-        {
-          fields: ["unit"],
-        },
-        {
-          fields: ["department"],
-        },
-        {
-          fields: ["trainingType"],
-        },
-      ],
     }
   );
 
