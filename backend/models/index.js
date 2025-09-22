@@ -7,7 +7,7 @@ const db = {};
 
 // Initialize models
 db.User = UserModel(sequelize, Sequelize);
-db.TrainingProposalModel = TrainingProposalModel(sequelize, Sequelize);
+db.TrainingProposal = TrainingProposalModel(sequelize, Sequelize);
 // Add sequelize instance
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
@@ -37,6 +37,6 @@ db.initDatabase = initDatabase;
 
 // Export individual models for easier importing
 export const User = db.User;
-export const TrainingProposal = db.TrainingProposalModel;
+export const TrainingProposal = db.TrainingProposal;
 
 export default db;

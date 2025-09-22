@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import ConfirmModal from "./components/ConfirmModal.jsx";
-import Login from "./components/Login";
-import AdminDashboard from "./components/dashboards/AdminDashboard.jsx";
-import SuperadminDashboard from "./components/dashboards/SuperadminDashboard.jsx";
-import UserDashboard from "./components/dashboards/UserDashboard.jsx";
+import Login from "./components/Login.jsx";
+import AdminDashboard from "./pages/admin/AdminDashboard.jsx";
+import SuperadminDashboard from "./pages/superadmin/SuperadminDashboard.jsx";
+import UserDashboardWrapper from "./components/UserDashboardWrapper.jsx";
+import { DatabaseDataProvider } from "./components/DatabaseDataProvider.jsx";
 import "./App.css";
 
 function App() {
@@ -18,13 +19,18 @@ function App() {
 
   const checkAuth = async () => {
     try {
+      console.log('=== CHECKING AUTH ===');
       const token = localStorage.getItem('token');
+      console.log('Token in localStorage:', token ? 'exists' : 'not found');
+      
       if (!token) {
+        console.log('No token found, user not authenticated');
         setUser(null);
         setLoading(false);
         return;
       }
 
+      console.log('Checking auth with token:', token);
       const response = await fetch('http://localhost:5000/api/auth/check', {
         method: 'GET',
         headers: {
@@ -34,36 +40,56 @@ function App() {
         credentials: 'include'
       });
       
+      console.log('Auth check response status:', response.status);
+      
       if (response.ok) {
         const data = await response.json();
+        console.log('Auth check response data:', data);
+        
         if (data.success) {
+          console.log('✅ User authenticated:', data.user.username);
           setUser(data.user);
         } else {
+          console.log('❌ Auth check failed, clearing token');
           localStorage.removeItem('token');
+          localStorage.removeItem('user');
           setUser(null);
         }
       } else {
+        console.log('❌ Auth check failed with status:', response.status);
         localStorage.removeItem('token');
+        localStorage.removeItem('user');
         setUser(null);
       }
     } catch (error) {
-      console.error('Auth check error:', error);
+      console.error('❌ Auth check error:', error);
       localStorage.removeItem('token');
+      localStorage.removeItem('user');
       setUser(null);
     } finally {
       setLoading(false);
+      console.log('=== AUTH CHECK END ===');
     }
   };
 
-  const handleLogin = (userData, token) => { 
+  const handleLoginSuccess = (userData, token) => { 
+    console.log('=== LOGIN SUCCESS HANDLER ===');
+    console.log('User data:', userData);
+    console.log('Token:', token);
+    
     if (token) {
       localStorage.setItem('token', token);
+      console.log('Token stored in localStorage');
     }
-    setUser(userData); 
+    
+    setUser(userData);
+    console.log('User state updated');
+    console.log('=== LOGIN SUCCESS HANDLER END ===');
   };
   
   const actuallyLogout = async () => {
     try {
+      console.log('=== LOGOUT ===');
       const token = localStorage.getItem('token');
       if (token) {
         await fetch('http://localhost:5000/api/auth/logout', {
@@ -79,8 +105,10 @@ function App() {
       console.error('Logout error:', error);
     } finally {
       localStorage.removeItem('token');
+      localStorage.removeItem('user');
       setUser(null);
       setShowLogoutConfirm(false);
+      console.log('=== LOGOUT END ===');
     }
   };
 
@@ -90,9 +118,11 @@ function App() {
 
   const renderDashboard = () => {
     const role = (user?.role || '').toLowerCase();
+    console.log('Rendering dashboard for role:', role);
+    
     if (role === 'admin') return <AdminDashboard user={user} onLogout={handleLogout} />;
     if (role === 'superadmin') return <SuperadminDashboard user={user} onLogout={handleLogout} />;
-    return <UserDashboard user={user} onLogout={handleLogout} />;
+    return <UserDashboardWrapper user={user} onLogout={handleLogout} />;
   };
 
   if (loading) {
@@ -111,18 +141,19 @@ function App() {
 
   return (
     <div className="App">
-      {user ? renderDashboard() : (
-        <Login onLoginSuccess={handleLogin} />
-      )}
-      <ConfirmModal
-        open={showLogoutConfirm}
-        
-        message="Anda yakin ingin keluar dari sistem?"
-        confirmText="Logout"
-        cancelText="Batal"
-        onConfirm={actuallyLogout}
-        onCancel={() => setShowLogoutConfirm(false)}
-      />
+      <DatabaseDataProvider>
+        {user ? renderDashboard() : (
+          <Login onLoginSuccess={handleLoginSuccess} />
+        )}
+        <ConfirmModal
+          open={showLogoutConfirm}
+          message="Anda yakin ingin keluar dari sistem?"
+          confirmText="Logout"
+          cancelText="Batal"
+          onConfirm={actuallyLogout}
+          onCancel={() => setShowLogoutConfirm(false)}
+        />
+      </DatabaseDataProvider>
     </div>
   );
 }

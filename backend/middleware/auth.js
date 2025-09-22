@@ -24,16 +24,40 @@ const auth = {
       const authHeader = req.headers.authorization;
       if (authHeader && authHeader.startsWith('Bearer ')) {
         const token = authHeader.substring(7);
-        const userId = req.headers['x-user-id'];
         
-        if (userId) {
-          const user = await User.findByPk(userId);
+        // Try to decode token to get user info (simple approach)
+        // For now, we'll use a simple token validation
+        // In production, you should use JWT or similar
+        try {
+          // Simple token validation - in real app, decode JWT here
+          const userId = req.headers['x-user-id'];
           
-          if (user) {
-            req.user = user;
-            console.log('Auth middleware - User authenticated via token:', user.username);
-            return next();
+          if (userId) {
+            const user = await User.findByPk(userId);
+            
+            if (user) {
+              req.user = user;
+              console.log('Auth middleware - User authenticated via token:', user.username);
+              return next();
+            }
           }
+          
+          // If no X-User-Id header, try to extract user ID from token format
+          // Token format: token_${userId}_${timestamp}
+          if (token.startsWith('token_')) {
+            const parts = token.split('_');
+            if (parts.length >= 2) {
+              const userId = parts[1];
+              const user = await User.findByPk(userId);
+              if (user) {
+                req.user = user;
+                console.log('Auth middleware - User authenticated via token (extracted ID):', user.username);
+                return next();
+              }
+            }
+          }
+        } catch (error) {
+          console.log('Token validation error:', error);
         }
       }
       

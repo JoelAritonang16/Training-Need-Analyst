@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import './Login.css';
 
-const Login = ({ onLogin }) => {
+const Login = ({ onLoginSuccess }) => {
   const [formData, setFormData] = useState({
     username: '',
     password: ''
@@ -14,6 +14,11 @@ const Login = ({ onLogin }) => {
       ...formData,
       [e.target.name]: e.target.value
     });
+    
+    // Clear error when user starts typing
+    if (error) {
+      setError('');
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -22,7 +27,8 @@ const Login = ({ onLogin }) => {
     setError('');
 
     try {
-      console.log('Attempting login with:', formData);
+      console.log('=== LOGIN ATTEMPT ===');
+      console.log('Attempting login with:', { username: formData.username, password: '***' });
       
       const response = await fetch('http://localhost:5000/api/auth/login', {
         method: 'POST',
@@ -33,27 +39,37 @@ const Login = ({ onLogin }) => {
         body: JSON.stringify(formData)
       });
 
-      console.log('Response status:', response.status);
+      console.log('Login response status:', response.status);
       const data = await response.json();
-      console.log('Response data:', data);
+      console.log('Login response data:', data);
 
       if (data.success) {
-        console.log('Login successful, user data:', data.user);
-        // Pass user data to parent component
-        onLogin({
+        console.log('✅ Login successful');
+        console.log('User data:', data.user);
+        console.log('Token received:', data.token);
+        
+        // Store token in localStorage
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        
+        console.log('Token stored in localStorage:', localStorage.getItem('token'));
+        
+        // Pass user data and token to parent component
+        onLoginSuccess({
           id: data.user.id,
           username: data.user.username,
           role: data.user.role
-        });
+        }, data.token);
       } else {
-        console.log('Login failed:', data.message);
+        console.log('❌ Login failed:', data.message);
         setError(data.message || 'Login gagal');
       }
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('❌ Login error:', error);
       setError(`Terjadi kesalahan saat login: ${error.message}`);
     } finally {
       setLoading(false);
+      console.log('=== LOGIN ATTEMPT END ===');
     }
   };
 
@@ -86,6 +102,7 @@ const Login = ({ onLogin }) => {
               onChange={handleChange}
               required
               placeholder="Masukkan username"
+              disabled={loading}
             />
           </div>
 
@@ -99,6 +116,7 @@ const Login = ({ onLogin }) => {
               onChange={handleChange}
               required
               placeholder="Masukkan password"
+              disabled={loading}
             />
           </div>
 

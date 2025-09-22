@@ -37,7 +37,7 @@ const TrainingProposal = (sequelize, Sequelize) => {
         type: DataTypes.FLOAT,
         allowNull: false,
       },
-      BebanTranportasi: {
+      BebanTransportasi: {
         type: DataTypes.FLOAT,
         allowNull: false,
       },
@@ -52,6 +52,24 @@ const TrainingProposal = (sequelize, Sequelize) => {
       TotalUsulan: {
         type: DataTypes.FLOAT,
         allowNull: false,
+      },
+      userId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+          model: 'users',
+          key: 'id'
+        }
+      },
+      status: {
+        type: DataTypes.ENUM('MENUNGGU', 'APPROVE_ADMIN', 'APPROVE_SUPERADMIN', 'DITOLAK'),
+        allowNull: false,
+        defaultValue: 'MENUNGGU'
+      },
+      alasan: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+        comment: 'Alasan penolakan dari admin atau superadmin'
       },
     },
     {

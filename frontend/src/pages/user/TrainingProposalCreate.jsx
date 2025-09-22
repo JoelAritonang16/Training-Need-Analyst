@@ -1,5 +1,5 @@
 import React from 'react';
-import TrainingProposalForm from '../../components/TrainingProposalForm';
+import TrainingProposalForm from './TrainingProposalForm';
 import './TrainingProposalCreate.css';
 
 const TrainingProposalCreate = () => {

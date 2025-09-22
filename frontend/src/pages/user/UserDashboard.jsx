@@ -1,18 +1,17 @@
 import React, { useState } from 'react';
-import Sidebar from '../Sidebar.jsx';
-import DashboardOverview from '../../pages/user/DashboardOverview.jsx';
-import TrainingProposalList from '../../pages/user/TrainingProposalList.jsx';
-import TrainingProposalCreate from '../../pages/user/TrainingProposalCreate.jsx';
-import TrainingProposalEdit from '../../pages/user/TrainingProposalEdit.jsx';
-import TrainingProposalDetail from '../../pages/user/TrainingProposalDetail.jsx';
-import UserProfile from '../../pages/user/UserProfile.jsx';
+import Sidebar from '../../components/Sidebar.jsx';
+import DashboardOverview from './DashboardOverview.jsx';
+import TrainingProposalList from './TrainingProposalList.jsx';
+import TrainingProposalCreate from './TrainingProposalCreate.jsx';
+import TrainingProposalEdit from './TrainingProposalEdit.jsx';
+import TrainingProposalDetail from './TrainingProposalDetail.jsx';
+import UserProfile from './UserProfile.jsx';
 import './UserDashboard.css';
 
-const UserDashboard = ({ user, onLogout }) => {
+const UserDashboard = ({ user, onLogout, proposals = [] }) => {
   const [activeMenu, setActiveMenu] = useState('dashboard');
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [selectedProposalId, setSelectedProposalId] = useState(null);
-  const [proposals, setProposals] = useState([]);
 
   const handleMenuChange = (menuId) => {
     setActiveMenu(menuId);

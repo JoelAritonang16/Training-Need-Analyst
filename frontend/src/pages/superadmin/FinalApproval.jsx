@@ -2,7 +2,7 @@ import React from 'react';
 import './FinalApproval.css';
 
 const FinalApproval = ({ proposals, onFinalApprove, onFinalReject, onViewDetail }) => {
-  const waitingFinalApproval = proposals.filter(p => p.status === 'WAITING_SUPERADMIN_APPROVAL');
+  const waitingFinalApproval = proposals.filter(p => p.status === 'APPROVE_ADMIN');
 
   return (
     <div className="proposals-container">
@@ -17,19 +17,18 @@ const FinalApproval = ({ proposals, onFinalApprove, onFinalReject, onViewDetail 
         {waitingFinalApproval.map(proposal => (
           <div key={proposal.id} className="proposal-card final-approval">
             <div className="proposal-header">
-              <h3>{proposal.uraian}</h3>
+              <h3>{proposal.Uraian}</h3>
               <span className="status-badge waiting">
-                MENUNGGU PERSETUJUAN AKHIR
+                MENUNGGU PERSETUJUAN FINAL
               </span>
             </div>
             <div className="proposal-details">
-              <p><strong>Pengaju:</strong> {proposal.pengaju}</p>
-              <p><strong>Unit/Divisi:</strong> {proposal.unit}</p>
-              <p><strong>Waktu Pelaksanaan:</strong> {proposal.waktuPelaksanaan}</p>
-              <p><strong>Level:</strong> {proposal.level}</p>
-              <p><strong>Jumlah Peserta:</strong> {proposal.jumlahPeserta} orang</p>
-              <p><strong>Total Biaya:</strong> Rp {proposal.totalBiaya.toLocaleString('id-ID')}</p>
-              <p><strong>Tanggal Pengajuan:</strong> {new Date(proposal.tanggalPengajuan).toLocaleDateString('id-ID')}</p>
+              <p><strong>Pengaju:</strong> User ID {proposal.userId}</p>
+              <p><strong>Waktu Pelaksanaan:</strong> {new Date(proposal.WaktuPelaksanan).toLocaleDateString('id-ID')}</p>
+              <p><strong>Level:</strong> {proposal.LevelTingkatan}</p>
+              <p><strong>Jumlah Peserta:</strong> {proposal.JumlahPeserta} orang</p>
+              <p><strong>Total Biaya:</strong> Rp {proposal.TotalUsulan.toLocaleString('id-ID')}</p>
+              <p><strong>Tanggal Pengajuan:</strong> {new Date(proposal.created_at).toLocaleDateString('id-ID')}</p>
             </div>
             <div className="proposal-actions">
               <button 

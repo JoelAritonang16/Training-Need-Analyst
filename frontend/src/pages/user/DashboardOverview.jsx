@@ -1,92 +1,49 @@
 import React from 'react';
-import './DashboardOverview.css';
 
-const DashboardOverview = ({ user, proposals = [], onNavigate }) => {
-  const approvedCount = proposals.filter(p => p.status === 'APPROVED').length;
-  const pendingCount = proposals.filter(p => p.status === 'PENDING').length;
-  const totalBudget = proposals.reduce((sum, p) => sum + (p.TotalUsulan || 0), 0);
+const DashboardOverview = ({ user, proposals, onNavigate }) => {
+  const totalProposals = proposals ? proposals.length : 0;
+  const pendingProposals = proposals ? proposals.filter(p => p.status === 'PENDING').length : 0;
+  const approvedProposals = proposals ? proposals.filter(p => p.status === 'APPROVED').length : 0;
 
   return (
     <div className="dashboard-overview">
-      <div className="content-header">
-        <h1>Dashboard User</h1>
-        <p>Selamat datang di Sistem Manajemen Pelatihan PT Pelindo!</p>
+      <div className="overview-header">
+        <h1>Dashboard Overview</h1>
+        <p>Selamat datang, {user?.username || 'User'}!</p>
       </div>
-      
+
       <div className="stats-grid">
         <div className="stat-card">
-          <div className="stat-icon">📝</div>
-          <div className="stat-content">
-            <h3>{proposals.length}</h3>
-            <p>Total Usulan</p>
-          </div>
+          <h3>Total Usulan</h3>
+          <div className="stat-number">{totalProposals}</div>
         </div>
         
         <div className="stat-card">
-          <div className="stat-icon">✅</div>
-          <div className="stat-content">
-            <h3>{approvedCount}</h3>
-            <p>Disetujui</p>
-          </div>
+          <h3>Menunggu Persetujuan</h3>
+          <div className="stat-number">{pendingProposals}</div>
         </div>
         
         <div className="stat-card">
-          <div className="stat-icon">⏳</div>
-          <div className="stat-content">
-            <h3>{pendingCount}</h3>
-            <p>Menunggu Persetujuan</p>
-          </div>
-        </div>
-        
-        <div className="stat-card">
-          <div className="stat-icon">💰</div>
-          <div className="stat-content">
-            <h3>Rp {totalBudget.toLocaleString('id-ID')}</h3>
-            <p>Total Anggaran</p>
-          </div>
+          <h3>Disetujui</h3>
+          <div className="stat-number">{approvedProposals}</div>
         </div>
       </div>
-      
+
       <div className="quick-actions">
-        <h3>Aksi Cepat</h3>
+        <h3>Quick Actions</h3>
         <div className="action-buttons">
           <button 
-            className="action-btn primary"
-            onClick={() => onNavigate('proposal-form')}
+            className="btn-primary"
+            onClick={() => onNavigate('create')}
           >
-            <span className="btn-icon">📝</span>
-            Ajukan Pelatihan Baru
+            Buat Usulan Baru
           </button>
           <button 
-            className="action-btn secondary"
-            onClick={() => onNavigate('my-proposals')}
+            className="btn-secondary"
+            onClick={() => onNavigate('list')}
           >
-            <span className="btn-icon">📋</span>
-            Lihat Usulan Saya
+            Lihat Daftar Usulan
           </button>
-        </div>
-      </div>
-      
-      <div className="recent-proposals">
-        <h3>Usulan Terbaru</h3>
-        <div className="recent-list">
-          {proposals.length > 0 ? (
-            proposals.slice(0, 3).map(proposal => (
-              <div key={proposal.id} className="recent-item">
-                <div className="recent-info">
-                  <h4>{proposal.Uraian || proposal.uraian || 'Uraian Tidak Tersedia'}</h4>
-                  <p>{proposal.WaktuPelaksanan || proposal.waktuPelaksanaan || 'Tanggal Tidak Tersedia'}</p>
-                </div>
-                <span className={`status-badge ${(proposal.status || 'PENDING').toLowerCase()}`}>
-                  {proposal.status || 'PENDING'}
-                </span>
-              </div>
-            ))
-          ) : (
-            <div className="no-data">
-              <p>Belum ada usulan pelatihan</p>
-            </div>
-          )}
         </div>
       </div>
     </div>

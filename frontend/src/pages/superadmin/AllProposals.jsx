@@ -7,18 +7,18 @@ const AllProposals = ({ proposals, onFinalApprove, onFinalReject, onViewDetail, 
 
   const filteredProposals = proposals.filter(proposal => {
     const statusMatch = statusFilter === 'all' || 
-      (statusFilter === 'pending' && proposal.status === 'PENDING') ||
-      (statusFilter === 'approved' && proposal.status === 'APPROVED_BY_ADMIN') ||
-      (statusFilter === 'waiting' && proposal.status === 'WAITING_SUPERADMIN_APPROVAL') ||
-      (statusFilter === 'final_approved' && proposal.status === 'FINAL_APPROVED') ||
-      (statusFilter === 'rejected' && (proposal.status === 'REJECTED' || proposal.status === 'FINAL_REJECTED'));
+      (statusFilter === 'pending' && proposal.status === 'MENUNGGU') ||
+      (statusFilter === 'approved' && proposal.status === 'APPROVE_ADMIN') ||
+      (statusFilter === 'waiting' && proposal.status === 'APPROVE_ADMIN') ||
+      (statusFilter === 'final_approved' && proposal.status === 'APPROVE_SUPERADMIN') ||
+      (statusFilter === 'rejected' && proposal.status === 'DITOLAK');
     
-    const unitMatch = unitFilter === 'all' || proposal.unit === unitFilter;
+    const unitMatch = unitFilter === 'all' || proposal.LevelTingkatan === unitFilter;
     
     return statusMatch && unitMatch;
   });
 
-  const uniqueUnits = [...new Set(proposals.map(p => p.unit))];
+  const uniqueUnits = [...new Set(proposals.map(p => p.LevelTingkatan))];
 
   return (
     <div className="proposals-container">
@@ -58,17 +58,17 @@ const AllProposals = ({ proposals, onFinalApprove, onFinalReject, onViewDetail, 
         {filteredProposals.map(proposal => (
           <div key={proposal.id} className="proposal-card">
             <div className="proposal-header">
-              <h3>{proposal.uraian}</h3>
+              <h3>{proposal.Uraian}</h3>
               <span className={`status-badge ${proposal.status.toLowerCase().replace(/_/g, '-')}`}>
                 {proposal.status.replace(/_/g, ' ')}
               </span>
             </div>
             <div className="proposal-details">
-              <p><strong>Pengaju:</strong> {proposal.pengaju}</p>
-              <p><strong>Unit/Divisi:</strong> {proposal.unit}</p>
-              <p><strong>Waktu Pelaksanaan:</strong> {proposal.waktuPelaksanaan}</p>
-              <p><strong>Level:</strong> {proposal.level}</p>
-              <p><strong>Total Biaya:</strong> Rp {proposal.totalBiaya.toLocaleString('id-ID')}</p>
+              <p><strong>Pengaju:</strong> User ID {proposal.userId}</p>
+              <p><strong>Waktu Pelaksanaan:</strong> {new Date(proposal.WaktuPelaksanan).toLocaleDateString('id-ID')}</p>
+              <p><strong>Level:</strong> {proposal.LevelTingkatan}</p>
+              <p><strong>Jumlah Peserta:</strong> {proposal.JumlahPeserta} orang</p>
+              <p><strong>Total Biaya:</strong> Rp {proposal.TotalUsulan?.toLocaleString('id-ID') || '0'}</p>
             </div>
             <div className="proposal-actions">
               <button 

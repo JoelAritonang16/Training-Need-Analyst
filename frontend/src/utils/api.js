@@ -4,6 +4,8 @@ const API_BASE_URL = process.env.NODE_ENV === 'development' ? 'http://localhost:
 // Get auth headers
 const getAuthHeaders = () => {
   const token = localStorage.getItem('token');
+  console.log('Getting auth headers, token:', token ? 'exists' : 'not found');
+  
   return {
     'Content-Type': 'application/json',
     ...(token && { 'Authorization': `Bearer ${token}` })
@@ -19,14 +21,27 @@ export const apiCall = async (endpoint, options = {}) => {
     ...options
   };
 
+  console.log('Making API call to:', url);
+  console.log('Request config:', {
+    method: config.method || 'GET',
+    headers: config.headers,
+    hasBody: !!config.body
+  });
+
   try {
     const response = await fetch(url, config);
     
+    console.log('Response received:', {
+      status: response.status,
+      statusText: response.statusText,
+      ok: response.ok
+    });
+    
     // Handle 401 Unauthorized
     if (response.status === 401) {
+      console.log('401 Unauthorized - clearing token');
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      window.location.reload(); // Reload to show login page
       throw new Error('Session expired. Please login again.');
     }
 
@@ -36,15 +51,18 @@ export const apiCall = async (endpoint, options = {}) => {
       try {
         const errorData = await response.json();
         errorMessage = errorData.message || errorData.error || errorMessage;
+        console.log('Error response data:', errorData);
       } catch (parseError) {
-        // If response is not JSON, use status text
+        console.log('Could not parse error response as JSON');
         errorMessage = response.statusText || errorMessage;
       }
       
       throw new Error(errorMessage);
     }
 
-    return await response.json();
+    const responseData = await response.json();
+    console.log('Response data:', responseData);
+    return responseData;
   } catch (error) {
     console.error('API call error:', error);
     throw error;
@@ -73,21 +91,28 @@ export const authAPI = {
 
 export const trainingProposalAPI = {
   getAll: async () => {
+    console.log('Fetching all proposals...');
     return apiCall('/api/training-proposals');
   },
   
   getById: async (id) => {
+    console.log('Fetching proposal by ID:', id);
     return apiCall(`/api/training-proposals/${id}`);
   },
   
   create: async (data) => {
-    return apiCall('/api/training-proposals', {
+    console.log('Creating new proposal with data:', data);
+    console.log('Data being sent to API:', JSON.stringify(data, null, 2));
+    const result = await apiCall('/api/training-proposals', {
       method: 'POST',
       body: JSON.stringify(data)
     });
+    console.log('API create result:', result);
+    return result;
   },
   
   update: async (id, data) => {
+    console.log('Updating proposal:', id, 'with data:', data);
     return apiCall(`/api/training-proposals/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data)
@@ -95,6 +120,7 @@ export const trainingProposalAPI = {
   },
   
   delete: async (id) => {
+    console.log('Deleting proposal:', id);
     return apiCall(`/api/training-proposals/${id}`, {
       method: 'DELETE'
     });

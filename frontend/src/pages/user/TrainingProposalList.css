@@ -121,6 +121,18 @@
   box-shadow: 0 2px 8px rgba(253, 121, 168, 0.3);
 }
 
+.status-badge.approved-admin {
+  background: linear-gradient(135deg, #00b894 0%, #00a085 100%);
+  color: white;
+  box-shadow: 0 2px 8px rgba(0, 184, 148, 0.3);
+}
+
+.status-badge.approved-superadmin {
+  background: linear-gradient(135deg, #6c5ce7 0%, #5f3dc4 100%);
+  color: white;
+  box-shadow: 0 2px 8px rgba(108, 92, 231, 0.3);
+}
+
 
 .proposal-details {
   margin-bottom: 25px;

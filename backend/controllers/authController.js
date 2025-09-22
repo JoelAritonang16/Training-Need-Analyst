@@ -125,32 +125,61 @@ const authController = {
   // Check authentication status
   async checkAuth(req, res) {
     try {
-      if (!req.session || !req.session.user) {
-        return res.status(401).json({
-          success: false,
-          message: "User tidak terautentikasi"
+      console.log('CheckAuth - Session:', req.session);
+      console.log('CheckAuth - Headers:', req.headers);
+      
+      // First try session-based authentication
+      if (req.session && req.session.user) {
+        const user = await User.findByPk(req.session.user.id, {
+          attributes: ['id', 'username', 'role', 'created_at']
         });
-      }
 
-      const user = await User.findByPk(req.session.user.id, {
-        attributes: ['id', 'username', 'role', 'created_at']
-      });
-
-      if (!user) {
-        return res.status(404).json({
-          success: false,
-          message: "User tidak ditemukan"
-        });
-      }
-
-      res.json({
-        success: true,
-        user: {
-          id: user.id,
-          username: user.username,
-          role: user.role || 'user',
-          created_at: user.created_at
+        if (user) {
+          return res.json({
+            success: true,
+            user: {
+              id: user.id,
+              username: user.username,
+              role: user.role || 'user',
+              created_at: user.created_at
+            }
+          });
         }
+      }
+      
+      // Then try token-based authentication
+      const authHeader = req.headers.authorization;
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        const token = authHeader.substring(7);
+        console.log('CheckAuth - Token:', token);
+        
+        // Extract user ID from token format: token_${userId}_${timestamp}
+        if (token.startsWith('token_')) {
+          const parts = token.split('_');
+          if (parts.length >= 2) {
+            const userId = parts[1];
+            const user = await User.findByPk(userId, {
+              attributes: ['id', 'username', 'role', 'created_at']
+            });
+            
+            if (user) {
+              return res.json({
+                success: true,
+                user: {
+                  id: user.id,
+                  username: user.username,
+                  role: user.role || 'user',
+                  created_at: user.created_at
+                }
+              });
+            }
+          }
+        }
+      }
+      
+      return res.status(401).json({
+        success: false,
+        message: "User tidak terautentikasi"
       });
 
     } catch (error) {

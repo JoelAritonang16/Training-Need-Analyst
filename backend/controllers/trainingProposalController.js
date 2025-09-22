@@ -35,6 +35,11 @@ const trainingProposalController = {
   // Create new proposal
   async createProposal(req, res) {
     try {
+      console.log('=== CREATE PROPOSAL DEBUG ===');
+      console.log('Request body:', req.body);
+      console.log('Request user:', req.user);
+      console.log('Request headers:', req.headers);
+      
       const {
         Uraian,
         WaktuPelaksanan,
@@ -42,7 +47,7 @@ const trainingProposalController = {
         JumlahHariPesertaPelatihan,
         LevelTingkatan,
         Beban,
-        BebanTranportasi,
+        BebanTransportasi,
         BebanAkomodasi,
         BebanUangSaku,
         TotalUsulan,
@@ -50,6 +55,7 @@ const trainingProposalController = {
 
       // Asumsi id user pembuat didapat dari middleware otentikasi
       const { id: userId } = req.user;
+      console.log('User ID from auth:', userId);
 
       // Validasi input
       if (!Uraian || !WaktuPelaksanan || !JumlahPeserta || !LevelTingkatan) {
@@ -60,10 +66,25 @@ const trainingProposalController = {
       }
 
       // Buat proposal baru
-      const newProposal = await TrainingProposal.create({
-        ...req.body,
-        userId, // Tambahkan userId ke data yang akan dibuat
-      });
+      const proposalData = {
+        Uraian,
+        WaktuPelaksanan,
+        JumlahPeserta,
+        JumlahHariPesertaPelatihan,
+        LevelTingkatan,
+        Beban,
+        BebanTransportasi,
+        BebanAkomodasi,
+        BebanUangSaku,
+        TotalUsulan,
+        userId
+      };
+      
+      console.log('Data yang akan disimpan:', proposalData);
+      
+      const newProposal = await TrainingProposal.create(proposalData);
+      
+      console.log('Proposal berhasil dibuat:', newProposal);
 
       res.status(201).json({
         success: true,
@@ -197,6 +218,91 @@ const trainingProposalController = {
       res.status(500).json({
         success: false,
         message: "Gagal memuat data usulan training",
+      });
+    }
+  },
+
+  // Update proposal status (for admin/superadmin)
+  async updateProposalStatus(req, res) {
+    try {
+      const proposalId = req.params.id;
+      const { status, alasan } = req.body;
+      const { id: currentUserId, role: currentUserRole } = req.user;
+
+      console.log('=== UPDATE PROPOSAL STATUS ===');
+      console.log('Proposal ID:', proposalId);
+      console.log('New Status:', status);
+      console.log('Reason:', alasan);
+      console.log('Current User:', currentUserId, currentUserRole);
+
+      // Validasi status
+      const validStatuses = ['MENUNGGU', 'APPROVE_ADMIN', 'APPROVE_SUPERADMIN', 'DITOLAK'];
+      if (!validStatuses.includes(status)) {
+        return res.status(400).json({
+          success: false,
+          message: "Status tidak valid",
+        });
+      }
+
+      // Cek apakah proposal ada
+      const proposal = await TrainingProposal.findByPk(proposalId);
+      if (!proposal) {
+        return res.status(404).json({
+          success: false,
+          message: "Usulan training tidak ditemukan",
+        });
+      }
+
+      // Validasi hak akses berdasarkan role dan status
+      if (currentUserRole === 'user') {
+        return res.status(403).json({
+          success: false,
+          message: "User tidak memiliki akses untuk mengubah status proposal",
+        });
+      }
+
+      // Admin hanya bisa approve atau reject (tidak bisa approve superadmin)
+      if (currentUserRole === 'admin') {
+        if (status === 'APPROVE_SUPERADMIN') {
+          return res.status(403).json({
+            success: false,
+            message: "Admin tidak dapat memberikan approval superadmin",
+          });
+        }
+      }
+
+      // Superadmin bisa melakukan semua perubahan status
+      // Jika status DITOLAK, wajib ada alasan
+      if (status === 'DITOLAK' && (!alasan || alasan.trim() === '')) {
+        return res.status(400).json({
+          success: false,
+          message: "Alasan penolakan harus diisi",
+        });
+      }
+
+      // Update proposal
+      const updateData = { status };
+      if (status === 'DITOLAK') {
+        updateData.alasan = alasan.trim();
+      } else {
+        updateData.alasan = null; // Clear reason if not rejected
+      }
+
+      await proposal.update(updateData);
+
+      console.log('Proposal status updated successfully');
+
+      res.json({
+        success: true,
+        message: `Status proposal berhasil diubah menjadi ${status}`,
+        proposal: proposal,
+      });
+
+    } catch (error) {
+      console.error("Update proposal status error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Gagal mengubah status proposal",
       });
     }
   },

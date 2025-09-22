@@ -2,7 +2,7 @@ import React from 'react';
 import './ApprovedProposals.css';
 
 const ApprovedProposals = ({ proposals, onConfirmToSuperAdmin, onViewDetail }) => {
-  const approvedProposals = proposals.filter(p => p.status === 'APPROVED_BY_ADMIN');
+  const approvedProposals = proposals.filter(p => p.status === 'APPROVE_ADMIN');
 
   return (
     <div className="proposals-container">
@@ -15,16 +15,17 @@ const ApprovedProposals = ({ proposals, onConfirmToSuperAdmin, onViewDetail }) =
         {approvedProposals.map(proposal => (
           <div key={proposal.id} className="proposal-card">
             <div className="proposal-header">
-              <h3>{proposal.uraian}</h3>
+              <h3>{proposal.Uraian}</h3>
               <span className="status-badge approved">
-                DISETUJUI
+                DISETUJUI ADMIN
               </span>
             </div>
             <div className="proposal-details">
-              <p><strong>Pengaju:</strong> {proposal.pengaju}</p>
-              <p><strong>Unit/Divisi:</strong> {proposal.unit}</p>
-              <p><strong>Waktu Pelaksanaan:</strong> {proposal.waktuPelaksanaan}</p>
-              <p><strong>Total Biaya:</strong> Rp {proposal.totalBiaya.toLocaleString('id-ID')}</p>
+              <p><strong>Pengaju:</strong> User ID {proposal.userId}</p>
+              <p><strong>Waktu Pelaksanaan:</strong> {new Date(proposal.WaktuPelaksanan).toLocaleDateString('id-ID')}</p>
+              <p><strong>Jumlah Peserta:</strong> {proposal.JumlahPeserta} orang</p>
+              <p><strong>Level Tingkatan:</strong> {proposal.LevelTingkatan}</p>
+              <p><strong>Total Biaya:</strong> Rp {proposal.TotalUsulan.toLocaleString('id-ID')}</p>
             </div>
             <div className="proposal-actions">
               <button 

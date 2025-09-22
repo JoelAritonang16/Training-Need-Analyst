@@ -29,4 +29,9 @@ router.get(
   auth.isAuthenticated,
   trainingProposalController.getProposalById
 );
+router.patch(
+  "/:id/status",
+  auth.isAuthenticated,
+  trainingProposalController.updateProposalStatus
+);
 export default router;

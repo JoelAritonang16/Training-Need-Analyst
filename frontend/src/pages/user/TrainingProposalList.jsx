@@ -1,78 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useDatabaseData } from '../../components/DatabaseDataProvider';
 import { trainingProposalAPI } from '../../utils/api';
 import './TrainingProposalList.css';
-import './TrainingProposalList-additional.css';
 
-const TrainingProposalList = ({ onCreateNew }) => {
-  const [proposals, setProposals] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
+const TrainingProposalList = ({ onCreateNew, onEdit, onViewDetail }) => {
+  const { 
+    proposals, 
+    isLoading, 
+    error, 
+    refreshData
+  } = useDatabaseData();
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
 
-  // Fungsi untuk mengambil data dari API
-  const fetchProposals = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-
-      // Check if user is logged in
-      const token = localStorage.getItem('token');
-      if (!token) {
-        throw new Error('Anda belum login. Silakan login terlebih dahulu.');
-      }
-
-      const data = await trainingProposalAPI.getAll();
-      setProposals(data.proposals || data.data || []);
-    } catch (err) {
-      console.error('Error fetching proposals:', err);
-      
-      // Set appropriate error message
-      if (err.message.includes('login')) {
-        setError(err.message);
-      } else if (err.message.includes('500')) {
-        setError('Server sedang mengalami masalah. Silakan coba lagi nanti.');
-      } else {
-        setError(err.message);
-      }
-      
-      // Set mock data for development if API fails
-      if (process.env.NODE_ENV === 'development') {
-        setProposals([
-          {
-            id: 1,
-            Uraian: 'Pelatihan Manajemen Proyek',
-            WaktuPelaksanan: '2024-01-15',
-            JumlahPeserta: 25,
-            JumlahHariPesertaPelatihan: 3,
-            LevelTingkatan: 'STRUKTURAL',
-            TotalUsulan: 15000000,
-            status: 'PENDING',
-            created_at: '2024-01-01'
-          },
-          {
-            id: 2,
-            Uraian: 'Pelatihan Kepemimpinan',
-            WaktuPelaksanan: '2024-02-20',
-            JumlahPeserta: 30,
-            JumlahHariPesertaPelatihan: 5,
-            LevelTingkatan: 'NON STRUKTURAL',
-            TotalUsulan: 25000000,
-            status: 'APPROVED',
-            created_at: '2024-01-05'
-          }
-        ]);
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchProposals();
-  }, []);
 
   // Filter proposals berdasarkan search term dan status
   const filteredProposals = proposals.filter(proposal => {
@@ -91,21 +34,23 @@ const TrainingProposalList = ({ onCreateNew }) => {
 
   const handleEdit = (id) => {
     console.log('Edit proposal with ID:', id);
-    // Implementasi navigasi ke halaman edit
-    // window.location.href = `/training-proposals/edit/${id}`;
+    if (onEdit) {
+      onEdit(id);
+    }
   };
 
   const handleViewDetail = (id) => {
     console.log('View detail for proposal with ID:', id);
-    // Implementasi navigasi ke halaman detail
-    // window.location.href = `/training-proposals/detail/${id}`;
+    if (onViewDetail) {
+      onViewDetail(id);
+    }
   };
 
   const handleDelete = async (id) => {
     if (window.confirm('Apakah Anda yakin ingin menghapus usulan pelatihan ini?')) {
       try {
         await trainingProposalAPI.delete(id);
-        setProposals(proposals.filter(p => p.id !== id));
+        refreshData(); // Refresh data dari context
         alert('Usulan pelatihan berhasil dihapus');
       } catch (err) {
         alert('Error: ' + err.message);
@@ -115,18 +60,20 @@ const TrainingProposalList = ({ onCreateNew }) => {
 
   const getStatusBadgeClass = (status) => {
     const statusMap = {
-      'PENDING': 'pending',
-      'APPROVED': 'approved',
-      'REJECTED': 'rejected'
+      'MENUNGGU': 'pending',
+      'APPROVE_ADMIN': 'approved-admin',
+      'APPROVE_SUPERADMIN': 'approved-superadmin',
+      'DITOLAK': 'rejected'
     };
     return statusMap[status] || 'pending';
   };
 
   const getStatusText = (status) => {
     const statusTexts = {
-      'PENDING': 'Menunggu',
-      'APPROVED': 'Disetujui',
-      'REJECTED': 'Ditolak'
+      'MENUNGGU': 'Menunggu',
+      'APPROVE_ADMIN': 'Approve Admin',
+      'APPROVE_SUPERADMIN': 'Approve Superadmin',
+      'DITOLAK': 'Ditolak'
     };
     return statusTexts[status] || 'Menunggu';
   };
@@ -168,40 +115,8 @@ const TrainingProposalList = ({ onCreateNew }) => {
             </ul>
           </div>
           <div className="error-actions">
-            <button className="btn-retry" onClick={fetchProposals}>
+            <button className="btn-retry" onClick={refreshData}>
               Coba Lagi
-            </button>
-            <button 
-              className="btn-mock-data" 
-              onClick={() => {
-                setError(null);
-                setProposals([
-                  {
-                    id: 1,
-                    Uraian: 'Pelatihan Manajemen Proyek',
-                    WaktuPelaksanan: '2024-01-15',
-                    JumlahPeserta: 25,
-                    JumlahHariPesertaPelatihan: 3,
-                    LevelTingkatan: 'STRUKTURAL',
-                    TotalUsulan: 15000000,
-                    status: 'PENDING',
-                    created_at: '2024-01-01'
-                  },
-                  {
-                    id: 2,
-                    Uraian: 'Pelatihan Kepemimpinan',
-                    WaktuPelaksanan: '2024-02-20',
-                    JumlahPeserta: 30,
-                    JumlahHariPesertaPelatihan: 5,
-                    LevelTingkatan: 'NON STRUKTURAL',
-                    TotalUsulan: 25000000,
-                    status: 'APPROVED',
-                    created_at: '2024-01-05'
-                  }
-                ]);
-              }}
-            >
-              Gunakan Data Demo
             </button>
           </div>
         </div>
@@ -216,12 +131,6 @@ const TrainingProposalList = ({ onCreateNew }) => {
           <div className="header-text">
             <h2>Daftar Usulan Pelatihan</h2>
             <p>Kelola dan pantau status usulan pelatihan Anda</p>
-            {isUsingMockData && (
-              <div className="mock-data-indicator">
-                <span className="mock-icon">⚠️</span>
-                <span>Menggunakan data demo</span>
-              </div>
-            )}
           </div>
           {onCreateNew && (
             <button 

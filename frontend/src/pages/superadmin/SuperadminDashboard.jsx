@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
-import Sidebar from '../Sidebar.jsx';
-import TrainingProposalForm from '../TrainingProposalForm.jsx';
-import SuperAdminDashboardOverview from '../../pages/superadmin/SuperAdminDashboardOverview.jsx';
-import FinalApproval from '../../pages/superadmin/FinalApproval.jsx';
-import AllProposals from '../../pages/superadmin/AllProposals.jsx';
-import SystemConfig from '../../pages/superadmin/SystemConfig.jsx';
-import AuditLogs from '../../pages/superadmin/AuditLogs.jsx';
-import UserManagement from '../../pages/admin/UserManagement.jsx';
+import React, { useState, useEffect } from 'react';
+import Sidebar from '../../components/Sidebar.jsx';
+import TrainingProposalForm from '../user/TrainingProposalForm.jsx';
+import SuperAdminDashboardOverview from './SuperAdminDashboardOverview.jsx';
+import FinalApproval from './FinalApproval.jsx';
+import AllProposals from './AllProposals.jsx';
+import SystemConfig from './SystemConfig.jsx';
+import AuditLogs from './AuditLogs.jsx';
+import UserManagement from '../admin/UserManagement.jsx';
+import { trainingProposalAPI } from '../../utils/api';
 import './SuperadminDashboard.css';
 
 const SuperadminDashboard = ({ user, onLogout }) => {
@@ -19,56 +20,36 @@ const SuperadminDashboard = ({ user, onLogout }) => {
     { id: 4, username: 'admin_user', role: 'admin', unit: 'Management', email: 'admin@pelindo.com', status: 'active', createdAt: '2024-01-04' }
   ]);
   
-  const [proposals, setProposals] = useState([
-    {
-      id: 1,
-      uraian: 'Pelatihan Leadership Management',
-      pengaju: 'john_doe',
-      unit: 'IT Division',
-      waktuPelaksanaan: 'Februari 2025',
-      status: 'PENDING',
-      tanggalPengajuan: '2024-01-15',
-      totalBiaya: 15000000,
-      jumlahPeserta: 25,
-      level: 'STRUKTURAL'
-    },
-    {
-      id: 2,
-      uraian: 'Training Digital Marketing',
-      pengaju: 'jane_smith',
-      unit: 'HR Division',
-      waktuPelaksanaan: 'Maret 2025',
-      status: 'APPROVED_BY_ADMIN',
-      tanggalPengajuan: '2024-01-10',
-      totalBiaya: 8500000,
-      jumlahPeserta: 15,
-      level: 'NON STRUKTURAL'
-    },
-    {
-      id: 3,
-      uraian: 'Workshop Project Management',
-      pengaju: 'bob_wilson',
-      unit: 'Finance Division',
-      waktuPelaksanaan: 'April 2025',
-      status: 'WAITING_SUPERADMIN_APPROVAL',
-      tanggalPengajuan: '2024-01-05',
-      totalBiaya: 12000000,
-      jumlahPeserta: 20,
-      level: 'STRUKTURAL'
-    },
-    {
-      id: 4,
-      uraian: 'Pelatihan Cyber Security',
-      pengaju: 'john_doe',
-      unit: 'IT Division',
-      waktuPelaksanaan: 'Mei 2025',
-      status: 'FINAL_APPROVED',
-      tanggalPengajuan: '2023-12-20',
-      totalBiaya: 20000000,
-      jumlahPeserta: 30,
-      level: 'STRUKTURAL'
+  const [proposals, setProposals] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  // Fetch proposals from database
+  useEffect(() => {
+    fetchProposals();
+  }, []);
+
+  const fetchProposals = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      console.log('SuperadminDashboard: Fetching proposals from database...');
+      const data = await trainingProposalAPI.getAll();
+      
+      if (data.success) {
+        console.log('SuperadminDashboard: Proposals fetched:', data.proposals);
+        setProposals(data.proposals || []);
+      } else {
+        setError(data.message || 'Gagal mengambil data proposal');
+      }
+    } catch (err) {
+      console.error('SuperadminDashboard: Error fetching proposals:', err);
+      setError(err.message || 'Terjadi kesalahan saat mengambil data');
+    } finally {
+      setIsLoading(false);
     }
-  ]);
+  };
 
   const [auditLogs, setAuditLogs] = useState([
     { id: 1, user: 'admin_user', action: 'APPROVE_PROPOSAL', target: 'Workshop Project Management', timestamp: '2024-01-15T10:30:00Z' },
@@ -81,30 +62,83 @@ const SuperadminDashboard = ({ user, onLogout }) => {
     setActiveMenu(menuId);
   };
 
-  const handleFinalApprove = (proposalId) => {
-    setProposals(prev => prev.map(proposal => 
-      proposal.id === proposalId 
-        ? { ...proposal, status: 'FINAL_APPROVED', finalApprovedBy: user.username, finalApprovedAt: new Date().toISOString() }
-        : proposal
-    ));
-    
-    // Add audit log
-    const proposal = proposals.find(p => p.id === proposalId);
-    setAuditLogs(prev => [{
-      id: Date.now(),
-      user: user.username,
-      action: 'FINAL_APPROVE',
-      target: proposal.uraian,
-      timestamp: new Date().toISOString()
-    }, ...prev]);
+  const handleFinalApprove = async (proposalId) => {
+    try {
+      console.log('SuperadminDashboard: Final approving proposal:', proposalId);
+      
+      // Call API to update status
+      const response = await fetch(`http://localhost:5000/api/training-proposals/${proposalId}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          status: 'APPROVE_SUPERADMIN'
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        alert('Proposal berhasil disetujui final!');
+        // Refresh data from database
+        fetchProposals();
+        
+        // Add audit log
+        const proposal = proposals.find(p => p.id === proposalId);
+        setAuditLogs(prev => [{
+          id: Date.now(),
+          user: user.username,
+          action: 'FINAL_APPROVE',
+          target: proposal?.Uraian || 'Unknown',
+          timestamp: new Date().toISOString()
+        }, ...prev]);
+      } else {
+        alert('Error: ' + data.message);
+      }
+    } catch (error) {
+      console.error('SuperadminDashboard: Error final approving proposal:', error);
+      alert('Terjadi kesalahan saat menyetujui proposal final');
+    }
   };
 
-  const handleFinalReject = (proposalId) => {
-    setProposals(prev => prev.map(proposal => 
-      proposal.id === proposalId 
-        ? { ...proposal, status: 'FINAL_REJECTED', finalRejectedBy: user.username, finalRejectedAt: new Date().toISOString() }
-        : proposal
-    ));
+  const handleFinalReject = async (proposalId) => {
+    const reason = prompt('Masukkan alasan penolakan final:');
+    if (!reason || reason.trim() === '') {
+      alert('Alasan penolakan harus diisi');
+      return;
+    }
+    
+    try {
+      console.log('SuperadminDashboard: Final rejecting proposal:', proposalId, 'Reason:', reason);
+      
+      // Call API to update status
+      const response = await fetch(`http://localhost:5000/api/training-proposals/${proposalId}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          status: 'DITOLAK',
+          alasan: reason.trim()
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        alert('Proposal berhasil ditolak final!');
+        // Refresh data from database
+        fetchProposals();
+      } else {
+        alert('Error: ' + data.message);
+      }
+    } catch (error) {
+      console.error('SuperadminDashboard: Error final rejecting proposal:', error);
+      alert('Terjadi kesalahan saat menolak proposal final');
+    }
   };
 
   const handleDeleteUser = (userId) => {
