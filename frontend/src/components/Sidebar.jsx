@@ -10,9 +10,9 @@ const Sidebar = ({ user, activeMenu, onMenuChange, onLogout }) => {
     const baseMenus = {
       user: [
         { id: 'dashboard', icon: '📊', label: 'Dashboard', path: '/dashboard' },
-        { id: 'proposal-form', icon: '📝', label: 'Ajukan Pelatihan', path: '/proposal-form' },
-        { id: 'my-proposals', icon: '📋', label: 'Usulan Saya', path: '/my-proposals' },
-        { id: 'profile', icon: '👤', label: 'Profil', path: '/profile' }
+        { id: 'proposal-create', icon: '📝', label: 'Buat Usulan Baru', path: '/training-proposals/create' },
+        { id: 'proposal-list', icon: '📋', label: 'Daftar Usulan', path: '/training-proposals' },
+        { id: 'profile', icon: '👤', label: 'Profil Saya', path: '/profile' }
       ],
       admin: [
         { id: 'dashboard', icon: '📊', label: 'Dashboard', path: '/dashboard' },

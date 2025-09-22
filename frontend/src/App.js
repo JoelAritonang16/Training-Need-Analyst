@@ -18,39 +18,67 @@ function App() {
 
   const checkAuth = async () => {
     try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setUser(null);
+        setLoading(false);
+        return;
+      }
+
       const response = await fetch('http://localhost:5000/api/auth/check', {
         method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
         credentials: 'include'
       });
       
-      const data = await response.json();
-      
-      if (data.success) {
-        setUser(data.user);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setUser(data.user);
+        } else {
+          localStorage.removeItem('token');
+          setUser(null);
+        }
       } else {
+        localStorage.removeItem('token');
         setUser(null);
       }
     } catch (error) {
       console.error('Auth check error:', error);
+      localStorage.removeItem('token');
       setUser(null);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleLogin = (userData) => { 
+  const handleLogin = (userData, token) => { 
+    if (token) {
+      localStorage.setItem('token', token);
+    }
     setUser(userData); 
   };
   
   const actuallyLogout = async () => {
     try {
-      await fetch('http://localhost:5000/api/auth/logout', {
-        method: 'POST',
-        credentials: 'include'
-      });
+      const token = localStorage.getItem('token');
+      if (token) {
+        await fetch('http://localhost:5000/api/auth/logout', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          credentials: 'include'
+        });
+      }
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
+      localStorage.removeItem('token');
       setUser(null);
       setShowLogoutConfirm(false);
     }

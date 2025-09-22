@@ -43,7 +43,7 @@ const Login = ({ onLoginSuccess }) => {
         localStorage.setItem('user', JSON.stringify(data.user));
         
         if (onLoginSuccess) {
-          onLoginSuccess(data.user);
+          onLoginSuccess(data.user, data.token);
         }
         
         setFormData({ username: '', password: '' });

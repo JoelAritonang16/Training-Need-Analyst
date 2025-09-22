@@ -1,10 +1,10 @@
 import React from 'react';
 import './DashboardOverview.css';
 
-const DashboardOverview = ({ user, proposals, onNavigate }) => {
+const DashboardOverview = ({ user, proposals = [], onNavigate }) => {
   const approvedCount = proposals.filter(p => p.status === 'APPROVED').length;
   const pendingCount = proposals.filter(p => p.status === 'PENDING').length;
-  const totalBudget = proposals.reduce((sum, p) => sum + p.totalBiaya, 0);
+  const totalBudget = proposals.reduce((sum, p) => sum + (p.TotalUsulan || 0), 0);
 
   return (
     <div className="dashboard-overview">
@@ -70,17 +70,23 @@ const DashboardOverview = ({ user, proposals, onNavigate }) => {
       <div className="recent-proposals">
         <h3>Usulan Terbaru</h3>
         <div className="recent-list">
-          {proposals.slice(0, 3).map(proposal => (
-            <div key={proposal.id} className="recent-item">
-              <div className="recent-info">
-                <h4>{proposal.uraian}</h4>
-                <p>{proposal.waktuPelaksanaan}</p>
+          {proposals.length > 0 ? (
+            proposals.slice(0, 3).map(proposal => (
+              <div key={proposal.id} className="recent-item">
+                <div className="recent-info">
+                  <h4>{proposal.Uraian || proposal.uraian || 'Uraian Tidak Tersedia'}</h4>
+                  <p>{proposal.WaktuPelaksanan || proposal.waktuPelaksanaan || 'Tanggal Tidak Tersedia'}</p>
+                </div>
+                <span className={`status-badge ${(proposal.status || 'PENDING').toLowerCase()}`}>
+                  {proposal.status || 'PENDING'}
+                </span>
               </div>
-              <span className={`status-badge ${proposal.status.toLowerCase()}`}>
-                {proposal.status}
-              </span>
+            ))
+          ) : (
+            <div className="no-data">
+              <p>Belum ada usulan pelatihan</p>
             </div>
-          ))}
+          )}
         </div>
       </div>
     </div>

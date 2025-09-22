@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { trainingProposalAPI } from '../../utils/api';
 import './TrainingProposalList.css';
+import './TrainingProposalList-additional.css';
 
-const TrainingProposalList = () => {
+const TrainingProposalList = ({ onCreateNew }) => {
   const [proposals, setProposals] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -16,43 +18,22 @@ const TrainingProposalList = () => {
       setIsLoading(true);
       setError(null);
 
-      // Check if we're in development mode and backend is not available
-      const isDevelopment = process.env.NODE_ENV === 'development';
-      const baseURL = isDevelopment ? 'http://localhost:5000' : '';
-      
-      const response = await fetch(`${baseURL}/api/proposals`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
-
-      if (!response.ok) {
-        if (response.status === 404) {
-          throw new Error('Endpoint tidak ditemukan. Pastikan backend berjalan di port 5000.');
-        } else if (response.status === 401) {
-          throw new Error('Tidak terotorisasi. Silakan login kembali.');
-        } else {
-          throw new Error(`Server error: ${response.status}`);
-        }
+      // Check if user is logged in
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('Anda belum login. Silakan login terlebih dahulu.');
       }
 
-      const contentType = response.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/json')) {
-        throw new Error('Server mengembalikan response yang tidak valid. Pastikan backend berjalan dengan benar.');
-      }
-
-      const data = await response.json();
+      const data = await trainingProposalAPI.getAll();
       setProposals(data.proposals || data.data || []);
     } catch (err) {
       console.error('Error fetching proposals:', err);
       
-      // Handle different types of errors
-      if (err.name === 'TypeError' && err.message.includes('fetch')) {
-        setError('Tidak dapat terhubung ke server. Pastikan backend berjalan di http://localhost:5000');
-      } else if (err.message.includes('Unexpected token')) {
-        setError('Server mengembalikan response yang tidak valid. Pastikan backend berjalan dengan benar.');
+      // Set appropriate error message
+      if (err.message.includes('login')) {
+        setError(err.message);
+      } else if (err.message.includes('500')) {
+        setError('Server sedang mengalami masalah. Silakan coba lagi nanti.');
       } else {
         setError(err.message);
       }
@@ -123,28 +104,11 @@ const TrainingProposalList = () => {
   const handleDelete = async (id) => {
     if (window.confirm('Apakah Anda yakin ingin menghapus usulan pelatihan ini?')) {
       try {
-        const isDevelopment = process.env.NODE_ENV === 'development';
-        const baseURL = isDevelopment ? 'http://localhost:5000' : '';
-        
-        const response = await fetch(`${baseURL}/api/proposals/${id}`, {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          },
-        });
-
-        if (response.ok) {
-          setProposals(proposals.filter(p => p.id !== id));
-          alert('Usulan pelatihan berhasil dihapus');
-        } else {
-          throw new Error('Gagal menghapus usulan pelatihan');
-        }
+        await trainingProposalAPI.delete(id);
+        setProposals(proposals.filter(p => p.id !== id));
+        alert('Usulan pelatihan berhasil dihapus');
       } catch (err) {
-        if (err.name === 'TypeError' && err.message.includes('fetch')) {
-          alert('Tidak dapat terhubung ke server. Pastikan backend berjalan.');
-        } else {
-          alert('Error: ' + err.message);
-        }
+        alert('Error: ' + err.message);
       }
     }
   };
@@ -203,9 +167,43 @@ const TrainingProposalList = () => {
               <li>Coba refresh halaman</li>
             </ul>
           </div>
-          <button className="btn-retry" onClick={fetchProposals}>
-            Coba Lagi
-          </button>
+          <div className="error-actions">
+            <button className="btn-retry" onClick={fetchProposals}>
+              Coba Lagi
+            </button>
+            <button 
+              className="btn-mock-data" 
+              onClick={() => {
+                setError(null);
+                setProposals([
+                  {
+                    id: 1,
+                    Uraian: 'Pelatihan Manajemen Proyek',
+                    WaktuPelaksanan: '2024-01-15',
+                    JumlahPeserta: 25,
+                    JumlahHariPesertaPelatihan: 3,
+                    LevelTingkatan: 'STRUKTURAL',
+                    TotalUsulan: 15000000,
+                    status: 'PENDING',
+                    created_at: '2024-01-01'
+                  },
+                  {
+                    id: 2,
+                    Uraian: 'Pelatihan Kepemimpinan',
+                    WaktuPelaksanan: '2024-02-20',
+                    JumlahPeserta: 30,
+                    JumlahHariPesertaPelatihan: 5,
+                    LevelTingkatan: 'NON STRUKTURAL',
+                    TotalUsulan: 25000000,
+                    status: 'APPROVED',
+                    created_at: '2024-01-05'
+                  }
+                ]);
+              }}
+            >
+              Gunakan Data Demo
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -214,8 +212,27 @@ const TrainingProposalList = () => {
   return (
     <div className="proposals-container">
       <div className="content-header">
-        <h2>Daftar Usulan Pelatihan</h2>
-        <p>Kelola dan pantau status usulan pelatihan Anda</p>
+        <div className="header-content">
+          <div className="header-text">
+            <h2>Daftar Usulan Pelatihan</h2>
+            <p>Kelola dan pantau status usulan pelatihan Anda</p>
+            {isUsingMockData && (
+              <div className="mock-data-indicator">
+                <span className="mock-icon">⚠️</span>
+                <span>Menggunakan data demo</span>
+              </div>
+            )}
+          </div>
+          {onCreateNew && (
+            <button 
+              className="btn-create-new"
+              onClick={onCreateNew}
+            >
+              <span className="btn-icon">📝</span>
+              Buat Usulan Baru
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="filters-section">

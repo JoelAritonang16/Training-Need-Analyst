@@ -24,4 +24,9 @@ router.delete(
   auth.isAuthenticated,
   trainingProposalController.deleteProposal
 );
+router.get(
+  "/:id",
+  auth.isAuthenticated,
+  trainingProposalController.getProposalById
+);
 export default router;

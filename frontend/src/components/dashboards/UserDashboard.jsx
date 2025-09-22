@@ -1,45 +1,41 @@
 import React, { useState } from 'react';
 import Sidebar from '../Sidebar.jsx';
-import TrainingProposalForm from '../TrainingProposalForm.jsx';
 import DashboardOverview from '../../pages/user/DashboardOverview.jsx';
 import TrainingProposalList from '../../pages/user/TrainingProposalList.jsx';
+import TrainingProposalCreate from '../../pages/user/TrainingProposalCreate.jsx';
+import TrainingProposalEdit from '../../pages/user/TrainingProposalEdit.jsx';
+import TrainingProposalDetail from '../../pages/user/TrainingProposalDetail.jsx';
 import UserProfile from '../../pages/user/UserProfile.jsx';
 import './UserDashboard.css';
 
 const UserDashboard = ({ user, onLogout }) => {
   const [activeMenu, setActiveMenu] = useState('dashboard');
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  const [proposals, setProposals] = useState([
-    {
-      id: 1,
-      uraian: 'Pelatihan Leadership Management',
-      waktuPelaksanaan: 'Februari 2025',
-      status: 'PENDING',
-      tanggalPengajuan: '2024-01-15',
-      totalBiaya: 15000000
-    },
-    {
-      id: 2,
-      uraian: 'Training Digital Marketing',
-      waktuPelaksanaan: 'Maret 2025',
-      status: 'APPROVED',
-      tanggalPengajuan: '2024-01-10',
-      totalBiaya: 8500000
-    }
-  ]);
+  const [selectedProposalId, setSelectedProposalId] = useState(null);
+  const [proposals, setProposals] = useState([]);
 
   const handleMenuChange = (menuId) => {
     setActiveMenu(menuId);
+    setSelectedProposalId(null);
   };
 
   const handleEditProposal = (proposalId) => {
-    // Handle edit proposal logic
-    console.log('Edit proposal:', proposalId);
+    setSelectedProposalId(proposalId);
+    setActiveMenu('proposal-edit');
   };
 
   const handleViewDetail = (proposalId) => {
-    // Handle view detail logic
-    console.log('View detail:', proposalId);
+    setSelectedProposalId(proposalId);
+    setActiveMenu('proposal-detail');
+  };
+
+  const handleCreateProposal = () => {
+    setActiveMenu('proposal-create');
+  };
+
+  const handleBackToList = () => {
+    setActiveMenu('proposal-list');
+    setSelectedProposalId(null);
   };
 
   const handleUpdateProfile = (profileData) => {
@@ -49,15 +45,45 @@ const UserDashboard = ({ user, onLogout }) => {
 
   const renderContent = () => {
     switch (activeMenu) {
-      case 'proposal-form':
-        return <TrainingProposalForm user={user} />;
+      case 'proposal-create':
+        return (
+          <TrainingProposalCreate 
+            user={user}
+            onSuccess={() => {
+              setActiveMenu('proposal-list');
+              // Refresh proposals list
+            }}
+          />
+        );
       
-      case 'my-proposals':
+      case 'proposal-list':
         return (
           <TrainingProposalList 
             proposals={proposals}
             onEdit={handleEditProposal}
             onViewDetail={handleViewDetail}
+            onCreateNew={handleCreateProposal}
+          />
+        );
+
+      case 'proposal-edit':
+        return (
+          <TrainingProposalEdit 
+            proposalId={selectedProposalId}
+            onSuccess={() => {
+              setActiveMenu('proposal-list');
+              setSelectedProposalId(null);
+            }}
+            onBack={handleBackToList}
+          />
+        );
+
+      case 'proposal-detail':
+        return (
+          <TrainingProposalDetail 
+            proposalId={selectedProposalId}
+            onEdit={handleEditProposal}
+            onBack={handleBackToList}
           />
         );
       
