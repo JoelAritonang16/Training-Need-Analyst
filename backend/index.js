@@ -23,7 +23,7 @@ app.use(
     origin:
       process.env.NODE_ENV === "production"
         ? ["http://localhost:5000", "file://", "https://"]
-        : ["http://localhost:3000", "http://localhost:5173", /^file:\/\/.*/],
+        : ["http://localhost:3000", "http://localhost:3001", "http://localhost:5173", /^file:\/\/.*/],
   })
 );
 app.use(express.json());
