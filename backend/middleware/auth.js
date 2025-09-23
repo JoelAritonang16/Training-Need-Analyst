@@ -115,6 +115,46 @@ const auth = {
     }
   },
 
+  // Check if user has superadmin role
+  async isSuperadmin(req, res, next) {
+    try {
+      if (req.user && req.user.role === 'superadmin') {
+        return next();
+      }
+      
+      return res.status(403).json({
+        success: false,
+        message: "Akses ditolak. Anda harus memiliki role superadmin"
+      });
+    } catch (error) {
+      console.error('Superadmin check error:', error);
+      return res.status(500).json({
+        success: false,
+        message: "Internal server error"
+      });
+    }
+  },
+
+  // Check if user has admin or superadmin role
+  async isAdminOrSuperadmin(req, res, next) {
+    try {
+      if (req.user && (req.user.role === 'admin' || req.user.role === 'superadmin')) {
+        return next();
+      }
+      
+      return res.status(403).json({
+        success: false,
+        message: "Akses ditolak. Anda harus memiliki role admin atau superadmin"
+      });
+    } catch (error) {
+      console.error('Admin or Superadmin check error:', error);
+      return res.status(500).json({
+        success: false,
+        message: "Internal server error"
+      });
+    }
+  },
+
   // Dynamic role checking method
   requireRole(roleName) {
     return async (req, res, next) => {

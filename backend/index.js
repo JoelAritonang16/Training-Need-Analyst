@@ -7,6 +7,9 @@ import AuthRoute from "./routes/auth.js";
 import db from "./models/index.js";
 import seedUsers from "./seeders/userSeeder.js";
 import TrainingProposalRoute from "./routes/trainingProposal.js";
+import DivisiRoute from "./routes/divisi.js";
+import BranchRoute from "./routes/branch.js";
+import AnakPerusahaanRoute from "./routes/anakPerusahaan.js";
 
 dotenv.config();
 
@@ -44,6 +47,9 @@ app.use(
 app.use("/api/users", UserRoute);
 app.use("/api/auth", AuthRoute);
 app.use("/api/training-proposals", TrainingProposalRoute);
+app.use("/api/divisi", DivisiRoute);
+app.use("/api/branch", BranchRoute);
+app.use("/api/anak-perusahaan", AnakPerusahaanRoute);
 
 // Health check endpoint
 app.get("/api/health", (req, res) => {

@@ -7,6 +7,9 @@ import AllProposals from './AllProposals.jsx';
 import SystemConfig from './SystemConfig.jsx';
 import AuditLogs from './AuditLogs.jsx';
 import UserManagement from '../admin/UserManagement.jsx';
+import DivisiManagement from './DivisiManagement.jsx';
+import BranchManagement from './BranchManagement.jsx';
+import AnakPerusahaanManagement from './AnakPerusahaanManagement.jsx';
 import { trainingProposalAPI } from '../../utils/api';
 import './SuperadminDashboard.css';
 
@@ -247,6 +250,15 @@ const SuperadminDashboard = ({ user, onLogout }) => {
             onRestoreSystem={handleRestoreSystem}
           />
         );
+      
+      case 'divisi-management':
+        return <DivisiManagement />;
+      
+      case 'branch-management':
+        return <BranchManagement />;
+      
+      case 'anak-perusahaan-management':
+        return <AnakPerusahaanManagement />;
       
       case 'audit-logs':
         return (

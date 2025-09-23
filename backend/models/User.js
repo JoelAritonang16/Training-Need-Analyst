@@ -33,6 +33,33 @@ const User = (sequelize, Sequelize) => {
           notEmpty: true,
         },
       },
+      divisiId: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        references: {
+          model: 'divisi',
+          key: 'id'
+        },
+        comment: 'Foreign key ke tabel divisi'
+      },
+      branchId: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        references: {
+          model: 'branch',
+          key: 'id'
+        },
+        comment: 'Foreign key ke tabel branch'
+      },
+      anakPerusahaanId: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        references: {
+          model: 'anak_perusahaan',
+          key: 'id'
+        },
+        comment: 'Foreign key ke tabel anak_perusahaan (untuk role admin)'
+      },
     },
     {
       tableName: "users",

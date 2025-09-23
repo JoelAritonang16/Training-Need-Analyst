@@ -1,4 +1,4 @@
-import { User } from '../models/index.js';
+import { User, Divisi, Branch, AnakPerusahaan } from '../models/index.js';
 import bcrypt from 'bcrypt';
 import { Op } from 'sequelize';
 
@@ -19,19 +19,52 @@ const userController = {
 
       const users = await User.findAll({
         where: whereClause,
-        attributes: ['id', 'username', 'role', 'created_at']
+        attributes: ['id', 'username', 'role', 'divisiId', 'branchId', 'anakPerusahaanId', 'created_at'],
+        include: [
+          {
+            model: Divisi,
+            as: 'divisi',
+            attributes: ['id', 'nama']
+          },
+          {
+            model: Branch,
+            as: 'branch',
+            attributes: ['id', 'nama']
+          },
+          {
+            model: AnakPerusahaan,
+            as: 'anakPerusahaan',
+            attributes: ['id', 'nama']
+          }
+        ]
       });
 
       // Transform data to include role and status
-      const transformedUsers = users.map(user => ({
-        id: user.id,
-        username: user.username,
-        email: `${user.username}@pelindo.com`,
-        unit: 'Default Unit',
-        role: user.role || 'user',
-        status: 'active',
-        createdAt: user.created_at
-      }));
+      const transformedUsers = users.map(user => {
+        // Determine unit based on role
+        let unit = 'Belum dipilih';
+        if (user.role === 'user') {
+          unit = user.divisi?.nama || 'Belum dipilih';
+        } else if (user.role === 'admin') {
+          unit = user.anakPerusahaan?.nama || 'Belum dipilih';
+        }
+
+        return {
+          id: user.id,
+          username: user.username,
+          email: `${user.username}@pelindo.com`,
+          unit: unit,
+          divisi: user.divisi,
+          branch: user.branch,
+          anakPerusahaan: user.anakPerusahaan,
+          divisiId: user.divisiId,
+          branchId: user.branchId,
+          anakPerusahaanId: user.anakPerusahaanId,
+          role: user.role || 'user',
+          status: 'active',
+          createdAt: user.created_at
+        };
+      });
 
       res.json({
         success: true,
@@ -49,7 +82,7 @@ const userController = {
   // Create new user
   async createUser(req, res) {
     try {
-      const { username, password, role } = req.body;
+      const { username, password, role, divisiId, branchId, anakPerusahaanId } = req.body;
 
       // Validate input
       if (!username || !password || !role) {
@@ -71,12 +104,22 @@ const userController = {
       // Hash password
       const hashedPassword = await bcrypt.hash(password, 10);
 
-      // Create user
-      const user = await User.create({
+      // Create user with role-based fields
+      const userData = {
         username,
         password: hashedPassword,
-        role
-      });
+        role,
+        branchId: branchId || null
+      };
+
+      // Add role-specific fields
+      if (role === 'user') {
+        userData.divisiId = divisiId || null;
+      } else if (role === 'admin') {
+        userData.anakPerusahaanId = anakPerusahaanId || null;
+      }
+
+      const user = await User.create(userData);
 
       res.json({
         success: true,
@@ -101,7 +144,13 @@ const userController = {
   async updateUser(req, res) {
     try {
       const userId = req.params.id;
-      const { username, role } = req.body;
+      const { username, role, divisiId, branchId } = req.body;
+
+      console.log('=== UPDATE USER (ORIGINAL METHOD) ===');
+      console.log('User ID:', userId);
+      console.log('Request body:', req.body);
+      console.log('Divisi ID:', divisiId);
+      console.log('Branch ID:', branchId);
 
       // Validate input
       if (!username || !role) {
@@ -135,10 +184,16 @@ const userController = {
       }
 
       // Update user
-      await user.update({
+      const updatedUser = await user.update({
         username,
-        role
+        role,
+        divisiId: divisiId || null,
+        branchId: branchId || null
       });
+      
+      console.log('User updated successfully (original method)');
+      console.log('Updated divisi ID:', updatedUser.divisiId);
+      console.log('Updated branch ID:', updatedUser.branchId);
 
       res.json({
         success: true,
@@ -244,7 +299,7 @@ const userController = {
   // Create user with role validation
   async createUserWithRoleValidation(req, res) {
     try {
-      const { username, password, role, email, unit, currentUserRole } = req.body;
+      const { username, password, role, email, unit, currentUserRole, divisiId, branchId, anakPerusahaanId } = req.body;
 
       // Role-based access control
       if (currentUserRole === 'admin' && role !== 'user') {
@@ -281,12 +336,23 @@ const userController = {
       // Hash password
       const hashedPassword = await bcrypt.hash(password, 10);
 
-      // Create user
-      const user = await User.create({
+      // Create user with role-based fields
+      const userData = {
         username,
         password: hashedPassword,
         role
-      });
+      };
+
+      // Add role-specific fields
+      if (role === 'user') {
+        userData.divisiId = divisiId || null;
+        userData.branchId = branchId || null;
+      } else if (role === 'admin') {
+        userData.anakPerusahaanId = anakPerusahaanId || null;
+        // Admin doesn't need branchId as it's handled through anak perusahaan
+      }
+
+      const user = await User.create(userData);
 
       res.json({
         success: true,
@@ -314,7 +380,14 @@ const userController = {
   async updateUserWithRoleValidation(req, res) {
     try {
       const userId = req.params.id;
-      const { username, role, email, unit, currentUserRole } = req.body;
+      const { username, role, email, unit, currentUserRole, divisiId, branchId, anakPerusahaanId } = req.body;
+      
+      console.log('=== UPDATE USER WITH ROLE VALIDATION ===');
+      console.log('User ID:', userId);
+      console.log('Request body:', req.body);
+      console.log('Divisi ID:', divisiId);
+      console.log('Branch ID:', branchId);
+      console.log('Anak Perusahaan ID:', anakPerusahaanId);
 
       // Check if user exists
       const user = await User.findByPk(userId);
@@ -366,11 +439,29 @@ const userController = {
         });
       }
 
-      // Update user
-      await user.update({
+      // Update user with role-based fields
+      const updateData = {
         username,
         role
-      });
+      };
+
+      // Add role-specific fields
+      if (role === 'user') {
+        updateData.divisiId = divisiId || null;
+        updateData.branchId = branchId || null;
+        updateData.anakPerusahaanId = null; // Clear anak perusahaan for user role
+      } else if (role === 'admin') {
+        updateData.anakPerusahaanId = anakPerusahaanId || null;
+        updateData.divisiId = null; // Clear divisi for admin role
+        // Admin doesn't need branchId as it's handled through anak perusahaan
+      }
+
+      const updatedUser = await user.update(updateData);
+      
+      console.log('User updated successfully');
+      console.log('Updated divisi ID:', updatedUser.divisiId);
+      console.log('Updated branch ID:', updatedUser.branchId);
+      console.log('Updated anak perusahaan ID:', updatedUser.anakPerusahaanId);
 
       res.json({
         success: true,

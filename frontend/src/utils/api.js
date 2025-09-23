@@ -126,3 +126,131 @@ export const trainingProposalAPI = {
     });
   }
 };
+
+// Divisi API
+export const divisiAPI = {
+  getAll: async () => {
+    console.log('Getting all divisi');
+    return apiCall('/api/divisi');
+  },
+  
+  getById: async (id) => {
+    console.log('Getting divisi by ID:', id);
+    return apiCall(`/api/divisi/${id}`);
+  },
+  
+  create: async (data) => {
+    console.log('Creating divisi:', data);
+    return apiCall('/api/divisi', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
+  },
+  
+  update: async (id, data) => {
+    console.log('Updating divisi:', id, data);
+    return apiCall(`/api/divisi/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data)
+    });
+  },
+  
+  delete: async (id) => {
+    console.log('Deleting divisi:', id);
+    return apiCall(`/api/divisi/${id}`, {
+      method: 'DELETE'
+    });
+  }
+};
+
+// Branch API
+export const branchAPI = {
+  getAll: async () => {
+    console.log('Getting all branch');
+    return apiCall('/api/branch');
+  },
+  
+  getById: async (id) => {
+    console.log('Getting branch by ID:', id);
+    return apiCall(`/api/branch/${id}`);
+  },
+  
+  create: async (data) => {
+    console.log('Creating branch:', data);
+    return apiCall('/api/branch', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
+  },
+  
+  update: async (id, data) => {
+    console.log('Updating branch:', id, data);
+    return apiCall(`/api/branch/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data)
+    });
+  },
+  
+  delete: async (id) => {
+    console.log('Deleting branch:', id);
+    return apiCall(`/api/branch/${id}`, {
+      method: 'DELETE'
+    });
+  }
+};
+
+// Anak Perusahaan API
+export const anakPerusahaanAPI = {
+  getAll: async () => {
+    console.log('Getting all anak perusahaan');
+    return apiCall('/api/anak-perusahaan');
+  },
+  
+  getById: async (id) => {
+    console.log('Getting anak perusahaan by ID:', id);
+    return apiCall(`/api/anak-perusahaan/${id}`);
+  },
+  
+  create: async (data) => {
+    console.log('Creating anak perusahaan:', data);
+    return apiCall('/api/anak-perusahaan', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
+  },
+  
+  update: async (id, data) => {
+    console.log('Updating anak perusahaan:', id, data);
+    return apiCall(`/api/anak-perusahaan/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data)
+    });
+  },
+  
+  delete: async (id) => {
+    console.log('Deleting anak perusahaan:', id);
+    return apiCall(`/api/anak-perusahaan/${id}`, {
+      method: 'DELETE'
+    });
+  },
+  
+  getBranches: async (id) => {
+    console.log('Getting branches for anak perusahaan:', id);
+    return apiCall(`/api/anak-perusahaan/${id}/branches`);
+  },
+  
+  addBranch: async (id, branchId) => {
+    console.log('Adding branch to anak perusahaan:', id, branchId);
+    return apiCall(`/api/anak-perusahaan/${id}/branches`, {
+      method: 'POST',
+      body: JSON.stringify({ branchId })
+    });
+  },
+  
+  removeBranch: async (id, branchId) => {
+    console.log('Removing branch from anak perusahaan:', id, branchId);
+    return apiCall(`/api/anak-perusahaan/${id}/branches/${branchId}`, {
+      method: 'DELETE'
+    });
+  }
+};

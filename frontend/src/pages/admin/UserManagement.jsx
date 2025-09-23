@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { divisiAPI, branchAPI, anakPerusahaanAPI } from '../../utils/api';
 import './UserManagement.css';
 
 const UserManagement = ({ users, onAddUser, onEditUser, onDeleteUser, onToggleStatus, currentUserRole = 'admin' }) => {
@@ -10,14 +11,49 @@ const UserManagement = ({ users, onAddUser, onEditUser, onDeleteUser, onToggleSt
     password: '',
     role: 'user',
     email: '',
-    unit: ''
+    unit: '',
+    divisiId: '',
+    branchId: '',
+    anakPerusahaanId: ''
   });
   const [loading, setLoading] = useState(false);
   const [userList, setUserList] = useState([]);
+  const [divisiList, setDivisiList] = useState([]);
+  const [branchList, setBranchList] = useState([]);
+  const [anakPerusahaanList, setAnakPerusahaanList] = useState([]);
 
   useEffect(() => {
     fetchUsers();
+    fetchDivisiAndBranch();
   }, [currentUserRole]);
+
+  const fetchDivisiAndBranch = async () => {
+    try {
+      const promises = [branchAPI.getAll()];
+      
+      // Only fetch divisi and anak perusahaan if current user is superadmin
+      if (currentUserRole === 'superadmin') {
+        promises.push(divisiAPI.getAll(), anakPerusahaanAPI.getAll());
+      }
+      
+      const results = await Promise.all(promises);
+      
+      if (results[0].success) {
+        setBranchList(results[0].branch || []);
+      }
+      
+      if (currentUserRole === 'superadmin') {
+        if (results[1]?.success) {
+          setDivisiList(results[1].divisi || []);
+        }
+        if (results[2]?.success) {
+          setAnakPerusahaanList(results[2].anakPerusahaan || []);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  };
 
   const fetchUsers = async () => {
     try {
@@ -28,6 +64,16 @@ const UserManagement = ({ users, onAddUser, onEditUser, onDeleteUser, onToggleSt
       });
       const data = await response.json();
       if (data.success) {
+        console.log('=== FRONTEND FETCH USERS ===');
+        console.log('Users fetched:', data.users);
+        data.users.forEach(user => {
+          console.log(`User ${user.username}:`, {
+            divisiId: user.divisiId,
+            branchId: user.branchId,
+            divisi: user.divisi?.nama,
+            branch: user.branch?.nama
+          });
+        });
         setUserList(data.users);
       } else {
         console.error('Failed to fetch users:', data.message);
@@ -45,7 +91,10 @@ const UserManagement = ({ users, onAddUser, onEditUser, onDeleteUser, onToggleSt
       password: '',
       role: currentUserRole === 'admin' ? 'user' : 'user',
       email: '',
-      unit: ''
+      unit: '',
+      divisiId: '',
+      branchId: '',
+      anakPerusahaanId: ''
     });
     setShowAddModal(true);
   };
@@ -53,13 +102,20 @@ const UserManagement = ({ users, onAddUser, onEditUser, onDeleteUser, onToggleSt
   const handleEditUser = (userId) => {
     const user = userList.find(u => u.id === userId);
     if (user) {
+      console.log('Editing user:', user);
+      console.log('User divisi:', user.divisi);
+      console.log('User branch:', user.branch);
+      
       setSelectedUser(user);
       setFormData({
         username: user.username,
         password: '',
         role: user.role,
         email: user.email || '',
-        unit: user.unit || ''
+        unit: user.unit || '',
+        divisiId: user.divisiId || '',
+        branchId: user.branchId || '',
+        anakPerusahaanId: user.anakPerusahaanId || ''
       });
       setShowEditModal(true);
     }
@@ -77,7 +133,10 @@ const UserManagement = ({ users, onAddUser, onEditUser, onDeleteUser, onToggleSt
         credentials: 'include',
         body: JSON.stringify({
           ...formData,
-          currentUserRole
+          currentUserRole,
+          divisiId: formData.divisiId || null,
+          branchId: formData.branchId || null,
+          anakPerusahaanId: formData.anakPerusahaanId || null
         })
       });
       
@@ -101,27 +160,42 @@ const UserManagement = ({ users, onAddUser, onEditUser, onDeleteUser, onToggleSt
     e.preventDefault();
     try {
       setLoading(true);
+      
+      const requestData = {
+        username: formData.username,
+        role: formData.role,
+        email: formData.email,
+        unit: formData.unit,
+        currentUserRole,
+        divisiId: formData.divisiId || null,
+        branchId: formData.branchId || null,
+        anakPerusahaanId: formData.anakPerusahaanId || null
+      };
+      
+      console.log('=== FRONTEND EDIT USER REQUEST ===');
+      console.log('User ID:', selectedUser.id);
+      console.log('Request Data:', requestData);
+      console.log('Form Data:', formData);
+      
       const response = await fetch(`http://localhost:5000/api/users/role-based/${selectedUser.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
         credentials: 'include',
-        body: JSON.stringify({
-          username: formData.username,
-          role: formData.role,
-          email: formData.email,
-          unit: formData.unit,
-          currentUserRole
-        })
+        body: JSON.stringify(requestData)
       });
       
       const data = await response.json();
+      console.log('=== FRONTEND EDIT USER RESPONSE ===');
+      console.log('Response:', data);
+      
       if (data.success) {
         setShowEditModal(false);
         fetchUsers();
         window.alert('User berhasil diupdate!');
       } else {
+        console.log('Edit failed:', data.message);
         window.alert(data.message || 'Gagal mengupdate user');
       }
     } catch (error) {
@@ -161,6 +235,17 @@ const UserManagement = ({ users, onAddUser, onEditUser, onDeleteUser, onToggleSt
     }
   };
 
+  const handleRoleChange = (newRole) => {
+    setFormData(prev => ({
+      ...prev,
+      role: newRole,
+      // Clear role-specific fields when role changes
+      divisiId: newRole === 'user' ? prev.divisiId : '',
+      anakPerusahaanId: newRole === 'admin' ? prev.anakPerusahaanId : '',
+      branchId: newRole === 'user' ? prev.branchId : '' // Clear branch for admin role
+    }));
+  };
+
   const getRoleOptions = () => {
     if (currentUserRole === 'superadmin') {
       return [
@@ -189,7 +274,8 @@ const UserManagement = ({ users, onAddUser, onEditUser, onDeleteUser, onToggleSt
               <th>Username</th>
               <th>Email</th>
               <th>Role</th>
-              <th>Unit/Divisi</th>
+              <th>{currentUserRole === 'superadmin' ? 'Divisi/Anak Perusahaan' : 'Anak Perusahaan'}</th>
+              <th>Branch</th>
               <th>Status</th>
               <th>Aksi</th>
             </tr>
@@ -202,7 +288,13 @@ const UserManagement = ({ users, onAddUser, onEditUser, onDeleteUser, onToggleSt
                 <td>
                   <span className={`role-badge ${user.role}`}>{user.role}</span>
                 </td>
-                <td>{user.unit}</td>
+                <td>
+                  {user.role === 'user' 
+                    ? (user.divisi && user.divisi.nama ? user.divisi.nama : 'Belum dipilih')
+                    : (user.anakPerusahaan && user.anakPerusahaan.nama ? user.anakPerusahaan.nama : 'Belum dipilih')
+                  }
+                </td>
+                <td>{user.branch && user.branch.nama ? user.branch.nama : 'Belum dipilih'}</td>
                 <td>
                   <span className={`status-badge ${user.status}`}>{user.status}</span>
                 </td>
@@ -268,7 +360,7 @@ const UserManagement = ({ users, onAddUser, onEditUser, onDeleteUser, onToggleSt
                 <label>Role *</label>
                 <select
                   value={formData.role}
-                  onChange={(e) => setFormData({...formData, role: e.target.value})}
+                  onChange={(e) => handleRoleChange(e.target.value)}
                   required
                 >
                   {getRoleOptions().map(option => (
@@ -284,14 +376,59 @@ const UserManagement = ({ users, onAddUser, onEditUser, onDeleteUser, onToggleSt
                   onChange={(e) => setFormData({...formData, email: e.target.value})}
                 />
               </div>
-              <div className="form-group">
-                <label>Unit/Divisi</label>
-                <input
-                  type="text"
-                  value={formData.unit}
-                  onChange={(e) => setFormData({...formData, unit: e.target.value})}
-                />
-              </div>
+              
+              {/* Role-based field selection */}
+              {formData.role === 'user' && (
+                <div className="form-group">
+                  <label>Divisi</label>
+                  <select
+                    value={formData.divisiId}
+                    onChange={(e) => setFormData({...formData, divisiId: e.target.value})}
+                  >
+                    <option value="">Pilih Divisi</option>
+                    {divisiList.map(divisi => (
+                      <option key={divisi.id} value={divisi.id}>
+                        {divisi.nama}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              
+              {formData.role === 'admin' && (
+                <div className="form-group">
+                  <label>Anak Perusahaan</label>
+                  <select
+                    value={formData.anakPerusahaanId}
+                    onChange={(e) => setFormData({...formData, anakPerusahaanId: e.target.value})}
+                  >
+                    <option value="">Pilih Anak Perusahaan</option>
+                    {anakPerusahaanList.map(anakPerusahaan => (
+                      <option key={anakPerusahaan.id} value={anakPerusahaan.id}>
+                        {anakPerusahaan.nama}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              
+              {/* Branch field only for user role */}
+              {formData.role === 'user' && (
+                <div className="form-group">
+                  <label>Branch</label>
+                  <select
+                    value={formData.branchId}
+                    onChange={(e) => setFormData({...formData, branchId: e.target.value})}
+                  >
+                    <option value="">Pilih Branch</option>
+                    {branchList.map(branch => (
+                      <option key={branch.id} value={branch.id}>
+                        {branch.nama}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
               <div className="modal-actions">
                 <button type="button" onClick={() => setShowAddModal(false)} disabled={loading}>
                   Batal
@@ -327,7 +464,7 @@ const UserManagement = ({ users, onAddUser, onEditUser, onDeleteUser, onToggleSt
                 <label>Role *</label>
                 <select
                   value={formData.role}
-                  onChange={(e) => setFormData({...formData, role: e.target.value})}
+                  onChange={(e) => handleRoleChange(e.target.value)}
                   required
                 >
                   {getRoleOptions().map(option => (
@@ -343,14 +480,59 @@ const UserManagement = ({ users, onAddUser, onEditUser, onDeleteUser, onToggleSt
                   onChange={(e) => setFormData({...formData, email: e.target.value})}
                 />
               </div>
-              <div className="form-group">
-                <label>Unit/Divisi</label>
-                <input
-                  type="text"
-                  value={formData.unit}
-                  onChange={(e) => setFormData({...formData, unit: e.target.value})}
-                />
-              </div>
+              
+              {/* Role-based field selection */}
+              {formData.role === 'user' && (
+                <div className="form-group">
+                  <label>Divisi</label>
+                  <select
+                    value={formData.divisiId}
+                    onChange={(e) => setFormData({...formData, divisiId: e.target.value})}
+                  >
+                    <option value="">Pilih Divisi</option>
+                    {divisiList.map(divisi => (
+                      <option key={divisi.id} value={divisi.id}>
+                        {divisi.nama}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              
+              {formData.role === 'admin' && (
+                <div className="form-group">
+                  <label>Anak Perusahaan</label>
+                  <select
+                    value={formData.anakPerusahaanId}
+                    onChange={(e) => setFormData({...formData, anakPerusahaanId: e.target.value})}
+                  >
+                    <option value="">Pilih Anak Perusahaan</option>
+                    {anakPerusahaanList.map(anakPerusahaan => (
+                      <option key={anakPerusahaan.id} value={anakPerusahaan.id}>
+                        {anakPerusahaan.nama}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              
+              {/* Branch field only for user role */}
+              {formData.role === 'user' && (
+                <div className="form-group">
+                  <label>Branch</label>
+                  <select
+                    value={formData.branchId}
+                    onChange={(e) => setFormData({...formData, branchId: e.target.value})}
+                  >
+                    <option value="">Pilih Branch</option>
+                    {branchList.map(branch => (
+                      <option key={branch.id} value={branch.id}>
+                        {branch.nama}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
               <div className="modal-actions">
                 <button type="button" onClick={() => setShowEditModal(false)} disabled={loading}>
                   Batal
