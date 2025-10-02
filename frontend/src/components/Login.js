@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './Login.css';
+import batikImage from '../assets/BatikPelindo.png';  // Path relative dari components/ ke assets/
 
 const Login = ({ onLoginSuccess }) => {
   // Semua state dan fungsi Anda tetap sama (tidak ada perubahan di sini)
@@ -58,18 +59,32 @@ const Login = ({ onLoginSuccess }) => {
     }
   };
 
-  const backgroundImageUrl = `${process.env.PUBLIC_URL}/BatikPelindo.png`;
+  const backgroundImageUrl = `${process.env.PUBLIC_URL}/gedung.png`;
   const loginBackgroundStyle = {
     background: `linear-gradient(135deg, rgba(30,60,114,0.6) 0%, rgba(42,82,152,0.6) 100%), url(${backgroundImageUrl})`,
-    backgroundSize: 'cover, 320px 320px',
-    backgroundPosition: 'center, top left',
-    backgroundRepeat: 'no-repeat, repeat',
+    backgroundSize: 'cover, cover',
+    backgroundPosition: 'center, center',
+    backgroundRepeat: 'no-repeat, no-repeat',
     backgroundBlendMode: 'multiply'
   };
 
+  // TAMBAHAN BARU: Style untuk background card dengan batik (hindari error CSS)
+  
+ const loginCardStyle = {
+  background: `
+    rgba(255, 255, 255, 0.95),
+    url(${batikImage}),  // Pakai import langsung
+    white
+  `,
+  backgroundBlendMode: 'soft-light',
+  backgroundRepeat: 'repeat',
+  backgroundSize: '150px 150px',
+  backgroundPosition: 'center',
+};
+
   return (
     <div className="login-container" style={loginBackgroundStyle}>
-      <div className="login-card">
+      <div className="login-card" style={loginCardStyle}>  {/* Apply style baru di sini */}
         <div className="login-header">
           <img src="/LogoPelindo.png" alt="Logo Pelindo" className="login-logo" />
           <h1>Login</h1>

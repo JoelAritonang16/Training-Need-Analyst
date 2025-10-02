@@ -148,7 +148,7 @@ function App() {
         <ConfirmModal
           open={showLogoutConfirm}
           message="Anda yakin ingin keluar dari sistem?"
-          confirmText="Logout"
+          confirmText="Ya"
           cancelText="Batal"
           onConfirm={actuallyLogout}
           onCancel={() => setShowLogoutConfirm(false)}

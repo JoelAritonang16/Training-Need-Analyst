@@ -259,7 +259,7 @@ const TrainingProposalForm = ({ user, proposal = null, onSuccess }) => {
           <div className="form-grid">
             {/* Daftar Uraian (multi baris) */}
             <div className="form-group" style={{ gridColumn: '1 / -1' }}>
-              <label>Daftar Uraian (bisa tambah beberapa baris)</label>
+              <label>Daftar Uraian </label>
               <TrainingProposalItemsTable
                 items={items}
                 onChange={setItems}
