@@ -1,15 +1,32 @@
+.card-surface { background:#fff; border:1px solid #eef1f5; border-radius:16px; box-shadow:0 12px 30px rgba(0,0,0,0.06); padding:16px; margin-top:8px }
+.inner-card { background:#fff; border:1px solid #eef1f5; border-radius:16px; box-shadow:0 8px 18px rgba(0,0,0,0.05); padding:16px; }
+.inner-card.header-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px }
+.user-list { display:flex; flex-direction:column; gap:12px }
+.user-item-card { display:flex; align-items:flex-start; gap:12px; background:#fff; border:1px solid #eef1f5; border-radius:14px; box-shadow:0 6px 16px rgba(0,0,0,0.05); padding:14px }
+.avatar { width:42px; height:42px; border-radius:50%; background:linear-gradient(135deg,#0271B6,#30B0E1); color:#fff; font-weight:800; display:flex; align-items:center; justify-content:center; }
+.user-meta { flex:1 }
+.top-line { display:flex; align-items:center; gap:8px }
+.username { font-size:1rem; color:#111827 }
+.status-dot { width:10px; height:10px; border-radius:50% }
+.status-dot[data-status="active"]{ background:#22c55e }
+.status-dot[data-status="inactive"]{ background:#ef4444 }
+.sub-line { color:#6b7280; font-size:0.9rem; margin-top:2px }
+.user-actions { display:flex; gap:8px }
+.btn-ghost { background:#f8f9fa; border:2px solid #e9ecef; color:#374151; padding:8px 12px; border-radius:8px; font-weight:600; }
+.btn-danger { background:linear-gradient(135deg,#dc2626,#ef4444); color:#fff; border:none; padding:8px 12px; border-radius:8px; font-weight:700 }
 .users-container {
   padding: 20px;
   max-width: 1200px;
   margin: 0 auto;
 }
 
-.content-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 30px;
-  gap: 20px;
+.content-header.banner {
+  margin-bottom: 16px;
+  background: linear-gradient(135deg, #0271B6, #30B0E1);
+  color: #fff;
+  padding: 18px 20px;
+  border-radius: 14px;
+  box-shadow: 0 8px 20px rgba(2,113,182,0.18);
 }
 
 .content-header div {
@@ -30,18 +47,7 @@
   margin-bottom: 20px;
 }
 
-.btn-primary {
-  padding: 12px 25px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  white-space: nowrap;
-}
+.btn-primary { padding: 12px 25px; background: linear-gradient(135deg,#0271B6,#30B0E1); color:#fff; border:none; border-radius:10px; font-weight:700; cursor:pointer; }
 
 .btn-primary:hover:not(:disabled) {
   transform: translateY(-2px);

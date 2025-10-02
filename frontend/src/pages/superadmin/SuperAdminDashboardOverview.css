@@ -4,16 +4,55 @@
   margin: 0 auto;
 }
 
-.content-header {
-  margin-bottom: 30px;
+.admin-banner {
+  background: linear-gradient(135deg, #0271B6 0%, #30B0E1 100%);
+  color: #fff;
+  padding: 20px 24px;
+  border-radius: 14px;
+  box-shadow: 0 8px 24px rgba(2,113,182,0.25);
+  margin-bottom: 18px;
 }
 
-.content-header h1 {
-  color: #2c3e50;
-  font-size: 2.5rem;
-  margin-bottom: 10px;
+.admin-banner h1 {
+  margin: 0 0 6px 0;
+  font-size: 1.4rem;
   font-weight: 700;
 }
+
+.admin-banner p {
+  margin: 0;
+  opacity: 0.95;
+  font-size: 0.95rem;
+}
+
+/* Sidebar-driven Menu Tiles */
+.menu-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-top: 14px;
+}
+
+.menu-tile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 18px;
+  background: #ffffff;
+  border: 1px solid #eef1f5;
+  border-radius: 14px;
+  box-shadow: 0 8px 18px rgba(0,0,0,0.06);
+  cursor: pointer;
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+
+.menu-tile:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 26px rgba(0,0,0,0.10);
+}
+
+.tile-icon { font-size: 1.45rem; }
+.tile-label { font-weight: 700; color: #111827; }
 
 .content-header p {
   color: #7f8c8d;

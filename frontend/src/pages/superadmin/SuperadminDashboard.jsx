@@ -7,6 +7,8 @@ import AllProposals from './AllProposals.jsx';
 import SystemConfig from './SystemConfig.jsx';
 import AuditLogs from './AuditLogs.jsx';
 import UserManagement from '../admin/UserManagement.jsx';
+import UserCreate from '../admin/UserCreate.jsx';
+import UserEdit from '../admin/UserEdit.jsx';
 import DivisiManagement from './DivisiManagement.jsx';
 import BranchManagement from './BranchManagement.jsx';
 import AnakPerusahaanManagement from './AnakPerusahaanManagement.jsx';
@@ -24,6 +26,7 @@ const SuperadminDashboard = ({ user, onLogout }) => {
   ]);
   
   const [proposals, setProposals] = useState([]);
+  const [selectedUserForEdit, setSelectedUserForEdit] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -176,8 +179,9 @@ const SuperadminDashboard = ({ user, onLogout }) => {
     console.log('User added:', newUser);
   };
 
-  const handleEditUser = (userId) => {
-    console.log('Edit user:', userId);
+  const handleStartEditUser = (user) => {
+    setSelectedUserForEdit(user);
+    setActiveMenu('user-edit');
   };
 
   const handleViewDetail = (proposalId) => {
@@ -214,10 +218,28 @@ const SuperadminDashboard = ({ user, onLogout }) => {
           <UserManagement 
             users={users}
             onAddUser={handleAddUser}
-            onEditUser={handleEditUser}
+            onEditUser={handleStartEditUser}
             onDeleteUser={handleDeleteUser}
             onToggleStatus={handleToggleUserStatus}
             currentUserRole="superadmin"
+            onNavigate={handleNavigate}
+          />
+        );
+      
+      case 'user-create':
+        return (
+          <UserCreate 
+            currentUserRole="superadmin" 
+            onNavigate={handleNavigate} 
+          />
+        );
+
+      case 'user-edit':
+        return (
+          <UserEdit 
+            currentUserRole="superadmin"
+            user={selectedUserForEdit}
+            onNavigate={handleNavigate}
           />
         );
       
@@ -239,6 +261,7 @@ const SuperadminDashboard = ({ user, onLogout }) => {
             onFinalReject={handleFinalReject}
             onViewDetail={handleViewDetail}
             onEditProposal={handleEditProposal}
+            onNavigate={handleNavigate}
           />
         );
       

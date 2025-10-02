@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { divisiAPI, branchAPI, anakPerusahaanAPI } from '../../utils/api';
 import './UserManagement.css';
 
-const UserManagement = ({ users, onAddUser, onEditUser, onDeleteUser, onToggleStatus, currentUserRole = 'admin' }) => {
+const UserManagement = ({ users, onAddUser, onEditUser, onDeleteUser, onToggleStatus, currentUserRole = 'admin', onNavigate }) => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
@@ -86,17 +86,8 @@ const UserManagement = ({ users, onAddUser, onEditUser, onDeleteUser, onToggleSt
   };
 
   const handleAddUser = () => {
-    setFormData({
-      username: '',
-      password: '',
-      role: currentUserRole === 'admin' ? 'user' : 'user',
-      email: '',
-      unit: '',
-      divisiId: '',
-      branchId: '',
-      anakPerusahaanId: ''
-    });
-    setShowAddModal(true);
+    // Navigate to dedicated create page (new layout), keeping logic intact
+    if (onNavigate) onNavigate('user-create');
   };
 
   const handleEditUser = (userId) => {
@@ -258,293 +249,57 @@ const UserManagement = ({ users, onAddUser, onEditUser, onDeleteUser, onToggleSt
   };
   return (
     <div className="users-container">
-      <div className="content-header">
-        <h2>Manajemen Pengguna</h2>
-        <p>Kelola pengguna sistem dan hak akses ({currentUserRole === 'superadmin' ? 'SuperAdmin dapat mengelola User & Admin' : 'Admin dapat mengelola User'})</p>
-        <button className="btn-primary" onClick={handleAddUser} disabled={loading}>
-          {loading ? 'Loading...' : 'Tambah Pengguna Baru'}
-        </button>
+      <div className="content-header banner">
+        <div>
+          <h2>Daftar Pengguna</h2>
+          <p>Kelola pengguna dan hak akses. {currentUserRole === 'superadmin' ? 'SuperAdmin mengelola User & Admin.' : 'Admin mengelola User.'}</p>
+        </div>
       </div>
-      
-      
-      <div className="users-table-container">
-        <table className="users-table">
-          <thead>
-            <tr>
-              <th>Username</th>
-              <th>Email</th>
-              <th>Role</th>
-              <th>{currentUserRole === 'superadmin' ? 'Divisi/Anak Perusahaan' : 'Anak Perusahaan'}</th>
-              <th>Branch</th>
-              <th>Status</th>
-              <th>Aksi</th>
-            </tr>
-          </thead>
-          <tbody>
+
+      <div className="card-surface">
+        <div className="inner-card header-row">
+          <h3>Daftar Pengguna</h3>
+          <button className="btn-primary" onClick={handleAddUser} disabled={loading}>
+            {loading ? 'Loading...' : '+ Tambah Pengguna'}
+          </button>
+        </div>
+
+        <div className="inner-card">
+          <div className="user-list">
             {userList.map(user => (
-              <tr key={user.id}>
-                <td>{user.username}</td>
-                <td>{user.email}</td>
-                <td>
-                  <span className={`role-badge ${user.role}`}>{user.role}</span>
-                </td>
-                <td>
-                  {user.role === 'user' 
-                    ? (user.divisi && user.divisi.nama ? user.divisi.nama : 'Belum dipilih')
-                    : (user.anakPerusahaan && user.anakPerusahaan.nama ? user.anakPerusahaan.nama : 'Belum dipilih')
-                  }
-                </td>
-                <td>{user.branch && user.branch.nama ? user.branch.nama : 'Belum dipilih'}</td>
-                <td>
-                  <span className={`status-badge ${user.status}`}>{user.status}</span>
-                </td>
-                <td>
-                  <div className="action-buttons">
-                    <button 
-                      className="btn-edit"
-                      onClick={() => handleEditUser(user.id)}
-                      disabled={loading}
-                    >
-                      Edit
-                    </button>
-                    <button 
-                      className="btn-delete"
-                      onClick={() => handleDeleteUser(user.id)}
-                      disabled={loading}
-                    >
-                      Hapus
-                    </button>
+              <div key={user.id} className="user-item-card">
+                <div className="avatar">{user.username?.charAt(0)?.toUpperCase()}</div>
+                <div className="user-meta">
+                  <div className="top-line">
+                    <strong className="username">{user.username}</strong>
+                    <span className={`role-badge ${user.role}`}>{user.role}</span>
+                    <span className="status-dot" data-status={user.status}></span>
                   </div>
-                </td>
-              </tr>
+                  <div className="sub-line">
+                    <span className="email">{user.email || 'Tidak ada email'}</span>
+                  </div>
+                  <div className="sub-line">
+                    <span>
+                      {user.role === 'user' ? 'Divisi' : 'Anak Perusahaan'}: {user.role === 'user' ? (user.divisi?.nama || 'Belum dipilih') : (user.anakPerusahaan?.nama || 'Belum dipilih')}
+                    </span>
+                    <span> | Branch: {user.branch?.nama || 'Belum dipilih'}</span>
+                  </div>
+                </div>
+                <div className="user-actions">
+                  <button className="btn-ghost" onClick={() => onEditUser && onEditUser(user)} disabled={loading}>Edit</button>
+                  <button className="btn-danger" onClick={() => handleDeleteUser(user.id)} disabled={loading}>Hapus</button>
+                </div>
+              </div>
             ))}
-          </tbody>
-        </table>
-        
-        {userList.length === 0 && (
-          <div className="empty-state">
-            <p>Tidak ada pengguna ditemukan</p>
+
+            {userList.length === 0 && (
+              <div className="empty-state">Tidak ada pengguna ditemukan</div>
+            )}
           </div>
-        )}
+        </div>
       </div>
 
-      {/* Add User Modal */}
-      {showAddModal && (
-        <div className="modal-overlay">
-          <div className="modal">
-            <div className="modal-header">
-              <h3>Tambah Pengguna Baru</h3>
-              <button className="modal-close" onClick={() => setShowAddModal(false)}>×</button>
-            </div>
-            <form onSubmit={handleSubmitAdd}>
-              <div className="form-group">
-                <label>Username *</label>
-                <input
-                  type="text"
-                  value={formData.username}
-                  onChange={(e) => setFormData({...formData, username: e.target.value})}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label>Password *</label>
-                <input
-                  type="password"
-                  value={formData.password}
-                  onChange={(e) => setFormData({...formData, password: e.target.value})}
-                  required
-                  minLength="6"
-                />
-              </div>
-              <div className="form-group">
-                <label>Role *</label>
-                <select
-                  value={formData.role}
-                  onChange={(e) => handleRoleChange(e.target.value)}
-                  required
-                >
-                  {getRoleOptions().map(option => (
-                    <option key={option.value} value={option.value}>{option.label}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="form-group">
-                <label>Email</label>
-                <input
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({...formData, email: e.target.value})}
-                />
-              </div>
-              
-              {/* Role-based field selection */}
-              {formData.role === 'user' && (
-                <div className="form-group">
-                  <label>Divisi</label>
-                  <select
-                    value={formData.divisiId}
-                    onChange={(e) => setFormData({...formData, divisiId: e.target.value})}
-                  >
-                    <option value="">Pilih Divisi</option>
-                    {divisiList.map(divisi => (
-                      <option key={divisi.id} value={divisi.id}>
-                        {divisi.nama}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-              
-              {formData.role === 'admin' && (
-                <div className="form-group">
-                  <label>Anak Perusahaan</label>
-                  <select
-                    value={formData.anakPerusahaanId}
-                    onChange={(e) => setFormData({...formData, anakPerusahaanId: e.target.value})}
-                  >
-                    <option value="">Pilih Anak Perusahaan</option>
-                    {anakPerusahaanList.map(anakPerusahaan => (
-                      <option key={anakPerusahaan.id} value={anakPerusahaan.id}>
-                        {anakPerusahaan.nama}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-              
-              {/* Branch field only for user role */}
-              {formData.role === 'user' && (
-                <div className="form-group">
-                  <label>Branch</label>
-                  <select
-                    value={formData.branchId}
-                    onChange={(e) => setFormData({...formData, branchId: e.target.value})}
-                  >
-                    <option value="">Pilih Branch</option>
-                    {branchList.map(branch => (
-                      <option key={branch.id} value={branch.id}>
-                        {branch.nama}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-              <div className="modal-actions">
-                <button type="button" onClick={() => setShowAddModal(false)} disabled={loading}>
-                  Batal
-                </button>
-                <button type="submit" className="btn-primary" disabled={loading}>
-                  {loading ? 'Menyimpan...' : 'Simpan'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Edit User Modal */}
-      {showEditModal && selectedUser && (
-        <div className="modal-overlay">
-          <div className="modal">
-            <div className="modal-header">
-              <h3>Edit Pengguna</h3>
-              <button className="modal-close" onClick={() => setShowEditModal(false)}>×</button>
-            </div>
-            <form onSubmit={handleSubmitEdit}>
-              <div className="form-group">
-                <label>Username *</label>
-                <input
-                  type="text"
-                  value={formData.username}
-                  onChange={(e) => setFormData({...formData, username: e.target.value})}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label>Role *</label>
-                <select
-                  value={formData.role}
-                  onChange={(e) => handleRoleChange(e.target.value)}
-                  required
-                >
-                  {getRoleOptions().map(option => (
-                    <option key={option.value} value={option.value}>{option.label}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="form-group">
-                <label>Email</label>
-                <input
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({...formData, email: e.target.value})}
-                />
-              </div>
-              
-              {/* Role-based field selection */}
-              {formData.role === 'user' && (
-                <div className="form-group">
-                  <label>Divisi</label>
-                  <select
-                    value={formData.divisiId}
-                    onChange={(e) => setFormData({...formData, divisiId: e.target.value})}
-                  >
-                    <option value="">Pilih Divisi</option>
-                    {divisiList.map(divisi => (
-                      <option key={divisi.id} value={divisi.id}>
-                        {divisi.nama}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-              
-              {formData.role === 'admin' && (
-                <div className="form-group">
-                  <label>Anak Perusahaan</label>
-                  <select
-                    value={formData.anakPerusahaanId}
-                    onChange={(e) => setFormData({...formData, anakPerusahaanId: e.target.value})}
-                  >
-                    <option value="">Pilih Anak Perusahaan</option>
-                    {anakPerusahaanList.map(anakPerusahaan => (
-                      <option key={anakPerusahaan.id} value={anakPerusahaan.id}>
-                        {anakPerusahaan.nama}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-              
-              {/* Branch field only for user role */}
-              {formData.role === 'user' && (
-                <div className="form-group">
-                  <label>Branch</label>
-                  <select
-                    value={formData.branchId}
-                    onChange={(e) => setFormData({...formData, branchId: e.target.value})}
-                  >
-                    <option value="">Pilih Branch</option>
-                    {branchList.map(branch => (
-                      <option key={branch.id} value={branch.id}>
-                        {branch.nama}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-              <div className="modal-actions">
-                <button type="button" onClick={() => setShowEditModal(false)} disabled={loading}>
-                  Batal
-                </button>
-                <button type="submit" className="btn-primary" disabled={loading}>
-                  {loading ? 'Menyimpan...' : 'Update'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      {/* Edit melalui halaman khusus, modal dihapus */}
     </div>
   );
 };

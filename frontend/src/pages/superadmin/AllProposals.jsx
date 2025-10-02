@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import './AllProposals.css';
 
-const AllProposals = ({ proposals, onFinalApprove, onFinalReject, onViewDetail, onEditProposal }) => {
+const AllProposals = ({ proposals, onFinalApprove, onFinalReject, onViewDetail, onEditProposal, onNavigate }) => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [unitFilter, setUnitFilter] = useState('all');
 
@@ -26,6 +26,21 @@ const AllProposals = ({ proposals, onFinalApprove, onFinalReject, onViewDetail, 
         <div>
           <h2>Semua Usulan Pelatihan</h2>
           <p>Overview lengkap semua usulan pelatihan dalam sistem</p>
+        </div>
+        <div>
+          <select className="filter-select" onChange={(e)=>{
+            const v = e.target.value;
+            if (!v) return;
+            if (v === 'approval') onNavigate && onNavigate('proposal-approval');
+            if (v === 'approved') onNavigate && onNavigate('approved-proposals');
+            if (v === 'final') onNavigate && onNavigate('final-approval');
+            e.target.value = '';
+          }} defaultValue="">
+            <option value="" disabled>Pintasan Halaman</option>
+            <option value="approval">Persetujuan Usulan</option>
+            <option value="approved">Usulan Disetujui</option>
+            <option value="final">Persetujuan Akhir</option>
+          </select>
         </div>
       </div>
       
