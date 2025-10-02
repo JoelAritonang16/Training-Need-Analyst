@@ -6,6 +6,10 @@
 
 .content-header {
   margin-bottom: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 .content-header h2 {
@@ -25,6 +29,24 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
   gap: 20px;
+}
+
+.btn-export {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  background: linear-gradient(135deg, #0271B6, #30B0E1);
+  color: #fff;
+  box-shadow: 0 5px 14px rgba(2, 113, 182, 0.25);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn-export:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(2, 113, 182, 0.35);
 }
 
 .proposal-card {

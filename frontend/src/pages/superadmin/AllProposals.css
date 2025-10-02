@@ -11,6 +11,10 @@
   padding: 18px 20px;
   border-radius: 14px;
   box-shadow: 0 8px 20px rgba(2,113,182,0.18);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 .content-header h2 {
@@ -54,6 +58,31 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
   gap: 20px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-export {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  background: #ffffff;
+  color: #0271B6;
+  box-shadow: 0 5px 14px rgba(255, 255, 255, 0.25);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
+
+.btn-export:hover {
+  transform: translateY(-1px);
+  background: rgba(255,255,255,0.9);
+  color: #025a90;
 }
 
 .proposal-card {

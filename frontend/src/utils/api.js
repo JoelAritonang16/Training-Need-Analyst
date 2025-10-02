@@ -1,8 +1,6 @@
 // API utility functions
-const API_BASE_URL = process.env.NODE_ENV === 'development' ? 'http://localhost:5000' : '';
-
-// Get auth headers
-const getAuthHeaders = () => {
+export const API_BASE_URL = process.env.NODE_ENV === 'development' ? 'http://localhost:5000' : '';
+export const getAuthHeaders = () => {
   const token = localStorage.getItem('token');
   console.log('Getting auth headers, token:', token ? 'exists' : 'not found');
   

@@ -2,6 +2,7 @@ import { Sequelize } from "sequelize";
 import sequelize from "../db/db.js";
 import UserModel from "./User.js";
 import TrainingProposalModel from "./TrainingProposal.js";
+import TrainingProposalItemModel from "./TrainingProposalItem.js";
 import DivisiModel from "./Divisi.js";
 import BranchModel from "./Branch.js";
 import AnakPerusahaanModel from "./AnakPerusahaan.js";
@@ -12,6 +13,7 @@ const db = {};
 // Initialize models
 db.User = UserModel(sequelize, Sequelize);
 db.TrainingProposal = TrainingProposalModel(sequelize, Sequelize);
+db.TrainingProposalItem = TrainingProposalItemModel(sequelize, Sequelize);
 db.Divisi = DivisiModel(sequelize, Sequelize);
 db.Branch = BranchModel(sequelize, Sequelize);
 db.AnakPerusahaan = AnakPerusahaanModel(sequelize, Sequelize);
@@ -24,6 +26,17 @@ db.User.belongsTo(db.AnakPerusahaan, { foreignKey: 'anakPerusahaanId', as: 'anak
 db.Divisi.hasMany(db.User, { foreignKey: 'divisiId', as: 'users' });
 db.Branch.hasMany(db.User, { foreignKey: 'branchId', as: 'users' });
 db.AnakPerusahaan.hasMany(db.User, { foreignKey: 'anakPerusahaanId', as: 'users' });
+
+// Proposal -> Items
+db.TrainingProposal.hasMany(db.TrainingProposalItem, {
+  foreignKey: 'proposalId',
+  as: 'items',
+  onDelete: 'CASCADE'
+});
+db.TrainingProposalItem.belongsTo(db.TrainingProposal, {
+  foreignKey: 'proposalId',
+  as: 'proposal'
+});
 
 // Many-to-many associations for AnakPerusahaan and Branch
 db.AnakPerusahaan.belongsToMany(db.Branch, { 
@@ -69,6 +82,7 @@ db.initDatabase = initDatabase;
 // Export individual models for easier importing
 export const User = db.User;
 export const TrainingProposal = db.TrainingProposal;
+export const TrainingProposalItem = db.TrainingProposalItem;
 export const Divisi = db.Divisi;
 export const Branch = db.Branch;
 export const AnakPerusahaan = db.AnakPerusahaan;

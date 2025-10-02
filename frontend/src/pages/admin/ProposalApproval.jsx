@@ -1,14 +1,76 @@
 import React from 'react';
+import { API_BASE_URL } from '../../utils/api';
 import './ProposalApproval.css';
 
 const ProposalApproval = ({ proposals, onApprove, onReject, onViewDetail }) => {
   const pendingProposals = proposals.filter(p => p.status === 'MENUNGGU');
 
+  const handleExport = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const user = localStorage.getItem('user');
+      const userId = user ? JSON.parse(user).id : undefined;
+      const res = await fetch(`${API_BASE_URL}/api/training-proposals/export.xlsx`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+          ...(userId ? { 'X-User-Id': String(userId) } : {}),
+        }
+      });
+      if (!res.ok) throw new Error('Gagal mengunduh CSV');
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `training_proposals_${new Date().toISOString().slice(0,10)}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (e) {
+      alert(e.message || 'Export gagal');
+    }
+  };
+
+  const handleExportOne = async (id) => {
+    try {
+      const token = localStorage.getItem('token');
+      const user = localStorage.getItem('user');
+      const userId = user ? JSON.parse(user).id : undefined;
+      const res = await fetch(`${API_BASE_URL}/api/training-proposals/${id}/export.xlsx`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+          ...(userId ? { 'X-User-Id': String(userId) } : {}),
+        }
+      });
+      if (!res.ok) throw new Error('Gagal mengunduh CSV');
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `training_proposal_${id}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (e) {
+      alert(e.message || 'Export gagal');
+    }
+  };
+
   return (
     <div className="proposals-container">
       <div className="content-header">
-        <h2>Persetujuan Usulan Pelatihan</h2>
-        <p>Review dan setujui usulan pelatihan dari pengguna</p>
+        <div>
+          <h2>Persetujuan Usulan Pelatihan</h2>
+          <p>Review dan setujui usulan pelatihan dari pengguna</p>
+        </div>
+        <div>
+          <button className="btn-export" onClick={handleExport}>Export CSV</button>
+        </div>
       </div>
       
       <div className="proposals-grid">
@@ -46,6 +108,12 @@ const ProposalApproval = ({ proposals, onApprove, onReject, onViewDetail }) => {
                 onClick={() => onViewDetail(proposal.id)}
               >
                 Detail
+              </button>
+              <button
+                className="btn-detail"
+                onClick={() => handleExportOne(proposal.id)}
+              >
+                Export CSV
               </button>
             </div>
           </div>

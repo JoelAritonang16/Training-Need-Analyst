@@ -1,9 +1,56 @@
 import React, { useState } from 'react';
+import { API_BASE_URL } from '../../utils/api';
 import './AllProposals.css';
 
 const AllProposals = ({ proposals, onFinalApprove, onFinalReject, onViewDetail, onEditProposal, onNavigate }) => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [unitFilter, setUnitFilter] = useState('all');
+
+  const handleExport = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API_BASE_URL}/api/training-proposals/export.xlsx`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+      });
+      if (!res.ok) throw new Error('Gagal mengunduh CSV');
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `training_proposals_${new Date().toISOString().slice(0,10)}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (e) {
+      alert(e.message || 'Export gagal');
+    }
+  };
+
+  const handleExportOne = async (id) => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API_BASE_URL}/api/training-proposals/${id}/export.xlsx`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+      });
+      if (!res.ok) throw new Error('Gagal mengunduh CSV');
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `training_proposal_${id}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (e) {
+      alert(e.message || 'Export gagal');
+    }
+  };
 
   const filteredProposals = proposals.filter(proposal => {
     const statusMatch = statusFilter === 'all' || 
@@ -23,11 +70,12 @@ const AllProposals = ({ proposals, onFinalApprove, onFinalReject, onViewDetail, 
   return (
     <div className="proposals-container">
       <div className="content-header">
-        <div>
+        <div className="header-left">
           <h2>Semua Usulan Pelatihan</h2>
           <p>Overview lengkap semua usulan pelatihan dalam sistem</p>
         </div>
-        <div>
+        <div className="header-actions">
+          <button className="btn-export" onClick={handleExport}>Export CSV</button>
           <select className="filter-select" onChange={(e)=>{
             const v = e.target.value;
             if (!v) return;
@@ -97,6 +145,12 @@ const AllProposals = ({ proposals, onFinalApprove, onFinalReject, onViewDetail, 
                 onClick={() => onEditProposal(proposal.id)}
               >
                 Edit
+              </button>
+              <button
+                className="btn-detail"
+                onClick={() => handleExportOne(proposal.id)}
+              >
+                Export CSV
               </button>
               {proposal.status === 'WAITING_SUPERADMIN_APPROVAL' && (
                 <>

@@ -9,10 +9,30 @@ router.get(
   auth.isAuthenticated,
   trainingProposalController.getAllProposals
 );
+router.get(
+  "/export",
+  auth.isAuthenticated,
+  trainingProposalController.exportProposals
+);
+router.get(
+  "/export.xlsx",
+  auth.isAuthenticated,
+  trainingProposalController.exportProposalsXlsx
+);
 router.post(
   "/",
   auth.isAuthenticated,
   trainingProposalController.createProposal
+);
+router.get(
+  "/:id/export",
+  auth.isAuthenticated,
+  trainingProposalController.exportProposalById
+);
+router.get(
+  "/:id/export.xlsx",
+  auth.isAuthenticated,
+  trainingProposalController.exportProposalByIdXlsx
 );
 router.put(
   "/:id",

@@ -1,4 +1,5 @@
-import { TrainingProposal } from "../models/index.js";
+import { TrainingProposal, TrainingProposalItem } from "../models/index.js";
+import ExcelJS from "exceljs";
 
 const trainingProposalController = {
   // Get all proposals with role-based filtering
@@ -17,6 +18,7 @@ const trainingProposalController = {
 
       const proposals = await TrainingProposal.findAll({
         where: whereClause,
+        include: [{ model: TrainingProposalItem, as: 'items' }]
       });
 
       res.json({
@@ -32,7 +34,207 @@ const trainingProposalController = {
     }
   },
 
-  // Create new proposal
+  // Export proposals as Excel (.xlsx) with formatting and totals row
+  async exportProposalsXlsx(req, res) {
+    try {
+      const { id: currentUserId, role: currentUserRole } = req.user;
+      const whereClause = currentUserRole === 'user' ? { userId: currentUserId } : {};
+      const proposals = await TrainingProposal.findAll({ 
+        where: whereClause,
+        include: [{ model: TrainingProposalItem, as: 'items' }]
+      });
+
+      const wb = new ExcelJS.Workbook();
+      const ws = wb.addWorksheet('Usulan Pelatihan');
+
+      // Header row (styled like template)
+      const headers = [
+        'NO',
+        'URAIAN',
+        'WAKTU PELAKSANAAN (BULAN)',
+        'JUMLAH PESERTA (ORG)',
+        'JUMLAH HARI PELAKSANAAN PELATIHAN',
+        'LEVEL TINGKATAN (STRUKTURAL/NON STRUKTURAL)',
+        'BEBAN DIKLAT / ORG (Rp.)',
+        'BEBAN TRANSPORTASI DIKLAT / ORG (Rp.)',
+        'BEBAN AKOMODASI DIKLAT / ORG (Rp.)',
+        'BEBAN UANG SAKU DIKLAT / ORG (Rp.)',
+        'TOTAL USULAN BIAYA DIKLAT (Rp.)',
+      ];
+      ws.addRow(headers);
+      ws.getRow(1).eachCell((cell) => {
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF007ACC' } }; // Pelindo blue
+        cell.font = { color: { argb: 'FFFFFFFF' }, bold: true };
+        cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+        cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
+      });
+
+      // Column widths
+      const widths = [6, 60, 22, 22, 28, 35, 22, 28, 28, 28, 30];
+      widths.forEach((w, i) => (ws.getColumn(i + 1).width = w));
+
+      // Data rows: one row per item
+      let no = 1;
+      proposals.forEach((p) => {
+        const items = Array.isArray(p.items) && p.items.length ? p.items : [
+          // Backward compatibility: use header-level fields if items absent
+          {
+            Uraian: p.Uraian,
+            WaktuPelaksanan: p.WaktuPelaksanan,
+            JumlahPeserta: p.JumlahPeserta,
+            JumlahHariPesertaPelatihan: p.JumlahHariPesertaPelatihan,
+            LevelTingkatan: p.LevelTingkatan,
+            Beban: p.Beban,
+            BebanTransportasi: p.BebanTransportasi,
+            BebanAkomodasi: p.BebanAkomodasi,
+            BebanUangSaku: p.BebanUangSaku,
+            TotalUsulan: p.TotalUsulan,
+          }
+        ];
+        items.forEach((it) => {
+          const bulan = it.WaktuPelaksanan ? new Date(it.WaktuPelaksanan).toLocaleString('id-ID', { month: 'long', year: 'numeric' }) : '';
+          const row = ws.addRow([
+            no++,
+            it.Uraian || '',
+            bulan,
+            it.JumlahPeserta || 0,
+            it.JumlahHariPesertaPelatihan || 0,
+            it.LevelTingkatan || '',
+            it.Beban || 0,
+            it.BebanTransportasi || 0,
+            it.BebanAkomodasi || 0,
+            it.BebanUangSaku || 0,
+            (it.TotalUsulan != null ? it.TotalUsulan : ((it.Beban||0)+(it.BebanTransportasi||0)+(it.BebanAkomodasi||0)+(it.BebanUangSaku||0))) || 0,
+          ]);
+          row.eachCell((cell, col) => {
+            cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
+            if (col >= 7 && col <= 11) {
+              cell.numFmt = '#,##0';
+            }
+            if (col === 1 || col === 4 || col === 5) {
+              cell.alignment = { horizontal: 'center', vertical: 'middle' };
+            } else {
+              cell.alignment = { vertical: 'top', wrapText: true };
+            }
+          });
+        });
+      });
+
+      // Totals row with yellow fill
+      const lastRow = ws.addRow([
+        '',
+        'Total Biaya',
+        '',
+        0,
+        0,
+        '',
+        { formula: `SUM(G2:G${ws.lastRow.number})` },
+        { formula: `SUM(H2:H${ws.lastRow.number})` },
+        { formula: `SUM(I2:I${ws.lastRow.number})` },
+        { formula: `SUM(J2:J${ws.lastRow.number})` },
+        { formula: `SUM(K2:K${ws.lastRow.number})` },
+      ]);
+      lastRow.eachCell((cell, col) => {
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF00' } }; // yellow
+        cell.font = { bold: col === 2 };
+        cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
+        if ([7,8,9,10,11].includes(col)) cell.numFmt = '#,##0';
+        if ([3,4,5].includes(col)) cell.alignment = { horizontal: 'center' };
+      });
+
+      const fileName = `training_proposals_${new Date().toISOString().slice(0, 10)}.xlsx`;
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+      await wb.xlsx.write(res);
+      res.end();
+    } catch (error) {
+      console.error('Export proposals XLSX error:', error);
+      res.status(500).json({ success: false, message: 'Gagal mengekspor Excel' });
+    }
+  },
+
+  // Export single proposal as Excel (.xlsx)
+  async exportProposalByIdXlsx(req, res) {
+    try {
+      const proposalId = req.params.id;
+      const { id: currentUserId, role: currentUserRole } = req.user;
+      const p = await TrainingProposal.findByPk(proposalId, { include: [{ model: TrainingProposalItem, as: 'items' }] });
+      if (!p) return res.status(404).json({ success: false, message: 'Usulan tidak ditemukan' });
+      if (currentUserRole === 'user' && p.userId !== currentUserId) {
+        return res.status(403).json({ success: false, message: 'Akses ditolak' });
+      }
+
+      const wb = new ExcelJS.Workbook();
+      const ws = wb.addWorksheet('Usulan Pelatihan');
+      const headers = [
+        'NO','URAIAN','WAKTU PELAKSANAAN (BULAN)','JUMLAH PESERTA (ORG)','JUMLAH HARI PELAKSANAAN PELATIHAN','LEVEL TINGKATAN (STRUKTURAL/NON STRUKTURAL)','BEBAN DIKLAT / ORG (Rp.)','BEBAN TRANSPORTASI DIKLAT / ORG (Rp.)','BEBAN AKOMODASI DIKLAT / ORG (Rp.)','BEBAN UANG SAKU DIKLAT / ORG (Rp.)','TOTAL USULAN BIAYA DIKLAT (Rp.)']
+      ws.addRow(headers);
+      ws.getRow(1).eachCell((cell)=>{
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF007ACC' } };
+        cell.font = { color: { argb: 'FFFFFFFF' }, bold: true };
+        cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+        cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
+      });
+      const widths = [6,60,22,22,28,35,22,28,28,28,30];
+      widths.forEach((w,i)=>ws.getColumn(i+1).width=w);
+
+      const items = Array.isArray(p.items) && p.items.length ? p.items : [{
+        Uraian: p.Uraian,
+        WaktuPelaksanan: p.WaktuPelaksanan,
+        JumlahPeserta: p.JumlahPeserta,
+        JumlahHariPesertaPelatihan: p.JumlahHariPesertaPelatihan,
+        LevelTingkatan: p.LevelTingkatan,
+        Beban: p.Beban,
+        BebanTransportasi: p.BebanTransportasi,
+        BebanAkomodasi: p.BebanAkomodasi,
+        BebanUangSaku: p.BebanUangSaku,
+        TotalUsulan: p.TotalUsulan,
+      }];
+      let idx = 1;
+      items.forEach((it) => {
+        const bulan = it.WaktuPelaksanan ? new Date(it.WaktuPelaksanan).toLocaleString('id-ID', { month: 'long', year: 'numeric' }) : '';
+        const row = ws.addRow([
+          idx++,
+          it.Uraian || '',
+          bulan,
+          it.JumlahPeserta || 0,
+          it.JumlahHariPesertaPelatihan || 0,
+          it.LevelTingkatan || '',
+          it.Beban || 0,
+          it.BebanTransportasi || 0,
+          it.BebanAkomodasi || 0,
+          it.BebanUangSaku || 0,
+          (it.TotalUsulan != null ? it.TotalUsulan : ((it.Beban||0)+(it.BebanTransportasi||0)+(it.BebanAkomodasi||0)+(it.BebanUangSaku||0))) || 0,
+        ]);
+        row.eachCell((cell, col)=>{
+          cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
+          if (col >= 7 && col <= 11) cell.numFmt = '#,##0';
+          if (col === 1 || col === 4 || col === 5) cell.alignment = { horizontal: 'center', vertical: 'middle' };
+          else cell.alignment = { vertical: 'top', wrapText: true };
+        });
+      });
+
+      const last = ws.lastRow.number;
+      const total = ws.addRow(['','Total Biaya','',0,0,'', {formula:`SUM(G2:G${last})`},{formula:`SUM(H2:H${last})`},{formula:`SUM(I2:I${last})`},{formula:`SUM(J2:J${last})`},{formula:`SUM(K2:K${last})`}]);
+      total.eachCell((cell,col)=>{
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF00' } };
+        cell.font = { bold: col===2 };
+        cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
+        if ([7,8,9,10,11].includes(col)) cell.numFmt = '#,##0';
+      });
+
+      const fileName = `training_proposal_${p.id}.xlsx`;
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+      await wb.xlsx.write(res);
+      res.end();
+    } catch (error) {
+      console.error('Export single XLSX error:', error);
+      res.status(500).json({ success: false, message: 'Gagal mengekspor Excel' });
+    }
+  },
+
+  // Create new proposal (supports items[])
   async createProposal(req, res) {
     try {
       console.log('=== CREATE PROPOSAL DEBUG ===');
@@ -51,14 +253,20 @@ const trainingProposalController = {
         BebanAkomodasi,
         BebanUangSaku,
         TotalUsulan,
+        items,
       } = req.body;
 
       // Asumsi id user pembuat didapat dari middleware otentikasi
       const { id: userId } = req.user;
       console.log('User ID from auth:', userId);
 
-      // Validasi input
-      if (!Uraian || !WaktuPelaksanan || !JumlahPeserta || !LevelTingkatan) {
+      // Jika items ada, validasi minimal satu item dengan uraian
+      if (Array.isArray(items) && items.length > 0) {
+        const validItems = items.filter(it => (it?.Uraian || '').trim() !== '');
+        if (validItems.length === 0) {
+          return res.status(400).json({ success: false, message: 'Minimal satu item uraian harus diisi' });
+        }
+      } else if (!Uraian || !WaktuPelaksanan || !JumlahPeserta || !LevelTingkatan) {
         return res.status(400).json({
           success: false,
           message: "Field wajib harus diisi",
@@ -83,6 +291,35 @@ const trainingProposalController = {
       console.log('Data yang akan disimpan:', proposalData);
       
       const newProposal = await TrainingProposal.create(proposalData);
+
+      // Jika items ada: simpan item dan hitung total proposal
+      if (Array.isArray(items) && items.length > 0) {
+        const itemsToCreate = items
+          .filter(it => (it?.Uraian || '').trim() !== '')
+          .map(it => {
+            const BebanVal = parseFloat(it.Beban) || 0;
+            const TransVal = parseFloat(it.BebanTransportasi) || 0;
+            const AkomVal = parseFloat(it.BebanAkomodasi) || 0;
+            const SakuVal = parseFloat(it.BebanUangSaku) || 0;
+            const total = it.TotalUsulan != null ? parseFloat(it.TotalUsulan) : (BebanVal + TransVal + AkomVal + SakuVal);
+            return {
+              proposalId: newProposal.id,
+              Uraian: it.Uraian,
+              WaktuPelaksanan: it.WaktuPelaksanan || null,
+              JumlahPeserta: it.JumlahPeserta || null,
+              JumlahHariPesertaPelatihan: it.JumlahHariPesertaPelatihan || null,
+              LevelTingkatan: it.LevelTingkatan || null,
+              Beban: BebanVal,
+              BebanTransportasi: TransVal,
+              BebanAkomodasi: AkomVal,
+              BebanUangSaku: SakuVal,
+              TotalUsulan: total,
+            };
+          });
+        await TrainingProposalItem.bulkCreate(itemsToCreate);
+        const grandTotal = itemsToCreate.reduce((acc, it) => acc + (it.TotalUsulan || 0), 0);
+        await newProposal.update({ TotalUsulan: grandTotal });
+      }
       
       console.log('Proposal berhasil dibuat:', newProposal);
 
@@ -100,14 +337,14 @@ const trainingProposalController = {
     }
   },
 
-  // Update proposal with role validation
+  // Update proposal with role validation (supports items[] replace)
   async updateProposal(req, res) {
     try {
       const proposalId = req.params.id;
       const { id: currentUserId, role: currentUserRole } = req.user;
 
       // Cek apakah proposal ada
-      const proposal = await TrainingProposal.findByPk(proposalId);
+      const proposal = await TrainingProposal.findByPk(proposalId, { include: [{ model: TrainingProposalItem, as: 'items' }] });
       if (!proposal) {
         return res.status(404).json({
           success: false,
@@ -126,8 +363,40 @@ const trainingProposalController = {
 
       // 'admin' atau 'superadmin' bisa mengedit semua proposal
 
-      // Lakukan update
-      await proposal.update(req.body);
+      const { items, ...headerRest } = req.body;
+
+      // Lakukan update untuk header
+      await proposal.update(headerRest);
+
+      // Jika items dikirim, replace semua items
+      if (Array.isArray(items)) {
+        await TrainingProposalItem.destroy({ where: { proposalId: proposal.id } });
+        const itemsToCreate = items
+          .filter(it => (it?.Uraian || '').trim() !== '')
+          .map(it => {
+            const BebanVal = parseFloat(it.Beban) || 0;
+            const TransVal = parseFloat(it.BebanTransportasi) || 0;
+            const AkomVal = parseFloat(it.BebanAkomodasi) || 0;
+            const SakuVal = parseFloat(it.BebanUangSaku) || 0;
+            const total = it.TotalUsulan != null ? parseFloat(it.TotalUsulan) : (BebanVal + TransVal + AkomVal + SakuVal);
+            return {
+              proposalId: proposal.id,
+              Uraian: it.Uraian,
+              WaktuPelaksanan: it.WaktuPelaksanan || null,
+              JumlahPeserta: it.JumlahPeserta || null,
+              JumlahHariPesertaPelatihan: it.JumlahHariPesertaPelatihan || null,
+              LevelTingkatan: it.LevelTingkatan || null,
+              Beban: BebanVal,
+              BebanTransportasi: TransVal,
+              BebanAkomodasi: AkomVal,
+              BebanUangSaku: SakuVal,
+              TotalUsulan: total,
+            };
+          });
+        if (itemsToCreate.length) await TrainingProposalItem.bulkCreate(itemsToCreate);
+        const grandTotal = itemsToCreate.reduce((acc, it) => acc + (it.TotalUsulan || 0), 0);
+        await proposal.update({ TotalUsulan: grandTotal });
+      }
 
       res.json({
         success: true,
@@ -150,7 +419,7 @@ const trainingProposalController = {
       const { id: currentUserId, role: currentUserRole } = req.user;
 
       // Cek apakah proposal ada
-      const proposal = await TrainingProposal.findByPk(proposalId);
+      const proposal = await TrainingProposal.findByPk(proposalId, { include: [{ model: TrainingProposalItem, as: 'items' }] });
       if (!proposal) {
         return res.status(404).json({
           success: false,
@@ -304,6 +573,160 @@ const trainingProposalController = {
         success: false,
         message: "Gagal mengubah status proposal",
       });
+    }
+  },
+
+  // Export proposals as CSV with role-based filtering
+  async exportProposals(req, res) {
+    try {
+      const { id: currentUserId, role: currentUserRole } = req.user;
+
+      let whereClause = {};
+      if (currentUserRole === "user") {
+        whereClause.userId = currentUserId;
+      }
+
+      const proposals = await TrainingProposal.findAll({ where: whereClause });
+
+      // Define fields to export
+      const headers = [
+        "ID",
+        "Uraian",
+        "WaktuPelaksanan",
+        "JumlahPeserta",
+        "JumlahHariPesertaPelatihan",
+        "LevelTingkatan",
+        "Beban",
+        "BebanTransportasi",
+        "BebanAkomodasi",
+        "BebanUangSaku",
+        "TotalUsulan",
+        "UserID",
+        "Status",
+        "Alasan",
+        "CreatedAt",
+        "UpdatedAt",
+      ];
+
+      const escapeCSV = (value) => {
+        if (value === null || value === undefined) return "";
+        const str = String(value);
+        if (/[",\n]/.test(str)) {
+          return `"${str.replace(/"/g, '""')}"`;
+        }
+        return str;
+      };
+
+      const rows = proposals.map((p) => [
+        p.id,
+        p.Uraian,
+        p.WaktuPelaksanan ? new Date(p.WaktuPelaksanan).toISOString() : "",
+        p.JumlahPeserta,
+        p.JumlahHariPesertaPelatihan,
+        p.LevelTingkatan,
+        p.Beban,
+        p.BebanTransportasi,
+        p.BebanAkomodasi,
+        p.BebanUangSaku,
+        p.TotalUsulan,
+        p.userId,
+        p.status,
+        p.alasan || "",
+        p.created_at ? new Date(p.created_at).toISOString() : "",
+        p.updated_at ? new Date(p.updated_at).toISOString() : "",
+      ]);
+
+      const csvContent = [headers, ...rows]
+        .map((line) => line.map(escapeCSV).join(","))
+        .join("\n");
+
+      const fileName = `training_proposals_${new Date().toISOString().slice(0, 10)}.csv`;
+      res.setHeader("Content-Type", "text/csv; charset=utf-8");
+      res.setHeader("Content-Disposition", `attachment; filename=\"${fileName}\"`);
+      res.status(200).send(csvContent);
+    } catch (error) {
+      console.error("Export proposals error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Gagal mengekspor data usulan training",
+      });
+    }
+  },
+
+  // Export a single proposal by ID as CSV with role validation
+  async exportProposalById(req, res) {
+    try {
+      const proposalId = req.params.id;
+      const { id: currentUserId, role: currentUserRole } = req.user;
+
+      const proposal = await TrainingProposal.findByPk(proposalId);
+      if (!proposal) {
+        return res.status(404).json({ success: false, message: "Usulan training tidak ditemukan" });
+      }
+
+      // Access control: user can only export own proposal
+      if (currentUserRole === 'user' && proposal.userId !== currentUserId) {
+        return res.status(403).json({ success: false, message: 'Akses ditolak' });
+      }
+
+      const headers = [
+        "ID",
+        "Uraian",
+        "WaktuPelaksanan",
+        "JumlahPeserta",
+        "JumlahHariPesertaPelatihan",
+        "LevelTingkatan",
+        "Beban",
+        "BebanTransportasi",
+        "BebanAkomodasi",
+        "BebanUangSaku",
+        "TotalUsulan",
+        "UserID",
+        "Status",
+        "Alasan",
+        "CreatedAt",
+        "UpdatedAt",
+      ];
+
+      const escapeCSV = (value) => {
+        if (value === null || value === undefined) return "";
+        const str = String(value);
+        if (/[",\n]/.test(str)) {
+          return `"${str.replace(/"/g, '""')}"`;
+        }
+        return str;
+      };
+
+      const row = [
+        proposal.id,
+        proposal.Uraian,
+        proposal.WaktuPelaksanan ? new Date(proposal.WaktuPelaksanan).toISOString() : "",
+        proposal.JumlahPeserta,
+        proposal.JumlahHariPesertaPelatihan,
+        proposal.LevelTingkatan,
+        proposal.Beban,
+        proposal.BebanTransportasi,
+        proposal.BebanAkomodasi,
+        proposal.BebanUangSaku,
+        proposal.TotalUsulan,
+        proposal.userId,
+        proposal.status,
+        proposal.alasan || "",
+        proposal.created_at ? new Date(proposal.created_at).toISOString() : "",
+        proposal.updated_at ? new Date(proposal.updated_at).toISOString() : "",
+      ];
+
+      const csvContent = [headers, row]
+        .map((line) => line.map(escapeCSV).join(","))
+        .join("\n");
+
+      const fileName = `training_proposal_${proposal.id}.csv`;
+      res.setHeader("Content-Type", "text/csv; charset=utf-8");
+      res.setHeader("Content-Disposition", `attachment; filename=\"${fileName}\"`);
+      res.status(200).send(csvContent);
+    } catch (error) {
+      console.error("Export single proposal error:", error);
+      res.status(500).json({ success: false, message: "Gagal mengekspor usulan" });
     }
   },
 };
