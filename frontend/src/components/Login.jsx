@@ -86,7 +86,7 @@ const Login = ({ onLoginSuccess }) => {
     <div className="login-container" style={loginBackgroundStyle}>
       <div className="login-card">
         <div className="login-header">
-          <img src="/logo192.png" alt="PT Pelindo" className="login-logo" />
+          <img src="/LogoPelindo.png" alt="PT Pelindo" className="login-logo" />
           <h1>PT Pelindo</h1>
           <h2>Sistem Manajemen Proposal Pelatihan</h2>
         </div>
@@ -132,12 +132,7 @@ const Login = ({ onLoginSuccess }) => {
         </form>
 
         <div className="login-footer">
-          <div className="demo-credentials">
-            <h4>Demo Credentials:</h4>
-            <p><strong>SuperAdmin:</strong> superadmin / admin123</p>
-            <p><strong>Admin:</strong> admin1 / admin123</p>
-            <p><strong>User:</strong> user1 / user123</p>
-          </div>
+         
         </div>
       </div>
     </div>

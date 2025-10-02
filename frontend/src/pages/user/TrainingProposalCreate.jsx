@@ -13,8 +13,7 @@ const TrainingProposalCreate = () => {
   return (
     <div className="training-proposal-create">
       <div className="page-header">
-        <h1>Buat Usulan Pelatihan Baru</h1>
-        <p>Isi formulir di bawah ini untuk mengajukan usulan pelatihan baru</p>
+       
       </div>
       
       <TrainingProposalForm 
