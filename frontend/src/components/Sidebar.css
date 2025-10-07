@@ -14,7 +14,7 @@
 }
 
 .sidebar.collapsed {
-  width: 90px; /* agar logo dan ikon pas */
+  width: 72px; /* thin rail with icons visible */
 }
 
 .sidebar-header {
@@ -154,6 +154,19 @@
   flex-shrink: 0;
 }
 
+/* Ensure image icons render consistently */
+.nav-icon img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  display: block;
+}
+
+.sidebar.collapsed .nav-icon img {
+  width: 24px;
+  height: 24px;
+}
+
 .nav-label {
   font-weight: 500;
   white-space: nowrap;
@@ -202,13 +215,40 @@
 
 
 
-/* === TAMBAHAN: Menengahkan logout saat collapsed === */
-.sidebar.collapsed .logout-button {
-    justify-content: center;
+/* Collapsed state: hide inner sections and expose a small toggle handle */
+.sidebar.collapsed .sidebar-user,
+.sidebar.collapsed .brand-text,
+.sidebar.collapsed .batik-background { display: none; }
+
+/* Keep nav visible but compact */
+.sidebar.collapsed .nav-link {
+  justify-content: center;
+  align-items: center;
+  gap: 0;
+  padding: 12px 0;
 }
-.sidebar.collapsed .logout-button .nav-label {
-    display: none; /* Sembunyikan label saat collapsed */
+
+.sidebar.collapsed .nav-label { display: none; }
+.sidebar.collapsed .dropdown-chevron { display: none; }
+.sidebar.collapsed .submenu { display: none; }
+
+/* Make icons visually centered and consistent when collapsed */
+.sidebar.collapsed .nav-icon {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  font-size: 1.25rem; /* slightly larger for readability */
 }
+
+/* Ensure list items occupy full rail width and center contents */
+.sidebar.collapsed .nav-item { text-align: center; }
+
+.sidebar.collapsed .sidebar-header { padding: 12px 0; justify-content: center; }
+
+.sidebar.collapsed .sidebar-toggle { position: static; background: rgba(255,255,255,0.2); border: none; box-shadow: none; }
 
 /* Scrollbar Styling */
 .sidebar-nav::-webkit-scrollbar {
@@ -239,14 +279,72 @@
   border-top: 0px solid #ddd;  /* Bisa ditambahkan border di atas gambar */
 }
 
-.batik-background {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 200px;  /* Tentukan tinggi gambar */
-  z-index: -1;  /* Pastikan gambar berada di belakang konten lainnya */
+  .batik-background {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 200px;  /* Tentukan tinggi gambar */
+    z-index: -1;  /* Pastikan gambar berada di belakang konten lainnya */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+/* ===== Dropdown (Semua Usulan) ===== */
+.nav-item.dropdown .dropdown-toggle {
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.dropdown-chevron {
+  margin-left: auto;
+  transition: transform 0.2s ease;
+}
+
+.dropdown-chevron.open {
+  transform: rotate(180deg);
+}
+
+.submenu {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.25s ease;
+  margin: 0;
+  padding: 0;
+}
+
+.submenu.open {
+  max-height: 400px; /* cukup untuk 3 item */
+}
+
+.submenu .nav-item {
+  margin: 0;
+}
+
+.submenu .nav-link {
+  padding: 10px 20px 10px 44px; /* indent untuk child */
+  background: rgba(255, 255, 255, 0.06);
+  border-right-color: transparent;
+}
+
+.submenu .nav-link:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.submenu .nav-link.active {
+  background: rgba(255, 255, 255, 0.2);
+  border-right-color: white;
+}
+
+/* Garis pandu di sisi kiri submenu */
+.nav-item.dropdown .submenu {
+  border-left: 2px solid rgba(255, 255, 255, 0.25);
+}
+
+/* Saat sidebar collapsed, sembunyikan submenu agar rapi */
+.sidebar.collapsed .submenu {
+  display: none;
 }

@@ -21,6 +21,18 @@ const UserManagement = ({ users, onAddUser, onEditUser, onDeleteUser, onToggleSt
   const [divisiList, setDivisiList] = useState([]);
   const [branchList, setBranchList] = useState([]);
   const [anakPerusahaanList, setAnakPerusahaanList] = useState([]);
+  // UI state: search & filters & compact mode
+  const [searchQuery, setSearchQuery] = useState('');
+  const [roleFilter, setRoleFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [compactMode, setCompactMode] = useState(false);
+  // Sorting & pagination
+  const [sortBy, setSortBy] = useState('username'); // username | role | status
+  const [sortDir, setSortDir] = useState('asc'); // asc | desc
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  // Bulk selection
+  const [selectedIds, setSelectedIds] = useState(new Set());
 
   useEffect(() => {
     fetchUsers();
@@ -226,6 +238,80 @@ const UserManagement = ({ users, onAddUser, onEditUser, onDeleteUser, onToggleSt
     }
   };
 
+  // Derived: options for role filter from existing users
+  const roleOptions = Array.from(new Set(userList.map(u => u.role))).filter(Boolean);
+
+  // Derived: filtered users
+  const filteredUsers = userList.filter(u => {
+    const matchesSearch = [u.username, u.email, u.unit, u?.divisi?.nama, u?.branch?.nama, u?.anakPerusahaan?.nama]
+      .filter(Boolean)
+      .some(val => String(val).toLowerCase().includes(searchQuery.toLowerCase()));
+    const matchesRole = roleFilter === 'all' || (u.role === roleFilter);
+    const matchesStatus = statusFilter === 'all' || ((u.status || '').toLowerCase() === statusFilter);
+    return matchesSearch && matchesRole && matchesStatus;
+  });
+
+  // Sort
+  const sortedUsers = [...filteredUsers].sort((a, b) => {
+    const dir = sortDir === 'asc' ? 1 : -1;
+    const getVal = (u) => {
+      if (sortBy === 'username') return (u.username || '').toLowerCase();
+      if (sortBy === 'role') return (u.role || '').toLowerCase();
+      if (sortBy === 'status') return ((u.status || '') + '').toLowerCase();
+      return (u.username || '').toLowerCase();
+    };
+    const va = getVal(a), vb = getVal(b);
+    if (va < vb) return -1 * dir;
+    if (va > vb) return 1 * dir;
+    return 0;
+  });
+
+  // No pagination: show all
+  const totalUsers = sortedUsers.length;
+  const totalPages = 1;
+  const currentPage = 1;
+  const pagedUsers = sortedUsers;
+
+  const toggleSelect = (id) => {
+    setSelectedIds(prev => {
+      const s = new Set(prev);
+      if (s.has(id)) s.delete(id); else s.add(id);
+      return s;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === pagedUsers.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(pagedUsers.map(u => u.id)));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.size === 0) return;
+    if (!window.confirm(`Hapus ${selectedIds.size} user terpilih?`)) return;
+    try {
+      setLoading(true);
+      for (const id of selectedIds) {
+        await handleDeleteUser(id);
+      }
+      setSelectedIds(new Set());
+      fetchUsers();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleBulkToggleStatus = (target) => {
+    // Local optimistic: flip/set status, also call onToggleStatus if provided.
+    setUserList(prev => prev.map(u => selectedIds.has(u.id) ? { ...u, status: target } : u));
+    if (onToggleStatus) {
+      selectedIds.forEach(id => onToggleStatus(id));
+    }
+    setSelectedIds(new Set());
+  };
+
   const handleRoleChange = (newRole) => {
     setFormData(prev => ({
       ...prev,
@@ -258,17 +344,50 @@ const UserManagement = ({ users, onAddUser, onEditUser, onDeleteUser, onToggleSt
 
       <div className="card-surface">
         <div className="inner-card header-row">
-          <h3>Daftar Pengguna</h3>
+          <div className="list-title">
+            <span className="list-icon">👥</span>
+            <h3>Daftar Pengguna</h3>
+            <span className="count-badge" aria-label={`Total pengguna: ${totalUsers}`}>{totalUsers}</span>
+          </div>
           <button className="btn-primary" onClick={handleAddUser} disabled={loading}>
             {loading ? 'Loading...' : '+ Tambah Pengguna'}
           </button>
         </div>
 
         <div className="inner-card">
-          <div className="user-list">
-            {userList.map(user => (
+          <div className="controls-row">
+            <div className="search-control">
+              <input
+                type="text"
+                placeholder="Cari nama, email, unit, divisi, branch..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+            <div className="filters">
+              <select value={roleFilter} onChange={(e)=>setRoleFilter(e.target.value)}>
+                <option value="all">Semua Role</option>
+                {roleOptions.map(r => (
+                  <option key={r} value={r}>{r.toUpperCase()}</option>
+                ))}
+              </select>
+              <select value={statusFilter} onChange={(e)=>setStatusFilter(e.target.value)}>
+                <option value="all">Semua Status</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+              {/* controls removed: sorting, compact toggle */}
+            </div>
+          </div>
+
+          {/* Bulk actions removed as requested */}
+
+          <div className={`user-list ${compactMode ? 'compact' : ''}`}>
+            {/* utility row removed */}
+
+            {pagedUsers.map(user => (
               <div key={user.id} className="user-item-card">
-                <div className="avatar">{user.username?.charAt(0)?.toUpperCase()}</div>
+                <div className={`avatar role-${user.role}`}>{user.username?.charAt(0)?.toUpperCase()}</div>
                 <div className="user-meta">
                   <div className="top-line">
                     <strong className="username">{user.username}</strong>
@@ -292,8 +411,11 @@ const UserManagement = ({ users, onAddUser, onEditUser, onDeleteUser, onToggleSt
               </div>
             ))}
 
-            {userList.length === 0 && (
-              <div className="empty-state">Tidak ada pengguna ditemukan</div>
+            {pagedUsers.length === 0 && (
+              <div className="empty-state">
+                <div>Tidak ada pengguna ditemukan</div>
+                <button className="btn-primary" style={{marginTop: '12px'}} onClick={handleAddUser}>+ Tambah Pengguna</button>
+              </div>
             )}
           </div>
         </div>

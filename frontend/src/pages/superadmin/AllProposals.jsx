@@ -1,10 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { API_BASE_URL } from '../../utils/api';
 import './AllProposals.css';
 
-const AllProposals = ({ proposals, onFinalApprove, onFinalReject, onViewDetail, onEditProposal, onNavigate }) => {
+const AllProposals = ({ proposals, onFinalApprove, onFinalReject, onViewDetail, onEditProposal, onNavigate, initialStatusFilter, headerTitle }) => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [unitFilter, setUnitFilter] = useState('all');
+
+  // Apply initial status filter if provided
+  useEffect(() => {
+    if (initialStatusFilter) {
+      setStatusFilter(initialStatusFilter);
+    }
+  }, [initialStatusFilter]);
 
   const handleExport = async () => {
     try {
@@ -71,7 +78,7 @@ const AllProposals = ({ proposals, onFinalApprove, onFinalReject, onViewDetail, 
     <div className="proposals-container">
       <div className="content-header">
         <div className="header-left">
-          <h2>Semua Usulan Pelatihan</h2>
+          <h2>{headerTitle || 'Semua Usulan Pelatihan'}</h2>
           <p>Overview lengkap semua usulan pelatihan dalam sistem</p>
         </div>
         <div className="header-actions">

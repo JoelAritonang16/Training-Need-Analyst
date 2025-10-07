@@ -213,6 +213,34 @@ const SuperadminDashboard = ({ user, onLogout }) => {
       case 'proposal-form':
         return <TrainingProposalForm user={user} />;
       
+      case 'proposal-approval':
+        return (
+          <AllProposals
+            proposals={proposals}
+            onFinalApprove={handleFinalApprove}
+            onFinalReject={handleFinalReject}
+            onViewDetail={handleViewDetail}
+            onEditProposal={handleEditProposal}
+            onNavigate={handleNavigate}
+            initialStatusFilter="waiting"
+            headerTitle="Persetujuan Usulan"
+          />
+        );
+
+      case 'approved-proposals':
+        return (
+          <AllProposals
+            proposals={proposals}
+            onFinalApprove={handleFinalApprove}
+            onFinalReject={handleFinalReject}
+            onViewDetail={handleViewDetail}
+            onEditProposal={handleEditProposal}
+            onNavigate={handleNavigate}
+            initialStatusFilter="approved"
+            headerTitle="Usulan Disetujui"
+          />
+        );
+
       case 'user-management':
         return (
           <UserManagement 

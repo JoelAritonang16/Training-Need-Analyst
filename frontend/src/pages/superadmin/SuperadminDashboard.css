@@ -5,13 +5,19 @@
   background: #f5f6fa;
 }
 
+/* Let main-content adapt based on sidebar sibling state */
 .main-content {
   flex: 1;
-  margin-left: 280px;
   padding: 20px;
   transition: margin-left 0.3s ease;
   overflow-y: auto;
 }
+
+/* When sidebar is present and open, push content */
+.sidebar + .main-content { margin-left: 280px; }
+
+/* When sidebar is collapsed, keep the same margin so content doesn't shift */
+.sidebar.collapsed + .main-content { margin-left: 280px; }
 
 /* Topbar di atas konten, tombol logout kanan atas */
 .topbar {
