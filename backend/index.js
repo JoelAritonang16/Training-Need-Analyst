@@ -28,6 +28,9 @@ app.use(
 );
 app.use(express.json());
 
+// Serve static files (for uploaded images)
+app.use('/uploads', express.static('uploads'));
+
 app.use(
   session({
     secret:

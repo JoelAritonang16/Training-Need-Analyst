@@ -1,5 +1,7 @@
 import { User, Divisi, Branch, AnakPerusahaan } from '../models/index.js';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
+import path from 'path';
+import fs from 'fs';
 import { Op } from 'sequelize';
 
 const userController = {
@@ -599,6 +601,75 @@ const userController = {
       res.status(500).json({
         success: false,
         message: 'Gagal memperbarui profil'
+      });
+    }
+  },
+
+  // Upload profile photo
+  async uploadProfilePhoto(req, res) {
+    try {
+      console.log('=== UPLOAD PROFILE PHOTO ===');
+      console.log('User:', req.user);
+      console.log('File:', req.file);
+      
+      const userId = req.user.id;
+      
+      if (!req.file) {
+        console.log('❌ No file uploaded');
+        return res.status(400).json({
+          success: false,
+          message: 'Tidak ada file yang diupload'
+        });
+      }
+
+      // Get user
+      const user = await User.findByPk(userId);
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: 'User tidak ditemukan'
+        });
+      }
+
+      // Delete old photo if exists
+      if (user.profilePhoto) {
+        try {
+          const oldPhotoPath = path.join(__dirname, '..', user.profilePhoto);
+          console.log('Trying to delete old photo:', oldPhotoPath);
+          if (fs.existsSync(oldPhotoPath)) {
+            fs.unlinkSync(oldPhotoPath);
+            console.log('✅ Old photo deleted');
+          }
+        } catch (deleteError) {
+          console.log('⚠️ Could not delete old photo:', deleteError.message);
+          // Continue anyway
+        }
+      }
+
+      // Save new photo path
+      const photoPath = `uploads/profiles/${req.file.filename}`;
+      console.log('Saving photo path:', photoPath);
+      
+      try {
+        await user.update({ profilePhoto: photoPath });
+        console.log('✅ Photo path saved to database');
+      } catch (dbError) {
+        console.error('❌ Database update error:', dbError);
+        throw dbError;
+      }
+
+      res.json({
+        success: true,
+        message: 'Foto profil berhasil diupload',
+        profilePhoto: photoPath,
+        photoUrl: `http://localhost:5000/${photoPath}`
+      });
+    } catch (error) {
+      console.error('❌ Upload profile photo error:', error);
+      console.error('Error stack:', error.stack);
+      res.status(500).json({
+        success: false,
+        message: 'Gagal mengupload foto profil: ' + error.message
       });
     }
   }

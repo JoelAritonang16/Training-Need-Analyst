@@ -139,8 +139,18 @@ const UserDashboard = ({ user, onLogout, onUserUpdate, proposals = [] }) => {
               aria-haspopup="true"
               aria-expanded={isUserMenuOpen}
             >
-              <span className="user-avatar">{user?.username?.charAt(0)?.toUpperCase() || 'U'}</span>
-              <span className="user-name">{user?.username || 'User'}</span>
+              <span className="user-avatar">
+                {currentUser?.profilePhoto ? (
+                  <img 
+                    src={`http://localhost:5000/${currentUser.profilePhoto}`} 
+                    alt="Profile" 
+                    style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }}
+                  />
+                ) : (
+                  currentUser?.username?.charAt(0)?.toUpperCase() || 'U'
+                )}
+              </span>
+              <span className="user-name">{currentUser?.username || 'User'}</span>
               <span className={`chevron ${isUserMenuOpen ? 'open' : ''}`}>▾</span>
             </button>
             {isUserMenuOpen && (

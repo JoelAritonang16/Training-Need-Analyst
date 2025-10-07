@@ -34,13 +34,13 @@ const DashboardOverview = ({ user, proposals, onNavigate }) => {
         <div className="action-buttons">
           <button 
             className="btn-primary"
-            onClick={() => onNavigate('create')}
+            onClick={() => onNavigate('proposal-create')}
           >
             Buat Usulan Baru
           </button>
           <button 
             className="btn-secondary"
-            onClick={() => onNavigate('list')}
+            onClick={() => onNavigate('proposal-list')}
           >
             Lihat Daftar Usulan
           </button>

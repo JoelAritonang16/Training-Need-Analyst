@@ -56,6 +56,11 @@ const User = (sequelize, Sequelize) => {
         allowNull: true,
         comment: 'Unit/Divisi user'
       },
+      profilePhoto: {
+        type: DataTypes.STRING(255),
+        allowNull: true,
+        comment: 'Path/URL foto profil user'
+      },
       divisiId: {
         type: DataTypes.INTEGER,
         allowNull: true,

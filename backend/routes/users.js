@@ -1,6 +1,7 @@
 import express from 'express';
 import userController from '../controllers/userController.js';
 import auth from '../middleware/auth.js';
+import { uploadProfile } from '../middleware/uploadProfile.js';
 
 const router = express.Router();
 
@@ -30,5 +31,12 @@ router.delete('/role-based/:id', auth.isAuthenticated, userController.deleteUser
 
 // Update own profile
 router.put('/profile/me', auth.isAuthenticated, userController.updateOwnProfile);
+
+// Upload profile photo
+router.post('/profile/photo', auth.isAuthenticated, (req, res, next) => {
+  console.log('=== UPLOAD ROUTE HIT ===');
+  console.log('Headers:', req.headers);
+  next();
+}, uploadProfile.single('photo'), userController.uploadProfilePhoto);
 
 export default router;

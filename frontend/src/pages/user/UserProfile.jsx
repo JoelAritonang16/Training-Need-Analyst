@@ -9,8 +9,10 @@ const UserProfile = ({ user, proposals, onUpdateProfile }) => {
     email: user?.email || '',
     unit: user?.unit || '',
     phone: user?.phone || '',
-    fullName: user?.fullName || ''
+    fullName: user?.fullName || '',
+    profilePhoto: user?.profilePhoto || null
   });
+  const [uploading, setUploading] = useState(false);
 
   // Update profileData when user prop changes
   useEffect(() => {
@@ -19,9 +21,72 @@ const UserProfile = ({ user, proposals, onUpdateProfile }) => {
       email: user?.email || '',
       unit: user?.unit || '',
       phone: user?.phone || '',
-      fullName: user?.fullName || ''
+      fullName: user?.fullName || '',
+      profilePhoto: user?.profilePhoto || null
     });
   }, [user]);
+
+  const handlePhotoUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      alert('Hanya file gambar yang diperbolehkan!');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Ukuran file maksimal 5MB!');
+      return;
+    }
+
+    setUploading(true);
+    const formData = new FormData();
+    formData.append('photo', file);
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:5000/api/users/profile/photo', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formData
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        console.log('✅ Upload success:', data);
+        
+        // Update local state
+        setProfileData(prev => ({
+          ...prev,
+          profilePhoto: data.profilePhoto
+        }));
+        
+        // Update parent component immediately
+        if (onUpdateProfile) {
+          onUpdateProfile({ 
+            ...user, 
+            profilePhoto: data.profilePhoto 
+          });
+        }
+        
+        alert('Foto profil berhasil diupload!');
+      } else {
+        alert('Gagal upload foto: ' + data.message);
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      console.error('Error details:', error.message);
+      alert('Terjadi kesalahan saat upload foto: ' + error.message);
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -95,8 +160,28 @@ const UserProfile = ({ user, proposals, onUpdateProfile }) => {
       <div className="profile-layout">
         <div className="profile-card">
           <div className="profile-info">
-            <div className="profile-avatar">
-              {(profileData.fullName || profileData.username)?.charAt(0).toUpperCase()}
+            <div className="profile-avatar-wrapper">
+              <div className="profile-avatar">
+                {profileData.profilePhoto ? (
+                  <img 
+                    src={`http://localhost:5000/${profileData.profilePhoto}`} 
+                    alt="Profile" 
+                    className="profile-photo"
+                  />
+                ) : (
+                  (profileData.fullName || profileData.username)?.charAt(0).toUpperCase()
+                )}
+              </div>
+              <label className="upload-photo-btn" title="Upload foto profil">
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  onChange={handlePhotoUpload}
+                  disabled={uploading}
+                  style={{ display: 'none' }}
+                />
+                📷
+              </label>
             </div>
             <div className="profile-details">
               <h3>{profileData.fullName || profileData.username}</h3>

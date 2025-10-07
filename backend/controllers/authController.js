@@ -135,7 +135,7 @@ const authController = {
       // First try session-based authentication
       if (req.session && req.session.user) {
         const user = await User.findByPk(req.session.user.id, {
-          attributes: ['id', 'username', 'role', 'fullName', 'email', 'phone', 'unit', 'created_at']
+          attributes: ['id', 'username', 'role', 'fullName', 'email', 'phone', 'unit', 'profilePhoto', 'created_at']
         });
 
         if (user) {
@@ -149,6 +149,7 @@ const authController = {
               email: user.email,
               phone: user.phone,
               unit: user.unit,
+              profilePhoto: user.profilePhoto,
               created_at: user.created_at
             }
           });
@@ -167,7 +168,7 @@ const authController = {
           if (parts.length >= 2) {
             const userId = parts[1];
             const user = await User.findByPk(userId, {
-              attributes: ['id', 'username', 'role', 'fullName', 'email', 'phone', 'unit', 'created_at']
+              attributes: ['id', 'username', 'role', 'fullName', 'email', 'phone', 'unit', 'profilePhoto', 'created_at']
             });
             
             if (user) {
@@ -181,6 +182,7 @@ const authController = {
                   email: user.email,
                   phone: user.phone,
                   unit: user.unit,
+                  profilePhoto: user.profilePhoto,
                   created_at: user.created_at
                 }
               });

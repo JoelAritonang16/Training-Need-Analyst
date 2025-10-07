@@ -105,9 +105,17 @@ function App() {
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
+      // Clear localStorage
       localStorage.removeItem('token');
       localStorage.removeItem('user');
+      
+      // Clear user state - INI YANG PENTING!
+      setUser(null);
+      
+      // Close modal
       setShowLogoutConfirm(false);
+      
+      console.log('✅ Logged out successfully');
       console.log('=== LOGOUT END ===');
     }
   };

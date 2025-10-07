@@ -44,6 +44,11 @@
   margin-bottom: 30px;
 }
 
+.profile-avatar-wrapper {
+  position: relative;
+  margin-bottom: 15px;
+}
+
 .profile-avatar {
   width: 80px;
   height: 80px;
@@ -55,7 +60,36 @@
   font-size: 2rem;
   font-weight: bold;
   color: white;
-  margin-bottom: 15px;
+  overflow: hidden;
+}
+
+.profile-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.upload-photo-btn {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #667eea;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1rem;
+  border: 3px solid white;
+  transition: all 0.3s ease;
+}
+
+.upload-photo-btn:hover {
+  background: #764ba2;
+  transform: scale(1.1);
 }
 
 .profile-details h3 {
