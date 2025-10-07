@@ -59,7 +59,7 @@ const Login = ({ onLoginSuccess }) => {
     }
   };
 
-  const backgroundImageUrl = `${process.env.PUBLIC_URL}/gedung.png`;
+  const backgroundImageUrl = `${process.env.PUBLIC_URL}/GEDUNGG.png`;
   const loginBackgroundStyle = {
     background: `linear-gradient(135deg, rgba(30,60,114,0.6) 0%, rgba(42,82,152,0.6) 100%), url(${backgroundImageUrl})`,
     backgroundSize: 'cover, cover',

@@ -240,7 +240,6 @@ export const anakPerusahaanAPI = {
   addBranch: async (id, branchId) => {
     console.log('Adding branch to anak perusahaan:', id, branchId);
     return apiCall(`/api/anak-perusahaan/${id}/branches`, {
-      method: 'POST',
       body: JSON.stringify({ branchId })
     });
   },
@@ -249,6 +248,17 @@ export const anakPerusahaanAPI = {
     console.log('Removing branch from anak perusahaan:', id, branchId);
     return apiCall(`/api/anak-perusahaan/${id}/branches/${branchId}`, {
       method: 'DELETE'
+    });
+  }
+};
+
+// User Profile API
+export const userProfileAPI = {
+  updateProfile: async (profileData) => {
+    console.log('Updating user profile:', profileData);
+    return apiCall('/api/users/profile/me', {
+      method: 'PUT',
+      body: JSON.stringify(profileData)
     });
   }
 };

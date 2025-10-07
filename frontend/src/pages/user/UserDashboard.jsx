@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Sidebar from '../../components/Sidebar.jsx';
 import DashboardOverview from './DashboardOverview.jsx';
 import TrainingProposalList from './TrainingProposalList.jsx';
@@ -8,10 +8,16 @@ import TrainingProposalDetail from './TrainingProposalDetail.jsx';
 import UserProfile from './UserProfile.jsx';
 import './UserDashboard.css';
 
-const UserDashboard = ({ user, onLogout, proposals = [] }) => {
+const UserDashboard = ({ user, onLogout, onUserUpdate, proposals = [] }) => {
   const [activeMenu, setActiveMenu] = useState('dashboard');
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [selectedProposalId, setSelectedProposalId] = useState(null);
+  const [currentUser, setCurrentUser] = useState(user);
+
+  // Sync currentUser when user prop changes
+  useEffect(() => {
+    setCurrentUser(user);
+  }, [user]);
 
   const handleMenuChange = (menuId) => {
     setActiveMenu(menuId);
@@ -37,9 +43,18 @@ const UserDashboard = ({ user, onLogout, proposals = [] }) => {
     setSelectedProposalId(null);
   };
 
-  const handleUpdateProfile = (profileData) => {
-    // Handle update profile logic
-    console.log('Update profile:', profileData);
+  const handleUpdateProfile = (updatedUserData) => {
+    // Update local user state with new profile data
+    console.log('Update profile:', updatedUserData);
+    setCurrentUser(prevUser => ({
+      ...prevUser,
+      ...updatedUserData
+    }));
+    
+    // Call parent update handler to update App.jsx state
+    if (onUserUpdate) {
+      onUserUpdate(updatedUserData);
+    }
   };
 
   const renderContent = () => {
@@ -89,7 +104,7 @@ const UserDashboard = ({ user, onLogout, proposals = [] }) => {
       case 'profile':
         return (
           <UserProfile 
-            user={user}
+            user={currentUser}
             proposals={proposals}
             onUpdateProfile={handleUpdateProfile}
           />

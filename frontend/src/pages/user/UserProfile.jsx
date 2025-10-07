@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { userProfileAPI } from '../../utils/api';
 import './UserProfile.css';
 
 const UserProfile = ({ user, proposals, onUpdateProfile }) => {
@@ -11,6 +12,17 @@ const UserProfile = ({ user, proposals, onUpdateProfile }) => {
     fullName: user?.fullName || ''
   });
 
+  // Update profileData when user prop changes
+  useEffect(() => {
+    setProfileData({
+      username: user?.username || '',
+      email: user?.email || '',
+      unit: user?.unit || '',
+      phone: user?.phone || '',
+      fullName: user?.fullName || ''
+    });
+  }, [user]);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setProfileData(prev => ({
@@ -19,9 +31,44 @@ const UserProfile = ({ user, proposals, onUpdateProfile }) => {
     }));
   };
 
-  const handleSave = () => {
-    onUpdateProfile(profileData);
-    setIsEditing(false);
+  const handleSave = async () => {
+    try {
+      console.log('=== SAVING PROFILE ===');
+      console.log('Profile data to save:', profileData);
+      console.log('Username being sent:', profileData.username);
+      
+      const response = await userProfileAPI.updateProfile(profileData);
+      console.log('API Response:', response);
+      
+      if (response.success) {
+        console.log('✅ Profile updated successfully!');
+        console.log('Updated user data:', response.user);
+        console.log('New username from server:', response.user.username);
+        
+        // Update profileData with server response to ensure sync
+        setProfileData({
+          username: response.user.username,
+          fullName: response.user.fullName,
+          email: response.user.email,
+          phone: response.user.phone,
+          unit: response.user.unit
+        });
+        
+        alert('Profil berhasil diperbarui!');
+        
+        if (onUpdateProfile) {
+          console.log('Calling onUpdateProfile with:', response.user);
+          onUpdateProfile(response.user);
+        }
+        setIsEditing(false);
+      } else {
+        console.error('❌ Update failed:', response.message);
+        alert('Gagal memperbarui profil: ' + response.message);
+      }
+    } catch (error) {
+      console.error('❌ Error updating profile:', error);
+      alert('Terjadi kesalahan: ' + error.message);
+    }
   };
 
   const handleCancel = () => {
@@ -49,12 +96,12 @@ const UserProfile = ({ user, proposals, onUpdateProfile }) => {
         <div className="profile-card">
           <div className="profile-info">
             <div className="profile-avatar">
-              {user?.username?.charAt(0).toUpperCase()}
+              {(profileData.fullName || profileData.username)?.charAt(0).toUpperCase()}
             </div>
             <div className="profile-details">
-              <h3>{user?.username}</h3>
+              <h3>{profileData.fullName || profileData.username}</h3>
               <p className="role-badge">{user?.role}</p>
-              <p className="unit-info">{user?.unit || 'Unit/Divisi'}</p>
+              <p className="unit-info">{profileData.unit || 'Unit/Divisi'}</p>
             </div>
             <button 
               className="edit-profile-btn"

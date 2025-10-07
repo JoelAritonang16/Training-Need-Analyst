@@ -28,4 +28,7 @@ router.delete('/:id', auth.isAuthenticated, userController.deleteUser);
 // Delete user with role validation
 router.delete('/role-based/:id', auth.isAuthenticated, userController.deleteUserWithRoleValidation);
 
+// Update own profile
+router.put('/profile/me', auth.isAuthenticated, userController.updateOwnProfile);
+
 export default router;

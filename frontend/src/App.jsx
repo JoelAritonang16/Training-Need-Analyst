@@ -7,6 +7,7 @@ import UserDashboardWrapper from "./components/UserDashboardWrapper.jsx";
 import { DatabaseDataProvider } from "./components/DatabaseDataProvider.jsx";
 import "./App.css";
 
+
 function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -106,7 +107,6 @@ function App() {
     } finally {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      setUser(null);
       setShowLogoutConfirm(false);
       console.log('=== LOGOUT END ===');
     }
@@ -116,13 +116,31 @@ function App() {
     setShowLogoutConfirm(true);
   };
 
+  const handleUserUpdate = (updatedUserData) => {
+    // Update user state with new data
+    setUser(prevUser => ({
+      ...prevUser,
+      ...updatedUserData
+    }));
+    
+    // Also update localStorage
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      const parsedUser = JSON.parse(storedUser);
+      localStorage.setItem('user', JSON.stringify({
+        ...parsedUser,
+        ...updatedUserData
+      }));
+    }
+  };
+
   const renderDashboard = () => {
     const role = (user?.role || '').toLowerCase();
     console.log('Rendering dashboard for role:', role);
     
-    if (role === 'admin') return <AdminDashboard user={user} onLogout={handleLogout} />;
-    if (role === 'superadmin') return <SuperadminDashboard user={user} onLogout={handleLogout} />;
-    return <UserDashboardWrapper user={user} onLogout={handleLogout} />;
+    if (role === 'admin') return <AdminDashboard user={user} onLogout={handleLogout} onUserUpdate={handleUserUpdate} />;
+    if (role === 'superadmin') return <SuperadminDashboard user={user} onLogout={handleLogout} onUserUpdate={handleUserUpdate} />;
+    return <UserDashboardWrapper user={user} onLogout={handleLogout} onUserUpdate={handleUserUpdate} />;
   };
 
   if (loading) {

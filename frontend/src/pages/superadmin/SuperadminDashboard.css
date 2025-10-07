@@ -9,15 +9,49 @@
 .main-content {
   flex: 1;
   padding: 20px;
-  transition: margin-left 0.3s ease;
+  transition: margin-left 0.3s ease, box-shadow 0.3s ease;
   overflow-y: auto;
 }
 
 /* When sidebar is present and open, push content */
-.sidebar + .main-content { margin-left: 280px; }
+.sidebar + .main-content { 
+  margin-left: 280px;
+  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.05);
+}
 
-/* When sidebar is collapsed, keep the same margin so content doesn't shift */
-.sidebar.collapsed + .main-content { margin-left: 280px; }
+/* When sidebar is collapsed, reduce left margin to thin rail */
+.sidebar.collapsed + .main-content { 
+  margin-left: 72px;
+  box-shadow: none;
+}
+
+/* When collapsed, make tables expand and avoid horizontal scroll */
+.sidebar.collapsed ~ .main-content .table { 
+  min-width: 100% !important; 
+  table-layout: auto;
+  transition: min-width 0.3s ease;
+}
+.sidebar.collapsed ~ .main-content .table-scroll { 
+  overflow-x: visible;
+  transition: overflow 0.3s ease;
+}
+
+/* Smooth scrollbar styling for tables */
+.table-scroll::-webkit-scrollbar {
+  height: 8px;
+}
+.table-scroll::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+.table-scroll::-webkit-scrollbar-thumb {
+  background: #0271B6;
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+.table-scroll::-webkit-scrollbar-thumb:hover {
+  background: #015a94;
+}
 
 /* Topbar di atas konten, tombol logout kanan atas */
 .topbar {

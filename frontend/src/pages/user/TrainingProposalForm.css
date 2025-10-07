@@ -1,206 +1,264 @@
+/* === FORM CONTAINER === */
 .proposal-form-container {
-  max-width: 1000px;
-  margin: 0 auto;
-  padding: 20px;
+  width: 100%;
+  margin: 0;
+  padding: 40px;
   background: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-radius: 16px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  min-height: 80vh;
+  overflow-x: auto; /* ✅ allow horizontal scroll */
+  position: relative;
+  z-index: 1;
 }
 
+/* === HEADER === */
 .form-header {
   text-align: center;
-  margin-bottom: 30px;
-  padding-bottom: 20px;
-  border-bottom: 2px solid #f0f0f0;
+  margin-bottom: 40px;
+  padding-bottom: 30px;
+  border-bottom: 3px solid #f0f0f0;
 }
 
 .form-header h2 {
   color: #333;
-  margin-bottom: 10px;
-  font-size: 1.8rem;
-  font-weight: 600;
+  margin-bottom: 15px;
+  font-size: 2.2rem;
+  font-weight: 700;
 }
 
 .form-header p {
   color: #666;
-  font-size: 1rem;
+  font-size: 1.1rem;
+  font-weight: 500;
 }
 
+/* === FORM BODY === */
 .proposal-form {
   display: flex;
   flex-direction: column;
-  gap: 30px;
-}
+  gap: 40px;
 
-.form-section {
-  background: #f8f9fa;
-  padding: 25px;
-  border-radius: 8px;
-  border-left: 4px solid #667eea;
-}
+  /* === DASHBOARD RESPONSIVE AREA === */
+.dashboard-container {
 
-.form-section h3 {
-  margin: 0 0 20px 0;
-  color: #333;
-  font-size: 1.3rem;
-  font-weight: 600;
-}
-
-.form-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 20px;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-}
-
-.form-group label {
-  margin-bottom: 8px;
-  font-weight: 500;
-  font-size: 0.95rem;
-}
-
-.form-group input,
-.form-group select,
-.form-group textarea {
-  padding: 12px 15px;
-  border: 2px solid #e1e5e9;
-  border-radius: 8px;
-  font-size: 1rem;
+  .table-scroll {
+  overflow-x: auto;
   transition: all 0.3s ease;
-  background: white;
 }
 
-.form-group input:focus,
-.form-group select:focus,
-.form-group textarea:focus {
-  outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+.table-scroll.no-scroll {
+  overflow-x: visible;
 }
 
-/* Items table container */
+.items-table.wide .table {
+  min-width: 100%;
+}
+
+.dashboard-layout.sidebar-closed .main-content {
+  width: calc(100% - 60px);
+  transition: width 0.3s ease;
+}
+
+.dashboard-layout.sidebar-open .main-content {
+  width: calc(100% - 240px);
+  transition: width 0.3s ease;
+}
+
+  display: flex;
+  transition: all 0.3s ease;
+}
+
+/* Saat sidebar terbuka */
+.dashboard-container.sidebar-open .proposal-form-container {
+  width: calc(100% - 240px); /* contoh: sidebar 240px */
+  transition: all 0.3s ease;
+}
+
+/* Saat sidebar tertutup */
+.dashboard-container.sidebar-closed .proposal-form-container {
+  width: 100%; /* ✅ full lebar layar */
+  transition: all 0.3s ease;
+}
+
+/* Tabel biar fleksibel */
+.dashboard-container.sidebar-closed .table {
+  min-width: unset !important; /* hilangkan batas minimal */
+  width: 100%; /* ✅ pakai penuh layar */
+  table-layout: auto; /* biar kolom menyesuaikan isi */
+}
+
+.dashboard-container.sidebar-open .table {
+  min-width: 1200px; /* ✅ tetap jaga scroll jika sidebar buka */
+  table-layout: fixed;
+}
+
+}
+
+/* === TABLE WRAPPER === */
 .items-table {
   background: #fff;
   border: 2px solid #e1e5e9;
-  border-radius: 10px;
-  padding: 12px;
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 10px;
+  overflow-x: auto; /* ✅ horizontal scroll only if needed */
+  position: relative;
+  z-index: 1;
 }
 
-.table tbody tr:hover {
-  background: #f2f8ff;
+.table-scroll {
+  width: 100%;
+  overflow-x: auto; /* ✅ key fix for wide table */
+  overflow-y: visible;
+  padding-bottom: 10px;
 }
 
+/* === TABLE BASE === */
 .table {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  table-layout: fixed; /* keep columns steady so inputs never get cut */
-}
-
-.table input,
-.table select {
-  width: 100%;
-  border: 2px solid #e1e5e9;
-  border-radius: 8px;
-  background: #fff;
-  box-sizing: border-box;
-}
-
-.table input:focus,
-.table select:focus {
-  outline: none;
-  border-color: #0271B6;
-  box-shadow: 0 0 0 3px rgba(2, 113, 182, 0.12);
+  min-width: 1200px; /* ✅ enough for columns but still responsive */
+  table-layout: fixed;
 }
 
 .table th,
 .table td {
   border-bottom: 1px solid #eef2f5;
-  padding: 8px;
+  padding: 12px 8px;
   vertical-align: middle;
-  overflow: visible; /* ensure controls not clipped */
+  white-space: nowrap;
+  text-align: center;
 }
 
-.table tfoot tr {
-  background: #fff9c4; /* soft yellow like template */
-}
-
-.table-scroll {
-  overflow-x: auto;
-  overflow-y: visible;
-}
-
-/* Header look */
+/* === HEADER === */
 .table thead th {
   background: linear-gradient(135deg, #0271B6 0%, #30B0E1 100%);
   color: #fff;
-  text-align: center;
   font-weight: 600;
-  padding: 10px 8px;
   position: sticky;
   top: 0;
-  z-index: 1;
+  z-index: 2;
+  font-size: 1rem;
 }
-/* Explicit column widths to avoid overlapping and keep everything visible */
-.table thead th:nth-child(1),
-.table tbody td:nth-child(1),
-.table tfoot td:nth-child(1) { width: 48px; text-align: center; }
-.table thead th:nth-child(2) { width: 260px; }
-.table thead th:nth-child(3) { width: 160px; }
-.table thead th:nth-child(4) { width: 140px; }
-.table thead th:nth-child(5) { width: 130px; }
-.table thead th:nth-child(6) { width: 140px; }
-.table thead th:nth-child(7),
-.table thead th:nth-child(8),
-.table thead th:nth-child(9),
-.table thead th:nth-child(10),
-.table thead th:nth-child(11) { width: 140px; }
 
-/* Buttons */
+/* === INPUTS === */
+.table input,
+.table select {
+  width: 100%;
+  border: 2px solid #e1e5e9;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 0.95rem;
+  background: white;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+
+.table input:focus,
+.table select:focus {
+  border-color: #0271B6;
+  box-shadow: 0 0 0 3px rgba(2, 113, 182, 0.1);
+  outline: none;
+  z-index: 5;
+}
+
+.table input[type="number"] {
+  text-align: right;
+}
+
+/* === TOTAL & FOOTER === */
+.table tfoot tr {
+  background: #fff9c4;
+  font-weight: 600;
+}
+
+.table tfoot td {
+  padding: 15px 10px;
+  font-size: 1.05rem;
+}
+
+.table tfoot td:last-child {
+  color: #0271B6;
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+/* === BUTTONS === */
 .btn-outline {
   background: #fff;
   color: #0271B6;
   border: 2px solid #0271B6;
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
-  transition: all 0.2s ease-in-out;
+  transition: all 0.2s ease;
+  padding: 10px 20px;
+  font-size: 1rem;
+  font-weight: 600;
 }
 .btn-outline:hover {
   background: #0271B6;
   color: #fff;
-  box-shadow: 0 4px 10px rgba(2, 113, 182, 0.25);
 }
 
-/* Soft red delete button */
 .btn-danger-soft {
   background: #fff5f5;
-  color: #b42318; /* soft red text */
-  border: 2px solid #fecaca; /* soft red border */
-  padding: 8px 12px;
+  color: #b42318;
+  border: 2px solid #fecaca;
   border-radius: 8px;
+  padding: 8px 14px;
   cursor: pointer;
-  transition: all 0.2s ease-in-out;
+  font-size: 0.9rem;
+  transition: 0.2s;
 }
 .btn-danger-soft:hover {
   background: #ffe4e4;
-  border-color: #fca5a5;
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 1024px) {
+  .proposal-form-container {
+    padding: 20px;
+  }
+
+  .items-table {
+    padding: 15px;
+  }
+
+  .table {
+    min-width: 1000px;
+  }
 }
 
 @media (max-width: 768px) {
-  .table thead {
-    display: none; /* mobile: hide header */
+  .proposal-form-container {
+    padding: 15px;
   }
-  .table tr {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    padding: 10px 0;
+
+  .table-scroll {
+    overflow-x: auto;
   }
+
+  .table {
+    min-width: 900px;
+  }
+
+  .table thead th,
   .table td {
-    border: none;
+    font-size: 0.9rem;
+    padding: 10px 6px;
+  }
+
+  .btn-outline,
+  .btn-danger-soft {
+    font-size: 0.85rem;
+    padding: 8px 14px;
+  }
+}
+
+@media (max-width: 600px) {
+  .table {
+    min-width: 800px;
   }
 }

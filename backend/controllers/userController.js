@@ -529,6 +529,78 @@ const userController = {
         message: 'Gagal menghapus user'
       });
     }
+  },
+
+  // Update own profile
+  async updateOwnProfile(req, res) {
+    try {
+      console.log('=== UPDATE OWN PROFILE START ===');
+      console.log('req.user:', req.user);
+      
+      const userId = req.user.id; // From auth middleware
+      const { username, fullName, email, phone, unit } = req.body;
+
+      console.log('User ID:', userId);
+      console.log('Request body:', req.body);
+      console.log('Username from body:', username);
+      console.log('FullName from body:', fullName);
+      console.log('Email from body:', email);
+      console.log('Phone from body:', phone);
+      console.log('Unit from body:', unit);
+
+      // Check if user exists
+      const user = await User.findByPk(userId);
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: 'User tidak ditemukan'
+        });
+      }
+
+      // Check if new username already exists (if username is being changed)
+      if (username && username !== user.username) {
+        const existingUser = await User.findOne({ where: { username } });
+        if (existingUser) {
+          return res.status(400).json({
+            success: false,
+            message: 'Username sudah digunakan oleh user lain'
+          });
+        }
+      }
+
+      // Update user profile fields (ALL fields can be updated)
+      const updateData = {};
+      if (username !== undefined) updateData.username = username;
+      if (fullName !== undefined) updateData.fullName = fullName;
+      if (email !== undefined) updateData.email = email;
+      if (phone !== undefined) updateData.phone = phone;
+      if (unit !== undefined) updateData.unit = unit;
+
+      const updatedUser = await user.update(updateData);
+      
+      console.log('Profile updated successfully');
+      console.log('Updated user:', updatedUser.toJSON());
+
+      res.json({
+        success: true,
+        message: 'Profil berhasil diperbarui',
+        user: {
+          id: updatedUser.id,
+          username: updatedUser.username,
+          fullName: updatedUser.fullName,
+          email: updatedUser.email,
+          phone: updatedUser.phone,
+          unit: updatedUser.unit,
+          role: updatedUser.role
+        }
+      });
+    } catch (error) {
+      console.error('Update own profile error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Gagal memperbarui profil'
+      });
+    }
   }
 };
 

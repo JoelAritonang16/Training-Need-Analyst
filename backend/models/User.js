@@ -33,6 +33,29 @@ const User = (sequelize, Sequelize) => {
           notEmpty: true,
         },
       },
+      fullName: {
+        type: DataTypes.STRING(100),
+        allowNull: true,
+        comment: 'Nama lengkap user'
+      },
+      email: {
+        type: DataTypes.STRING(100),
+        allowNull: true,
+        validate: {
+          isEmail: true
+        },
+        comment: 'Email user'
+      },
+      phone: {
+        type: DataTypes.STRING(20),
+        allowNull: true,
+        comment: 'Nomor telepon user'
+      },
+      unit: {
+        type: DataTypes.STRING(100),
+        allowNull: true,
+        comment: 'Unit/Divisi user'
+      },
       divisiId: {
         type: DataTypes.INTEGER,
         allowNull: true,

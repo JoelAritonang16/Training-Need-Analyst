@@ -132,15 +132,6 @@ const TrainingProposalList = ({ onCreateNew, onEdit, onViewDetail }) => {
             <h2>Daftar Usulan Pelatihan</h2>
             <p>Kelola dan pantau status usulan pelatihan Anda</p>
           </div>
-          {onCreateNew && (
-            <button 
-              className="btn-create-new"
-              onClick={onCreateNew}
-            >
-              <span className="btn-icon">📝</span>
-              Buat Usulan Baru
-            </button>
-          )}
         </div>
       </div>
 
