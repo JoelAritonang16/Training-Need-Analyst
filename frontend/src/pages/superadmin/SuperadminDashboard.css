@@ -253,7 +253,7 @@
 
 /* Enhanced User Management */
 .users-container {
-  max-width: 1400px;
+  max-width: 1440px;
 }
 
 .users-table-container {
@@ -381,7 +381,7 @@
 
 /* System Configuration */
 .system-config-container {
-  max-width: 1200px;
+  max-width: 1440px;
 }
 
 .config-grid {
@@ -474,7 +474,7 @@
 
 /* Audit Logs */
 .audit-logs-container {
-  max-width: 1200px;
+  max-width: 1440px;
 }
 
 .audit-table-container {

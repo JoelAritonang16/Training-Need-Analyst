@@ -36,20 +36,48 @@ const UserCreate = ({ currentUserRole = 'superadmin', onNavigate }) => {
   }, [currentUserRole]);
 
   const handleRoleChange = (role) => {
-    setFormData(prev => ({
-      ...prev,
-      role,
-      // reset fields when switching role
-      divisiId: role === 'user' ? prev.divisiId : '',
-      anakPerusahaanId: role === 'admin' ? prev.anakPerusahaanId : '',
-      branchId: role === 'user' ? prev.branchId : ''
-    }));
+    // Keep only relevant fields for the chosen role
+    if (role === 'user') {
+      setFormData(prev => ({
+        ...prev,
+        role,
+        anakPerusahaanId: '', // clear AP for user role
+        // keep user-related fields
+        divisiId: prev.divisiId || '',
+        branchId: prev.branchId || ''
+      }));
+    } else if (role === 'admin') {
+      setFormData(prev => ({
+        ...prev,
+        role,
+        // clear user-related fields
+        divisiId: '',
+        branchId: '',
+        // keep admin-related field
+        anakPerusahaanId: prev.anakPerusahaanId || ''
+      }));
+    } else {
+      setFormData(prev => ({ ...prev, role }));
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       setLoading(true);
+      // Client-side validation synced with backend rules
+      if (formData.role === 'user' && !formData.branchId) {
+        alert('Pilih Branch untuk role User');
+        setLoading(false);
+        return;
+      }
+      if (formData.role === 'admin' && !formData.anakPerusahaanId) {
+        alert('Pilih Anak Perusahaan untuk role Admin');
+        setLoading(false);
+        return;
+      }
+
+      const toNumberOrNull = (v) => (v === '' || v === null || v === undefined ? null : Number(v));
       const res = await fetch('http://localhost:5000/api/users/role-based', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -57,9 +85,10 @@ const UserCreate = ({ currentUserRole = 'superadmin', onNavigate }) => {
         body: JSON.stringify({
           ...formData,
           currentUserRole,
-          divisiId: formData.divisiId || null,
-          branchId: formData.branchId || null,
-          anakPerusahaanId: formData.anakPerusahaanId || null
+          // coerce IDs to numbers/null
+          divisiId: toNumberOrNull(formData.divisiId),
+          branchId: toNumberOrNull(formData.branchId),
+          anakPerusahaanId: toNumberOrNull(formData.anakPerusahaanId)
         })
       });
       const data = await res.json();

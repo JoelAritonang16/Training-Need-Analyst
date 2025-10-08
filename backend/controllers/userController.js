@@ -94,6 +94,22 @@ const userController = {
         });
       }
 
+      // Role-specific required fields to prevent DB constraint errors
+      if (role === 'user') {
+        if (!branchId) {
+          return res.status(400).json({ success: false, message: 'Branch wajib dipilih untuk role user' });
+        }
+        // Divisi optional by design, but validate numeric if provided
+        if (req.body.divisiId && divisiId === null) {
+          return res.status(400).json({ success: false, message: 'Divisi tidak valid' });
+        }
+      }
+      if (role === 'admin') {
+        if (!anakPerusahaanId) {
+          return res.status(400).json({ success: false, message: 'Anak Perusahaan wajib dipilih untuk role admin' });
+        }
+      }
+
       // Check if username already exists
       const existingUser = await User.findOne({ where: { username } });
       if (existingUser) {
@@ -301,7 +317,19 @@ const userController = {
   // Create user with role validation
   async createUserWithRoleValidation(req, res) {
     try {
-      const { username, password, role, email, unit, currentUserRole, divisiId, branchId, anakPerusahaanId } = req.body;
+      const { username, password, role, email, unit, currentUserRole } = req.body;
+      // Coerce possible string IDs to integers or null
+      const coerceId = (v) => {
+        if (v === undefined || v === null || v === '') return null;
+        const n = Number(v);
+        return Number.isNaN(n) ? null : n;
+      };
+      const divisiId = coerceId(req.body.divisiId);
+      const branchId = coerceId(req.body.branchId);
+      const anakPerusahaanId = coerceId(req.body.anakPerusahaanId);
+
+      console.log('=== CREATE USER WITH ROLE VALIDATION ===');
+      console.log('Payload:', { username, role, currentUserRole, divisiId, branchId, anakPerusahaanId });
 
       // Role-based access control
       if (currentUserRole === 'admin' && role !== 'user') {
@@ -347,11 +375,13 @@ const userController = {
 
       // Add role-specific fields
       if (role === 'user') {
-        userData.divisiId = divisiId || null;
-        userData.branchId = branchId || null;
+        userData.divisiId = divisiId;
+        userData.branchId = branchId;
+        userData.anakPerusahaanId = null;
       } else if (role === 'admin') {
-        userData.anakPerusahaanId = anakPerusahaanId || null;
-        // Admin doesn't need branchId as it's handled through anak perusahaan
+        userData.anakPerusahaanId = anakPerusahaanId;
+        userData.divisiId = null;
+        userData.branchId = null; // ensure branch cleared for admin
       }
 
       const user = await User.create(userData);
@@ -371,10 +401,11 @@ const userController = {
       });
     } catch (error) {
       console.error('Create user with role validation error:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Gagal membuat user'
-      });
+      // Return more explicit error info where safe
+      const message = error?.message?.includes('foreign key constraint')
+        ? 'Data referensi tidak valid (Divisi/Branch/Anak Perusahaan)'
+        : (error?.message || 'Gagal membuat user');
+      res.status(500).json({ success: false, message });
     }
   },
 

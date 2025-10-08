@@ -5,6 +5,7 @@ import UserManagement from './UserManagement.jsx';
 import ProposalApproval from './ProposalApproval.jsx';
 import ApprovedProposals from './ApprovedProposals.jsx';
 import Reports from './Reports.jsx';
+import UserCreate from './UserCreate.jsx';
 import { trainingProposalAPI } from '../../utils/api';
 import './AdminDashboard.css';
 
@@ -191,6 +192,14 @@ const AdminDashboard = ({ user, onLogout }) => {
             onDeleteUser={handleDeleteUser}
             onToggleStatus={handleToggleUserStatus}
             currentUserRole="admin"
+            onNavigate={handleMenuChange}
+          />
+        );
+      case 'user-create':
+        return (
+          <UserCreate 
+            currentUserRole="admin"
+            onNavigate={handleMenuChange}
           />
         );
       

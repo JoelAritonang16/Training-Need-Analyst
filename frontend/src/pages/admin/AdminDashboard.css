@@ -18,7 +18,7 @@
   box-shadow: -2px 0 8px rgba(0, 0, 0, 0.05);
 }
 .sidebar.collapsed + .main-content { 
-  margin-left: 72px;
+  margin-left: 280px; /* keep content position fixed when collapsed */
   box-shadow: none;
 }
 
@@ -199,7 +199,11 @@
 
 /* Users Management */
 .users-container {
-  max-width: 1200px;
+  max-width: 1440px;
+  margin-left: auto;
+  margin-right: auto; /* keep centered */
+  padding-left: 24px;
+  padding-right: 24px;
 }
 
 .users-table-container {
@@ -258,7 +262,11 @@
 
 /* Proposals */
 .proposals-container {
-  max-width: 1200px;
+  max-width: 1440px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 24px;
+  padding-right: 24px;
 }
 
 .proposals-grid {
@@ -584,7 +592,11 @@
 
 /* Reports */
 .reports-container {
-  max-width: 1200px;
+  max-width: 1440px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 24px;
+  padding-right: 24px;
 }
 
 .reports-grid {
