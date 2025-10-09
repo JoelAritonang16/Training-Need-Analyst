@@ -126,13 +126,9 @@ const TrainingProposalList = ({ onCreateNew, onEdit, onViewDetail }) => {
 
   return (
     <div className="proposals-container">
-      <div className="content-header">
-        <div className="header-content">
-          <div className="header-text">
-            <h2>Daftar Usulan Pelatihan</h2>
-            <p>Kelola dan pantau status usulan pelatihan Anda</p>
-          </div>
-        </div>
+      <div className="proposals-header">
+        <h2>Daftar Usulan Pelatihan</h2>
+        <p>Kelola dan pantau status usulan pelatihan Anda</p>
       </div>
 
       <div className="filters-section">

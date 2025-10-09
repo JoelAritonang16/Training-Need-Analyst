@@ -31,21 +31,15 @@ const TrainingProposalItemsTable = ({ items, onChange, onAdd, onRemove }) => {
 
   const grandTotal = items.reduce((acc, r) => acc + rowTotal(r), 0);
 
-  // ✅ Deteksi apakah sidebar tertutup
-  const isSidebarClosed = document.body.classList.contains('sidebar-closed');
-
-  
-
   return (
-    <div className={`items-table ${isSidebarClosed ? 'wide' : ''}`}>
+    <div className="items-table">
       <div className="items-toolbar" style={{ marginBottom: 12 }}>
         <button type="button" className="btn-outline" onClick={onAdd}>
           + Tambah Baris
         </button>
       </div>
 
-      {/* ✅ Table container */}
-      <div className={`table-scroll ${isSidebarClosed ? 'no-scroll' : ''}`}>
+      <div className="table-scroll">
         <table className="table">
           <thead>
             <tr>
@@ -82,7 +76,7 @@ const TrainingProposalItemsTable = ({ items, onChange, onAdd, onRemove }) => {
                 <td><input type="number" value={row.BebanTransportasi} onChange={(e) => update(idx, 'BebanTransportasi', e.target.value)} min="0" /></td>
                 <td><input type="number" value={row.BebanAkomodasi} onChange={(e) => update(idx, 'BebanAkomodasi', e.target.value)} min="0" /></td>
                 <td><input type="number" value={row.BebanUangSaku} onChange={(e) => update(idx, 'BebanUangSaku', e.target.value)} min="0" /></td>
-                <td style={{ textAlign: 'right', whiteSpace: 'nowrap', fontWeight: '600', color: '#0271B6' }}>
+                <td style={{ textAlign: 'right', whiteSpace: 'nowrap', fontWeight: '600', color: '#0077b6' }}>
                   Rp {rowTotal(row).toLocaleString('id-ID')}
                 </td>
                 <td>
@@ -99,7 +93,7 @@ const TrainingProposalItemsTable = ({ items, onChange, onAdd, onRemove }) => {
           <tfoot>
             <tr>
               <td colSpan={10} style={{ textAlign: 'right', fontWeight: 'bold' }}>Total Usulan</td>
-              <td style={{ textAlign: 'right', fontWeight: 'bold', color: '#0271B6' }}>
+              <td style={{ textAlign: 'right', fontWeight: 'bold', color: '#0077b6' }}>
                 Rp {grandTotal.toLocaleString('id-ID')}
               </td>
               <td></td>

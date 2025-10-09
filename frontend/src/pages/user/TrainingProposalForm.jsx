@@ -233,10 +233,6 @@ const TrainingProposalForm = ({ user, proposal = null, onSuccess }) => {
 
   return (
     <div className="proposal-form-container">
-      <div className="form-header">
-        <h2>{proposal ? 'Edit Usulan Pelatihan' : ''}</h2>
-      </div>
-
       {error && (
         <div className="error-message" style={{
           backgroundColor: '#fee',
@@ -251,26 +247,22 @@ const TrainingProposalForm = ({ user, proposal = null, onSuccess }) => {
       )}
 
       <form onSubmit={handleSubmit} className="proposal-form">
-        <div className="form-section">
-          <h3>Formulir Usulan Pelatihan</h3>
+        <div className="form-header-simple">
+          <h2>Formulir Usulan Pelatihan</h2>
           <p>Silakan lengkapi form berikut untuk mengajukan usulan pelatihan</p>
-          
-          <div className="form-grid">
-            {/* Daftar Uraian (multi baris) */}
-            <div className="form-group" style={{ gridColumn: '1 / -1' }}>
-              <label>Daftar Uraian </label>
-              <TrainingProposalItemsTable
-                items={items}
-                onChange={setItems}
-                onAdd={addItem}
-                onRemove={removeItem}
-              />
-            </div>
-          </div>
         </div>
 
-        {/* Bagian Rincian Biaya diambil dari tabel items di atas */}
-        <div className="form-section">
+        <div className="form-section-simple">
+          <h3>Daftar Uraian</h3>
+          <TrainingProposalItemsTable
+            items={items}
+            onChange={setItems}
+            onAdd={addItem}
+            onRemove={removeItem}
+          />
+        </div>
+
+        <div className="form-section-simple">
           <h3>Ringkasan Biaya</h3>
           <div className="cost-summary">
             {(() => {

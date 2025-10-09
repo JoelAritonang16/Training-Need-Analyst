@@ -2,116 +2,171 @@
 .proposal-form-container {
   width: 100%;
   margin: 0;
-  padding: 40px;
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  padding: 0;
+  background: transparent;
   min-height: 80vh;
-  overflow-x: auto; /* ✅ allow horizontal scroll */
+  overflow-x: auto;
   position: relative;
   z-index: 1;
-}
-
-/* === HEADER === */
-.form-header {
-  text-align: center;
-  margin-bottom: 40px;
-  padding-bottom: 30px;
-  border-bottom: 3px solid #f0f0f0;
-}
-
-.form-header h2 {
-  color: #333;
-  margin-bottom: 15px;
-  font-size: 2.2rem;
-  font-weight: 700;
-}
-
-.form-header p {
-  color: #666;
-  font-size: 1.1rem;
-  font-weight: 500;
 }
 
 /* === FORM BODY === */
 .proposal-form {
   display: flex;
   flex-direction: column;
-  gap: 40px;
-
-  /* === DASHBOARD RESPONSIVE AREA === */
-.dashboard-container {
-
-  .table-scroll {
-  overflow-x: auto;
-  transition: all 0.3s ease;
+  gap: 30px;
 }
 
-.table-scroll.no-scroll {
-  overflow-x: visible;
+/* === FORM HEADER SIMPLE === */
+.form-header-simple {
+  text-align: center;
+  padding: 20px 40px;
+  background: white;
+  border-radius: 0;
+  border-bottom: 3px solid #0077b6;
+  margin-bottom: 30px;
+  margin-top: 0;
 }
 
-.items-table.wide .table {
-  min-width: 100%;
+.form-header-simple h2 {
+  color: #003865;
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+  margin-top: 0;
 }
 
-.dashboard-layout.sidebar-closed .main-content {
-  width: calc(100% - 60px);
-  transition: width 0.3s ease;
+.form-header-simple p {
+  color: #666;
+  font-size: 0.95rem;
+  margin: 0;
 }
 
-.dashboard-layout.sidebar-open .main-content {
-  width: calc(100% - 240px);
-  transition: width 0.3s ease;
+/* === FORM SECTION SIMPLE === */
+.form-section-simple {
+  background: white;
+  padding: 0 40px;
+  border-radius: 0;
 }
 
+.form-section-simple h3 {
+  color: #003865;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 15px;
+  padding: 0;
+  text-align: center;
+}
+
+/* === COST SUMMARY === */
+.cost-summary {
+  background: white;
+  padding: 0;
+  border-radius: 0;
+  border: none;
+}
+
+.cost-item {
   display: flex;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid #e1e5e9;
+  font-size: 1rem;
+}
+
+.cost-item:last-child {
+  border-bottom: none;
+}
+
+.cost-item.total {
+  background: linear-gradient(135deg, #003865 0%, #0077b6 100%);
+  color: white;
+  padding: 15px 20px;
+  margin-top: 10px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.cost-value {
+  font-weight: 600;
+  color: #0077b6;
+}
+
+.cost-item.total .cost-value {
+  color: white;
+}
+
+/* === FORM ACTIONS === */
+.form-actions {
+  display: flex;
+  gap: 15px;
+  justify-content: flex-end;
+  padding: 20px 40px 40px 40px;
+}
+
+.btn-primary,
+.btn-secondary {
+  padding: 12px 30px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
   transition: all 0.3s ease;
+  border: none;
 }
 
-/* Saat sidebar terbuka */
-.dashboard-container.sidebar-open .proposal-form-container {
-  width: calc(100% - 240px); /* contoh: sidebar 240px */
-  transition: all 0.3s ease;
+.btn-primary {
+  background: linear-gradient(135deg, #003865 0%, #0077b6 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(0, 119, 182, 0.3);
 }
 
-/* Saat sidebar tertutup */
-.dashboard-container.sidebar-closed .proposal-form-container {
-  width: 100%; /* ✅ full lebar layar */
-  transition: all 0.3s ease;
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 119, 182, 0.4);
 }
 
-/* Tabel biar fleksibel */
-.dashboard-container.sidebar-closed .table {
-  min-width: unset !important; /* hilangkan batas minimal */
-  width: 100%; /* ✅ pakai penuh layar */
-  table-layout: auto; /* biar kolom menyesuaikan isi */
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
-.dashboard-container.sidebar-open .table {
-  min-width: 1200px; /* ✅ tetap jaga scroll jika sidebar buka */
-  table-layout: fixed;
+.btn-secondary {
+  background: white;
+  color: #003865;
+  border: 2px solid #003865;
 }
 
+.btn-secondary:hover:not(:disabled) {
+  background: #f8f9fa;
+  transform: translateY(-2px);
 }
 
 /* === TABLE WRAPPER === */
 .items-table {
-  background: #fff;
-  border: 2px solid #e1e5e9;
-  border-radius: 12px;
-  padding: 20px;
-  margin-top: 10px;
-  overflow-x: auto; /* ✅ horizontal scroll only if needed */
+  background: white;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  margin-top: 0;
+  overflow-x: auto;
   position: relative;
   z-index: 1;
 }
 
+.items-toolbar {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 15px;
+}
+
 .table-scroll {
   width: 100%;
-  overflow-x: auto; /* ✅ key fix for wide table */
+  overflow-x: auto;
   overflow-y: visible;
   padding-bottom: 10px;
+  transition: overflow 0.3s ease;
 }
 
 /* === TABLE BASE === */
@@ -119,7 +174,43 @@
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  min-width: 1200px; /* ✅ enough for columns but still responsive */
+  min-width: 1200px;
+  table-layout: fixed;
+  transition: min-width 0.3s ease, table-layout 0.3s ease;
+}
+
+/* === RESPONSIVE TABLE BASED ON SIDEBAR === */
+/* When sidebar is collapsed, table stretches to full width without scroll */
+body.sidebar-collapsed .table-scroll {
+  overflow-x: visible !important;
+}
+
+body.sidebar-collapsed .table {
+  min-width: 100% !important;
+  table-layout: auto !important;
+  width: 100%;
+}
+
+body.sidebar-collapsed .table th,
+body.sidebar-collapsed .table td {
+  white-space: normal;
+  word-wrap: break-word;
+  padding: 12px 10px;
+}
+
+body.sidebar-collapsed .table input,
+body.sidebar-collapsed .table select {
+  min-width: auto;
+  font-size: 0.9rem;
+}
+
+/* When sidebar is expanded, keep scroll for wide tables */
+body.sidebar-expanded .table-scroll {
+  overflow-x: auto;
+}
+
+body.sidebar-expanded .table {
+  min-width: 1200px;
   table-layout: fixed;
 }
 
@@ -134,13 +225,16 @@
 
 /* === HEADER === */
 .table thead th {
-  background: linear-gradient(135deg, #0271B6 0%, #30B0E1 100%);
-  color: #fff;
+  background: linear-gradient(135deg, #003865 0%, #0077b6 100%);
+  color: #ffffff;
   font-weight: 600;
   position: sticky;
   top: 0;
   z-index: 2;
-  font-size: 1rem;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 14px 10px;
 }
 
 /* === INPUTS === */
@@ -148,20 +242,21 @@
 .table select {
   width: 100%;
   border: 2px solid #e1e5e9;
-  border-radius: 8px;
+  border-radius: 6px;
   padding: 10px 12px;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   background: white;
-  transition: border-color 0.2s;
+  transition: all 0.2s ease;
   box-sizing: border-box;
 }
 
 .table input:focus,
 .table select:focus {
-  border-color: #0271B6;
-  box-shadow: 0 0 0 3px rgba(2, 113, 182, 0.1);
+  border-color: #0077b6;
+  box-shadow: 0 0 0 3px rgba(0, 119, 182, 0.1);
   outline: none;
   z-index: 5;
+  background: #f8fbff;
 }
 
 .table input[type="number"] {
@@ -170,50 +265,57 @@
 
 /* === TOTAL & FOOTER === */
 .table tfoot tr {
-  background: #fff9c4;
+  background: linear-gradient(135deg, #e8f4f8 0%, #d4ebf7 100%);
   font-weight: 600;
 }
 
 .table tfoot td {
-  padding: 15px 10px;
+  padding: 16px 12px;
   font-size: 1.05rem;
+  color: #003865;
 }
 
 .table tfoot td:last-child {
-  color: #0271B6;
+  color: #0077b6;
   font-size: 1.15rem;
   font-weight: 700;
 }
 
 /* === BUTTONS === */
 .btn-outline {
-  background: #fff;
-  color: #0271B6;
-  border: 2px solid #0271B6;
-  border-radius: 10px;
+  background: white;
+  color: #0077b6;
+  border: 2px solid #0077b6;
+  border-radius: 8px;
   cursor: pointer;
-  transition: all 0.2s ease;
-  padding: 10px 20px;
-  font-size: 1rem;
+  transition: all 0.3s ease;
+  padding: 10px 24px;
+  font-size: 0.95rem;
   font-weight: 600;
+  box-shadow: 0 2px 6px rgba(0, 119, 182, 0.15);
 }
 .btn-outline:hover {
-  background: #0271B6;
-  color: #fff;
+  background: linear-gradient(135deg, #003865 0%, #0077b6 100%);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 119, 182, 0.3);
 }
 
 .btn-danger-soft {
   background: #fff5f5;
-  color: #b42318;
+  color: #dc2626;
   border: 2px solid #fecaca;
-  border-radius: 8px;
+  border-radius: 6px;
   padding: 8px 14px;
   cursor: pointer;
-  font-size: 0.9rem;
-  transition: 0.2s;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
 }
 .btn-danger-soft:hover {
-  background: #ffe4e4;
+  background: #fee2e2;
+  border-color: #fca5a5;
+  transform: scale(1.05);
 }
 
 /* === RESPONSIVE === */

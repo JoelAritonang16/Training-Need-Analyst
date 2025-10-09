@@ -3,6 +3,24 @@ import './Sidebar.css';
 
 const Sidebar = ({ user, activeMenu, onMenuChange, onLogout }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
+
+  // Update body class when sidebar collapses/expands
+  React.useEffect(() => {
+    // Set initial state on mount
+    if (isCollapsed) {
+      document.body.classList.add('sidebar-collapsed');
+      document.body.classList.remove('sidebar-expanded');
+    } else {
+      document.body.classList.add('sidebar-expanded');
+      document.body.classList.remove('sidebar-collapsed');
+    }
+    
+    // Cleanup on unmount
+    return () => {
+      document.body.classList.remove('sidebar-collapsed');
+      document.body.classList.remove('sidebar-expanded');
+    };
+  }, [isCollapsed]);
   // Submenu state for "Semua Usulan"
   const childProposalIds = ['proposal-approval', 'approved-proposals', 'final-approval'];
   const [isAllProposalsOpen, setIsAllProposalsOpen] = useState(

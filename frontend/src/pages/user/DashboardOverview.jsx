@@ -8,7 +8,7 @@ const DashboardOverview = ({ user, proposals, onNavigate }) => {
   return (
     <div className="dashboard-overview">
       <div className="overview-header">
-        <h1>Dashboard Overview</h1>
+        
         <p>Selamat datang, {user?.username || 'User'}!</p>
       </div>
 
