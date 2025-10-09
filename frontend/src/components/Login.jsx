@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import './Login.css';
-import batikImage from '../assets/BatikPelindo.png';  // Path relative dari components/ ke assets/
+import batikImage from '../assets/BatikPelindo.png';
+import danantaraLogo from '../assets/Danantara2.png';
+import pelindoLogo from '../assets/Pelindoo.png';
 
 const Login = ({ onLoginSuccess }) => {
   // Semua state dan fungsi Anda tetap sama (tidak ada perubahan di sini)
@@ -76,6 +78,17 @@ const Login = ({ onLoginSuccess }) => {
 
   return (
     <div className="login-container" style={loginBackgroundStyle}>
+      {/* Logos di luar card - bagian atas */}
+      <div className="logos-container-top">
+        <div className="logo-item">
+          <img src={danantaraLogo} alt="Danantara Indonesia" className="company-logo danantara-logo" />
+        </div>
+        <div className="logo-divider"></div>
+        <div className="logo-item">
+          <img src={pelindoLogo} alt="Pelindo Multi Terminal" className="company-logo pelindo-logo" />
+        </div>
+      </div>
+
       <div className="login-card" style={loginCardStyle}>
         {/* Batik background layer - 2 corners */}
         <div className="batik-corner batik-top-right"></div>
@@ -84,9 +97,6 @@ const Login = ({ onLoginSuccess }) => {
         {/* Content layer */}
         <div className="login-content">
           <div className="login-header">
-            <div className="logo-wrapper">
-              <img src="/LogoPelindo.png" alt="Logo Pelindo" className="login-logo" />
-            </div>
             <h1>Selamat Datang</h1>
             <p className="subtitle">Sistem Pelatihan PT Pelindo</p>
           </div>

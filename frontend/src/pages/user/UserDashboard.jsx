@@ -6,6 +6,8 @@ import TrainingProposalCreate from './TrainingProposalCreate.jsx';
 import TrainingProposalEdit from './TrainingProposalEdit.jsx';
 import TrainingProposalDetail from './TrainingProposalDetail.jsx';
 import UserProfile from './UserProfile.jsx';
+import danantaraLogo from '../../assets/Danantara2.png';
+import pelindoLogo from '../../assets/Pelindoo.png';
 import './UserDashboard.css';
 
 const UserDashboard = ({ user, onLogout, onUserUpdate, proposals = [] }) => {
@@ -131,7 +133,19 @@ const UserDashboard = ({ user, onLogout, onUserUpdate, proposals = [] }) => {
       />
       <main className="main-content">
         <div className="topbar">
-          <div className="topbar-spacer" />
+          <div className="topbar-logos">
+            <img src={danantaraLogo} alt="Danantara" className="topbar-logo" />
+            <div className="topbar-divider"></div>
+            <img src={pelindoLogo} alt="Pelindo" className="topbar-logo" />
+          </div>
+          <div className="topbar-title">
+            {activeMenu === 'dashboard' && ''}
+            {activeMenu === 'proposal-list' && ''}
+            {activeMenu === 'proposal-create' && ''}
+            {activeMenu === 'proposal-edit' && 'Edit Usulan Pelatihan'}
+            {activeMenu === 'proposal-detail' && 'Detail Usulan Pelatihan'}
+            {activeMenu === 'profile' && ''}
+          </div>
           <div className="user-menu">
             <button 
               className="user-button" 

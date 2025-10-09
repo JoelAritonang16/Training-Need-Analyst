@@ -1,26 +1,35 @@
+/* General Dashboard Styling */
 .dashboard-overview {
   padding: 20px;
   max-width: 1200px;
   margin: 0 auto;
+  background-color: #f9fafb;
 }
 
 .content-header {
-  margin-bottom: 30px;
+  margin-bottom: 10px; /* Menurunkan margin bawah lebih jauh */
+  padding: 8px 15px;  /* Padding lebih kecil untuk kompak */
+  background: linear-gradient(135deg, #3a7bd5, #1e5a8e); /* Menjaga efek gradien */
+  border-radius: 8px;  /* Sudut lebih tajam */
+  text-align: center;
 }
 
 .content-header h1 {
-  color: #2c3e50;
-  font-size: 2.5rem;
-  margin-bottom: 10px;
+  font-size: 1.5rem; /* Mengurangi ukuran font */
+  margin: 0; /* Menghilangkan margin untuk header */
   font-weight: 700;
 }
 
 .content-header p {
-  color: #7f8c8d;
-  font-size: 1.1rem;
-  margin: 0;
+  font-size: 0.875rem; /* Ukuran teks lebih kecil */
+  color: rgba(255, 255, 255, 0.7); /* Warna teks lebih soft */
+  margin-top: 5px; /* Menambahkan sedikit jarak antara judul dan deskripsi */
 }
 
+
+
+
+/* Stats Grid */
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -28,6 +37,7 @@
   margin-bottom: 40px;
 }
 
+/* Individual Stat Card */
 .stat-card {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
@@ -45,6 +55,7 @@
   box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
 }
 
+/* Stat Card Icon and Content */
 .stat-icon {
   font-size: 2.5rem;
   opacity: 0.9;
@@ -67,6 +78,7 @@
   font-size: 0.85rem;
 }
 
+/* Quick Actions */
 .quick-actions {
   background: white;
   padding: 30px;
@@ -105,6 +117,7 @@
   justify-content: center;
 }
 
+/* Action Button Variants */
 .action-btn.primary {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
@@ -130,6 +143,7 @@
   font-size: 1.2rem;
 }
 
+/* Recent Activities Section */
 .recent-activities {
   background: white;
   padding: 30px;
@@ -185,6 +199,7 @@
   font-size: 0.85rem;
 }
 
+/* Mobile Responsiveness */
 @media (max-width: 768px) {
   .dashboard-overview {
     padding: 15px;

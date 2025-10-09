@@ -234,7 +234,7 @@ const TrainingProposalForm = ({ user, proposal = null, onSuccess }) => {
   return (
     <div className="proposal-form-container">
       <div className="form-header">
-        <h2>{proposal ? 'Edit Usulan Pelatihan' : 'Buat Usulan Pelatihan Baru'}</h2>
+        <h2>{proposal ? 'Edit Usulan Pelatihan' : ''}</h2>
       </div>
 
       {error && (

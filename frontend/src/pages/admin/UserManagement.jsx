@@ -337,7 +337,7 @@ const UserManagement = ({ users, onAddUser, onEditUser, onDeleteUser, onToggleSt
     <div className="users-container">
       <div className="content-header banner">
         <div>
-          <h2>Daftar Pengguna</h2>
+         
           <p>Kelola pengguna dan hak akses. {currentUserRole === 'superadmin' ? 'SuperAdmin mengelola User & Admin.' : 'Admin mengelola User.'}</p>
         </div>
       </div>

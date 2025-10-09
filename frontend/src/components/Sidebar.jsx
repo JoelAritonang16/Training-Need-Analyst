@@ -51,7 +51,7 @@ const Sidebar = ({ user, activeMenu, onMenuChange, onLogout }) => {
     <div className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
   <div className="sidebar-header">
     <div className="sidebar-brand">
-      <img src="/LogoNonBG.png" alt="Logo Pelindo" className="sidebar-logo" />
+     
       {!isCollapsed && (
         <div className="brand-text">
           <h2>Sistem Pelatihan</h2>

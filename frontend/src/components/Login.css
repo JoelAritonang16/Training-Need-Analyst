@@ -1,6 +1,7 @@
 /* ===== LOGIN CONTAINER ===== */
 .login-container {
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
@@ -8,6 +9,7 @@
   padding: 20px;
   padding-left: 5%;
   box-sizing: border-box;
+  position: relative;
 }
 
 /* ===== LOGIN CARD ===== */
@@ -94,6 +96,79 @@
 .login-header {
   text-align: center;
   margin-bottom: 10px;
+}
+
+/* ===== LOGOS CONTAINER TOP (Transparan, nempel ke background) ===== */
+.logos-container-top {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 10px 25px 15px 25px;
+  background: transparent;
+  border-radius: 0;
+  border: none;
+  box-shadow: none;
+  animation: fadeInDown 0.6s ease-out;
+  position: absolute;
+  top: 20px;
+  left: 52%;
+  transform: translateX(-50%);
+  z-index: 10;
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.logo-item {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.company-logo {
+  max-height: 60px;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.4)) 
+          drop-shadow(0 2px 6px rgba(0, 0, 0, 0.3));
+  transition: transform 0.3s ease, filter 0.3s ease;
+}
+
+.company-logo:hover {
+  transform: scale(1.05);
+  filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.5)) 
+          drop-shadow(0 3px 8px rgba(0, 0, 0, 0.4));
+}
+
+.danantara-logo {
+  max-width: 150px;
+}
+
+.pelindo-logo {
+  max-width: 150px;
+}
+
+.logo-divider {
+  width: 3px;
+  height: 50px;
+  background: linear-gradient(180deg, 
+    transparent 0%, 
+    rgba(255, 255, 255, 0.6) 20%, 
+    rgba(255, 255, 255, 0.9) 50%, 
+    rgba(255, 255, 255, 0.6) 80%, 
+    transparent 100%
+  );
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .logo-wrapper {
@@ -285,33 +360,46 @@
 /* ===== RESPONSIVE ===== */
 @media (max-width: 480px) {
   .login-card {
-    width: 280px;
-    height: 280px;
+    padding: 20px 18px;
   }
-  
-  .login-content {
-    padding: 16px;
-  }
-  
-  .login-logo {
-    width: 42px;
-  }
-  
+
   .login-header h1 {
-    font-size: 1.15rem;
+    font-size: 1.6rem;
   }
-  
+
   .subtitle {
-    font-size: 0.65rem;
-  }
-  
-  .form-group input {
-    padding: 8px 10px;
     font-size: 0.75rem;
   }
   
   .login-button {
     padding: 9px;
     font-size: 0.8rem;
+  }
+
+  .logos-container-top {
+    flex-direction: column;
+    gap: 12px;
+    padding: 15px 20px;
+  }
+
+  .logo-divider {
+    width: 60%;
+    height: 2px;
+    background: linear-gradient(90deg, 
+      transparent 0%, 
+      rgba(30, 90, 142, 0.3) 20%, 
+      rgba(30, 90, 142, 0.5) 50%, 
+      rgba(30, 90, 142, 0.3) 80%, 
+      transparent 100%
+    );
+  }
+
+  .company-logo {
+    max-height: 35px;
+  }
+
+  .danantara-logo,
+  .pelindo-logo {
+    max-width: 90px;
   }
 }

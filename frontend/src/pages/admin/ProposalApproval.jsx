@@ -68,9 +68,7 @@ const ProposalApproval = ({ proposals, onApprove, onReject, onViewDetail }) => {
           <h2>Persetujuan Usulan Pelatihan</h2>
           <p>Review dan setujui usulan pelatihan dari pengguna</p>
         </div>
-        <div>
-          <button className="btn-export" onClick={handleExport}>Export CSV</button>
-        </div>
+       
       </div>
       
       <div className="proposals-grid">
