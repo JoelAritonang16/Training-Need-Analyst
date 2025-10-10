@@ -1,40 +1,104 @@
 .proposals-container {
-  padding: 20px 24px;
-  max-width: 1440px;
-  margin: 0 auto;
+  padding: 6px 24px;
+  max-width: 1440px; /* match DivisiManagement */
+  margin: 0 auto; /* center like Divisi */
 }
 
 .content-header {
-  margin-bottom: 20px;
-  background: linear-gradient(135deg, #0271B6 0%, #30B0E1 100%);
-  color: #fff;
-  padding: 18px 20px;
-  border-radius: 14px;
-  box-shadow: 0 8px 20px rgba(2,113,182,0.18);
   display: flex;
+  justify-content: center; /* center content block */
   align-items: center;
-  justify-content: space-between;
   gap: 12px;
+  margin-bottom: 24px;
+  background: linear-gradient(145deg, #003865 0%, #0077b6 100%); /* match Divisi */
+  color: #fff;
+  padding: 10px 18px; /* match Divisi */
+  border-radius: 14px; /* match Divisi */
+  /* Remove outline to avoid visual misalignment with filter box */
+  outline: none;
+  outline-offset: 0;
+  box-shadow: 0 14px 32px rgba(2,113,182,0.26), 0 6px 14px rgba(2,113,182,0.16);
+  position: relative; /* allow absolute action button and underline */
+  width: 100%;
+  box-sizing: border-box; /* align width with filter box */
+}
+
+/* Pelindo gradient underline below header */
+.content-header::after {
+  content: '';
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: -8px;
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #0271B6 0%, #30B0E1 100%);
+  box-shadow: 0 2px 6px rgba(2, 113, 182, 0.25);
 }
 
 .content-header h2 {
   color: #fff;
-  font-size: 1.6rem;
-  margin-bottom: 6px;
+  font-size: 1.5rem; /* match Divisi */
+  margin: 0; /* match Divisi */
   font-weight: 700;
 }
 
 .content-header p {
   color: rgba(255,255,255,0.95);
-  font-size: 0.95rem;
-  margin: 0;
+  font-size: 0.9rem; /* match Divisi */
+  margin: 5px 0 0 0;
+}
+
+/* Center header text block for a tidy look */
+.header-left {
+  text-align: center;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Header actions aligned to the right like Divisi page */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* White pill primary button */
+.btn-light {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  background: #ffffff;
+  color: #0271B6;
+  box-shadow: 0 6px 16px rgba(2, 113, 182, 0.18);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
+
+.btn-light:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: rgba(255,255,255,0.95);
+  color: #025a90;
 }
 
 .proposals-filter {
   display: flex;
   gap: 15px;
-  margin-bottom: 30px;
+  margin: 12px 0 30px 0;
   flex-wrap: wrap;
+  background: #ffffff;
+  border: 1px solid #edf0f5;
+  border-radius: 14px; /* match header radius */
+  padding: 10px 18px; /* match header horizontal padding */
+  width: 100%;
+  box-sizing: border-box; /* include padding/border in width */
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
 }
 
 .filter-select {
@@ -59,32 +123,25 @@
   grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
   gap: 20px;
 }
-
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
 .btn-export {
   padding: 10px 16px;
   border: none;
-  border-radius: 8px;
+  border-radius: 999px; /* pill like Divisi */
   font-size: 0.9rem;
   font-weight: 700;
   cursor: pointer;
   background: #ffffff;
   color: #0271B6;
-  box-shadow: 0 5px 14px rgba(255, 255, 255, 0.25);
+  box-shadow: 0 6px 16px rgba(2, 113, 182, 0.18);
   transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, color 0.2s ease;
 }
-
 .btn-export:hover {
   transform: translateY(-1px);
-  background: rgba(255,255,255,0.9);
+  background: rgba(255,255,255,0.95);
   color: #025a90;
 }
 
+/* Proposal card base (white card like Divisi tables) */
 .proposal-card {
   background: white;
   border-radius: 15px;

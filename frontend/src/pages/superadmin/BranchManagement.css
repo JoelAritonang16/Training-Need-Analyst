@@ -1,56 +1,69 @@
 .branch-management {
-  padding: 20px 24px;
+  padding: 6px 24px;
   max-width: 1440px;
   margin: 0 auto;
 }
 
-.content-header {
+.branch-management .content-header {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
-  margin-bottom: 20px;
-  background: linear-gradient(135deg, #0271B6 0%, #30B0E1 100%);
+  gap: 12px;
+  margin-bottom: 18px;
+  background: linear-gradient(145deg, #003865 0%, #0077b6 100%);
   color: #fff;
-  padding: 16px 18px;
+  padding: 10px 18px;
   border-radius: 14px;
-  box-shadow: 0 8px 20px rgba(2,113,182,0.18);
+  outline: 1px solid rgba(255,255,255,0.15);
+  outline-offset: -1px;
+  box-shadow: 0 14px 32px rgba(2,113,182,0.26), 0 6px 14px rgba(2,113,182,0.16);
+  position: relative;
 }
 
-.content-header h2 {
+.branch-management .content-header h2 {
   margin: 0;
   color: #fff;
-  font-size: 1.6rem;
+  font-size: 1.5rem;
 }
 
-.content-header p {
+.branch-management .content-header p {
   margin: 5px 0 0 0;
   color: rgba(255,255,255,0.95);
   font-size: 0.95rem;
 }
 
-.btn-primary {
-  background: linear-gradient(135deg, #0271B6 0%, #30B0E1 100%);
-  color: white;
+/* center title block */
+.branch-management .header-left { text-align: center; margin: 0 auto; width: 100%; }
+
+/* right pinned actions */
+.branch-management .header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.branch-management .btn-light {
+  padding: 10px 16px;
   border: none;
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 700;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(2,113,182,0.3);
+  background: #ffffff;
+  color: #0271B6;
+  box-shadow: 0 6px 16px rgba(2, 113, 182, 0.18);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, color 0.2s ease;
 }
-
-.btn-primary:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(39, 174, 96, 0.4);
+.branch-management .btn-light:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: rgba(255,255,255,0.95);
+  color: #025a90;
 }
-
-.btn-primary:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-}
+.btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
 
 .btn-secondary {
   background: #95a5a6;
@@ -63,63 +76,25 @@
   transition: all 0.3s ease;
 }
 
-.btn-secondary:hover:not(:disabled) {
-  background: #7f8c8d;
-}
-
-.btn-secondary:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
 .btn-edit {
-  background: #f39c12;
-  color: white;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 4px;
-  font-size: 12px;
+  background: #eaf4ff;
+  color: #1770c9;
+  border: 1px solid #d5e9ff;
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
   margin-right: 8px;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
 }
-
-.btn-edit:hover:not(:disabled) {
-  background: #e67e22;
-}
-
-.btn-delete {
-  background: #e74c3c;
-  color: white;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 4px;
-  font-size: 12px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.btn-delete:hover:not(:disabled) {
-  background: #c0392b;
-}
-
-.btn-edit:disabled,
-.btn-delete:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
+.btn-edit:hover:not(:disabled) { background: #d9ebff; }
 .error-message {
-  background: #fee;
-  color: #c33;
-  padding: 12px 16px;
-  border-radius: 6px;
   margin-bottom: 20px;
   border-left: 4px solid #e74c3c;
 }
 
 .form-container {
-  background: white;
   padding: 24px;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -169,9 +144,11 @@
 }
 
 .branch-list h3 {
-  margin: 0 0 20px 0;
-  color: #2c3e50;
+  margin: 0 0 8px 0; /* tighter like Divisi */
+  color: #2f3c4f;
   font-size: 20px;
+  font-weight: 700;
+  text-align: left; /* match Divisi */
 }
 
 .loading {
@@ -196,58 +173,88 @@
   background: white;
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid #edf0f5;
+  margin-top: 0; /* sit directly under title like Divisi */
 }
 
 .data-table {
   width: 100%;
   border-collapse: collapse;
+  table-layout: auto;
 }
 
-.data-table th {
-  background: #f8f9fa;
-  padding: 16px 12px;
-  text-align: left;
+.branch-management .data-table thead th {
+  background: #0e489f; /* PELINDO blue like Divisi */
+  color: #ffffff;
+  padding: 14px 12px;
+  text-align: center; /* center all headers */
   font-weight: 600;
-  color: #2c3e50;
-  border-bottom: 2px solid #e0e0e0;
+  border-bottom: 0;
+  position: sticky;
+  top: 0;
+  z-index: 1;
 }
+.branch-management .data-table thead th:first-child { border-top-left-radius: 10px; }
+.branch-management .data-table thead th:last-child { border-top-right-radius: 10px; }
+
+/* header alignment per column (now all centered) */
+.branch-management .data-table thead th:first-child,
+.branch-management .data-table thead th:nth-child(2),
+.branch-management .data-table thead th:nth-child(3),
+.branch-management .data-table thead th:last-child { text-align: center; }
 
 .data-table td {
-  padding: 16px 12px;
-  border-bottom: 1px solid #e0e0e0;
-  color: #34495e;
+  padding: 16px 14px;
+  border-bottom: 1px solid #f1f3f7;
+  color: #34495e; /* default body text */
+  vertical-align: middle;
 }
 
-.data-table tr:hover {
-  background: #f8f9fa;
-}
+.data-table tbody tr:nth-child(even) { background: #fafcff; }
+.data-table tbody tr:hover { background: #f7faff; box-shadow: inset 0 0 0 1px rgba(2,113,182,0.08); }
+
+.data-table tr:hover { background: #fbfcff; }
 
 .data-table tr:last-child td {
   border-bottom: none;
 }
 
+/* column widths and alignment */
+.branch-management .data-table th:first-child { width: 80px; text-align: center; }
+.branch-management .data-table td:first-child { width: 80px; text-align: center; color: #7a8a99; }
+
+.branch-management .data-table th:nth-child(2) { text-align: center; }
+.branch-management .data-table td:nth-child(2) { text-align: center; color: #2c3e50; font-weight: 600; }
+
+.branch-management .data-table th:nth-child(3),
+.branch-management .data-table td:nth-child(3) { text-align: center; }
+
+.branch-management .data-table th:nth-child(4) { width: 160px; text-align: center; }
+.branch-management .data-table td:nth-child(4) { width: 160px; text-align: center; color: #2f3c4f; }
+
+.branch-management .data-table th:last-child,
+.branch-management .data-table td:last-child { width: 220px; text-align: center; }
+
+/* action cell layout */
+.branch-management .data-table tbody td:last-child {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+  flex-wrap: nowrap;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
-  .branch-management {
-    padding: 15px;
-  }
-  
-  .content-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 15px;
-  }
-  
-  .form-actions {
-    flex-direction: column;
-  }
-  
-  .table-container {
-    overflow-x: auto;
-  }
-  
-  .data-table {
-    min-width: 600px;
-  }
+  .branch-management { padding: 15px; }
+  .branch-management .content-header { flex-direction: column; align-items: stretch; gap: 12px; }
+  .branch-management .header-actions { position: static; transform: none; justify-content: center; margin-top: 6px; }
+  .table-container { overflow-x: auto; }
+  .data-table { min-width: 600px; }
+}
+
+@media (max-width: 480px) {
+  .branch-management .content-header h2 { font-size: 1.4rem; }
 }

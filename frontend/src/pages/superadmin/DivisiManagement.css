@@ -1,49 +1,72 @@
 .divisi-management {
-  padding: 20px 24px;
+  padding: 6px 24px; /* slight lift */
   max-width: 1440px;
   margin: 0 auto;
 }
 
-.content-header {
+.divisi-management .content-header {
   display: flex;
-  justify-content: space-between;
+  justify-content: center; /* center content block */
   align-items: center;
-  margin-bottom: 20px;
-  background: linear-gradient(135deg, #0271B6 0%, #30B0E1 100%);
+  gap: 12px;
+  margin-bottom: 18px;
+  background: linear-gradient(145deg, #003865 0%, #0077b6 100%); /* match sidebar */
   color: #fff;
-  padding: 16px 18px;
+  padding: 10px 18px; /* even thinner header */
   border-radius: 14px;
-  box-shadow: 0 8px 20px rgba(2,113,182,0.18);
+  outline: 1px solid rgba(255,255,255,0.15); /* subtle border for definition */
+  outline-offset: -1px;
+  box-shadow: 0 14px 32px rgba(2,113,182,0.26), 0 6px 14px rgba(2,113,182,0.16);
+  position: relative; /* allow absolute action button */
 }
 
-.content-header h2 {
+.divisi-management .content-header h2 {
   margin: 0;
   color: #fff;
-  font-size: 1.6rem;
+  font-size: 1.5rem; /* slightly smaller */
 }
 
-.content-header p {
+.divisi-management .content-header p {
   margin: 5px 0 0 0;
   color: rgba(255,255,255,0.95);
-  font-size: 0.95rem;
+  font-size: 0.9rem; /* slightly smaller */
 }
 
-.btn-primary {
-  background: linear-gradient(135deg, #0271B6 0%, #30B0E1 100%);
-  color: white;
+/* Center header text block for a tidy look */
+.divisi-management .header-left {
+  text-align: center;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Header actions and white primary button to mimic proposals page */
+.divisi-management .header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.divisi-management .btn-light {
+  padding: 10px 16px;
   border: none;
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 700;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(2,113,182,0.3);
+  background: #ffffff;
+  color: #0271B6;
+  box-shadow: 0 6px 16px rgba(2, 113, 182, 0.18);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, color 0.2s ease;
 }
 
-.btn-primary:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4);
+.divisi-management .btn-light:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: rgba(255,255,255,0.95);
+  color: #025a90;
 }
 
 .btn-primary:disabled {
@@ -72,35 +95,40 @@
   cursor: not-allowed;
 }
 
+/* Tidy, pill-styled action buttons */
 .btn-edit {
-  background: #f39c12;
-  color: white;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 4px;
-  font-size: 12px;
+  background: #eaf4ff;
+  color: #1770c9;
+  border: 1px solid #d5e9ff;
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
   margin-right: 8px;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
 }
 
 .btn-edit:hover:not(:disabled) {
-  background: #e67e22;
+  background: #d9ebff;
 }
 
 .btn-delete {
-  background: #e74c3c;
+  background: linear-gradient(135deg, #ff6aa2, #ff4f7b);
   color: white;
   border: none;
-  padding: 6px 12px;
-  border-radius: 4px;
-  font-size: 12px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 6px 14px rgba(255, 94, 144, 0.35);
 }
 
 .btn-delete:hover:not(:disabled) {
-  background: #c0392b;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(255, 94, 144, 0.45);
 }
 
 .btn-edit:disabled,
@@ -169,9 +197,11 @@
 }
 
 .divisi-list h3 {
-  margin: 0 0 20px 0;
-  color: #2c3e50;
+  margin: 0 0 8px 0;
+  color: #2f3c4f;
   font-size: 20px;
+  font-weight: 700;
+  text-align: left;
 }
 
 .loading {
@@ -196,7 +226,9 @@
   background: white;
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid #edf0f5;
+  margin-top: 0; /* sit directly under the title */
 }
 
 .data-table {
@@ -204,27 +236,72 @@
   border-collapse: collapse;
 }
 
-.data-table th {
-  background: #f8f9fa;
-  padding: 16px 12px;
-  text-align: left;
+.divisi-management .data-table thead th {
+  background: #0e489f;
+  color: #ffffff;
+  padding: 14px 12px;
+  text-align: center;
   font-weight: 600;
-  color: #2c3e50;
-  border-bottom: 2px solid #e0e0e0;
+  border-bottom: 0;
 }
+
+/* round top corners of header row */
+.divisi-management .data-table thead th:first-child { border-top-left-radius: 10px; }
+.divisi-management .data-table thead th:last-child  { border-top-right-radius: 10px; }
 
 .data-table td {
   padding: 16px 12px;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid #eef1f5;
   color: #34495e;
+  vertical-align: middle;
 }
 
 .data-table tr:hover {
-  background: #f8f9fa;
+  background: #fbfcff;
 }
 
 .data-table tr:last-child td {
   border-bottom: none;
+}
+
+/* spacing for action column */
+.divisi-management .data-table td:last-child {
+  white-space: nowrap;
+}
+
+/* Align body cells to match header titles */
+.divisi-management .data-table tbody td:nth-child(1),
+.divisi-management .data-table tbody td:nth-child(3),
+.divisi-management .data-table tbody td:last-child {
+  text-align: center;
+}
+
+/* Ensure the 'Nama Divisi' column aligns with its header */
+.divisi-management .data-table tbody td:nth-child(2) {
+  text-align: center;
+}
+
+/* Center the 'Nama Divisi' header title to match body */
+.divisi-management .data-table thead th:nth-child(2) {
+  text-align: center;
+}
+
+/* Stable column widths to keep layout consistent */
+.divisi-management .data-table th:first-child,
+.divisi-management .data-table td:first-child { width: 80px; }
+.divisi-management .data-table th:nth-child(3),
+.divisi-management .data-table td:nth-child(3) { width: 160px; }
+.divisi-management .data-table th:last-child,
+.divisi-management .data-table td:last-child { width: 220px; }
+
+/* Keep action buttons centered and on one line */
+.divisi-management .data-table tbody td:last-child {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+  flex-wrap: nowrap;
 }
 
 /* Responsive */
@@ -235,19 +312,28 @@
   
   .content-header {
     flex-direction: column;
-    align-items: flex-start;
-    gap: 15px;
+    align-items: stretch;
+    gap: 12px;
   }
-  
-  .form-actions {
-    flex-direction: column;
+
+  .divisi-management .header-actions {
+    position: static;
+    transform: none;
+    justify-content: center;
+    margin-top: 6px;
   }
-  
-  .table-container {
+  .divisi-management .table-container {
     overflow-x: auto;
   }
   
   .data-table {
     min-width: 600px;
+  }
+}
+
+/* Very small screens adjustments */
+@media (max-width: 480px) {
+  .divisi-management .content-header h2 {
+    font-size: 1.4rem;
   }
 }

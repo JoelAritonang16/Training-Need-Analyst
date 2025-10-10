@@ -115,17 +115,19 @@ const DivisiManagement = () => {
   return (
     <div className="divisi-management">
       <div className="content-header">
-        <div>
+        <div className="header-left">
           <h2>Manajemen Divisi</h2>
           <p>Kelola data divisi dalam sistem</p>
         </div>
-        <button 
-          className="btn-primary"
-          onClick={() => setShowForm(true)}
-          disabled={isLoading}
-        >
-          + Tambah Divisi
-        </button>
+        <div className="header-actions">
+          <button 
+            className="btn-light"
+            onClick={() => setShowForm(true)}
+            disabled={isLoading}
+          >
+            + Tambah Divisi
+          </button>
+        </div>
       </div>
 
       {error && (

@@ -137,11 +137,15 @@ const AnakPerusahaanManagement = () => {
   return (
     <div className="anak-perusahaan-container">
       <div className="content-header">
-        <h2>Manajemen Anak Perusahaan</h2>
-        <p>Kelola data anak perusahaan dan relasi dengan branch</p>
-        <button className="btn-primary" onClick={handleAddAnakPerusahaan} disabled={loading}>
-          {loading ? 'Loading...' : 'Tambah Anak Perusahaan'}
-        </button>
+        <div className="header-left">
+          <h2>Manajemen Anak Perusahaan</h2>
+          <p>Kelola data anak perusahaan dan relasi dengan branch</p>
+        </div>
+        <div className="header-actions">
+          <button className="btn-light" onClick={handleAddAnakPerusahaan} disabled={loading}>
+            {loading ? 'Loading...' : 'Tambah Anak Perusahaan'}
+          </button>
+        </div>
       </div>
 
       {/* Add Modal */}
@@ -237,8 +241,10 @@ const AnakPerusahaanManagement = () => {
       )}
 
       {/* Table */}
-      <div className="table-container">
-        <table className="data-table">
+      <div className="anak-list">
+        <h3>Daftar Anak Perusahaan ({anakPerusahaanList.length})</h3>
+        <div className="table-container">
+          <table className="data-table">
           <thead>
             <tr>
               <th>ID</th>
@@ -286,7 +292,8 @@ const AnakPerusahaanManagement = () => {
               </tr>
             ))}
           </tbody>
-        </table>
+          </table>
+        </div>
       </div>
     </div>
   );

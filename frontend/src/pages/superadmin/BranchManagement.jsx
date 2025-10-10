@@ -115,17 +115,19 @@ const BranchManagement = () => {
   return (
     <div className="branch-management">
       <div className="content-header">
-        <div>
+        <div className="header-left">
           <h2>Manajemen Branch</h2>
           <p>Kelola data branch dalam sistem</p>
         </div>
-        <button 
-          className="btn-primary"
-          onClick={() => setShowForm(true)}
-          disabled={isLoading}
-        >
-          + Tambah Branch
-        </button>
+        <div className="header-actions">
+          <button 
+            className="btn-light"
+            onClick={() => setShowForm(true)}
+            disabled={isLoading}
+          >
+            + Tambah Branch
+          </button>
+        </div>
       </div>
 
       {error && (

@@ -1,14 +1,14 @@
 .proposals-container {
-  padding: 0;
-  max-width: 100%;
-  margin: 0;
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
   background: white;
-  min-height: 100vh;
+  min-height: calc(100vh - 120px);
 }
 
 .proposals-header {
-  margin-bottom: 30px;
-  padding: 20px 40px;
+  margin-bottom: 20px;
+  padding: 8px 0 16px 0;
   background: white;
   text-align: center;
   border-bottom: 3px solid #0077b6;
@@ -30,10 +30,10 @@
 
 .proposals-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
-  gap: 25px;
-  margin-top: 0;
-  padding: 0 40px 40px 40px;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+  margin-top: 10px;
+  padding: 0;
 }
 
 .proposal-card {
@@ -200,12 +200,12 @@
 
 .empty-state {
   text-align: center;
-  padding: 80px 40px;
+  padding: 80px 24px;
   background: white;
   border-radius: 0;
   box-shadow: none;
   border: none;
-  margin: 0 40px;
+  margin: 0;
 }
 
 .empty-icon {
@@ -252,11 +252,11 @@
 /* Filters Section */
 .filters-section {
   display: flex;
-  gap: 20px;
-  margin-bottom: 30px;
+  gap: 16px;
+  margin-bottom: 24px;
   align-items: center;
   flex-wrap: wrap;
-  padding: 0 40px 20px 40px;
+  padding: 0 0 8px 0;
   background: white;
 }
 
@@ -318,12 +318,12 @@
 .loading-state,
 .error-state {
   text-align: center;
-  padding: 80px 40px;
+  padding: 80px 24px;
   background: white;
   border-radius: 0;
   box-shadow: none;
   border: none;
-  margin: 0 40px;
+  margin: 0;
 }
 
 .loading-spinner {
@@ -470,11 +470,11 @@
 
 @media (max-width: 768px) {
   .proposals-container {
-    padding: 0;
+    padding: 16px;
   }
   
   .proposals-header {
-    padding: 18px 20px;
+    padding: 8px 0 12px 0;
   }
   
   .proposals-header h2 {
@@ -482,16 +482,16 @@
   }
   
   .filters-section {
-    padding: 0 20px 20px 20px;
+    padding: 0 0 12px 0;
   }
   
   .proposals-grid {
-    padding: 0 20px 20px 20px;
+    padding: 0;
   }
   
   .filters-section {
     flex-direction: column;
-    gap: 15px;
+    gap: 12px;
   }
   
   .search-box {
@@ -504,7 +504,7 @@
   
   .proposals-grid {
     grid-template-columns: 1fr;
-    gap: 20px;
+    gap: 16px;
   }
   
   .proposal-card {
@@ -514,12 +514,12 @@
   .proposal-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 15px;
+    gap: 12px;
   }
   
   .proposal-actions {
     justify-content: stretch;
-    gap: 10px;
+    gap: 8px;
   }
   
   .btn-detail,
@@ -531,7 +531,7 @@
   
   .pagination {
     flex-direction: column;
-    gap: 15px;
+    gap: 12px;
   }
   
   .pagination-info {

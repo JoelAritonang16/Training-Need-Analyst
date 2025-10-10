@@ -1,30 +1,45 @@
 /* 🌟 === UPDATED CSS STYLES FOR BETTER DESIGN === 🌟 */
 
 /* Reset margin, padding, and box-sizing */
-/* Header Daftar Pengguna */
+/* Header Daftar Pengguna - Pelindo gradient capsule */
 .content-header.banner {
-  background: #0271B6; /* Background warna biru gelap untuk kontras */
-  color: #fff; /* Pastikan teks putih untuk kontras yang lebih baik */
+  background: linear-gradient(145deg, #003865 0%, #0077b6 100%);
+  color: #fff;
+  border-radius: 14px;
+  padding: 10px 18px;
+  position: relative;
+  box-shadow: 0 14px 32px rgba(2,113,182,0.18), 0 6px 14px rgba(2,113,182,0.12);
+  margin-bottom: 16px;
+}
+
+.content-header.banner::after {
+  content: '';
+  position: absolute;
+  left: 10px; right: 10px; bottom: -8px;
+  height: 4px; border-radius: 999px;
+  background: linear-gradient(90deg, #0271B6 0%, #30B0E1 100%);
+  box-shadow: 0 2px 6px rgba(2,113,182,0.25);
 }
 
 .content-header.banner h2 {
-  font-size: 2rem;
+  font-size: 1.5rem;
   font-weight: 700;
-  margin-bottom: 12px;
-  text-align: center; /* Tambahkan centering agar teks lebih terlihat jelas */
+  margin: 0;
+  text-align: center;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.25);
 }
 
 .content-header.banner p {
-  font-size: 1rem;
-  margin: 0;
+  font-size: 0.9rem;
+  margin: 5px 0 0 0;
   text-align: center;
-  color: #f1f5f9; /* Warna teks yang lebih cerah agar kontras dengan latar belakang */
+  color: rgba(255,255,255,0.95);
 }
 
 .card-surface .inner-card.header-row {
   background: #fff;
-  padding: 20px;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+  padding: 16px;
+  box-shadow: none;
 }
 
 .list-title h3 {
@@ -74,12 +89,66 @@
   font-weight: 800;
 }
 
+/* Controls row (search + filters) */
+.controls-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.controls-row .search-control,
+.controls-row .filters {
+  background: #ffffff;
+  border: 1px solid #edf0f5;
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+  padding: 10px;
+}
+
+.controls-row .search-control {
+  flex: 1 1 320px;
+}
+
+.controls-row .search-control input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e9ecef;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.controls-row .search-control input:focus {
+  outline: none;
+  border-color: #30B0E1;
+  box-shadow: 0 0 0 3px rgba(48,176,225,0.15);
+}
+
+.controls-row .filters select {
+  padding: 12px 14px;
+  border: 2px solid #e9ecef;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  background: #fff;
+  margin-right: 8px;
+}
+
+.controls-row .filters select:last-child { margin-right: 0; }
+
 html, body {
   width: 100%;
   height: 100%;
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+}
+
+/* Center page container */
+.users-container {
+  padding: 6px 24px;
+  max-width: 1440px;
+  margin: 0 auto;
 }
 
 /* Header Daftar Pengguna */
@@ -276,7 +345,7 @@ html, body {
   background: #fff;
   border: 1px solid #eef1f5;
   border-radius: 14px;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 6px 16px rgba(2, 113, 182, 0.06);
   padding: 16px 18px;
   transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
@@ -300,6 +369,41 @@ html, body {
   border-color: #30B0E1;
   background: #f2fafe;
   color: #065f8f;
+}
+
+/* Danger pill button */
+.user-actions .btn-danger {
+  background: linear-gradient(135deg, #ff6aa2, #ff4f7b);
+  color: #fff;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-weight: 700;
+  box-shadow: 0 6px 14px rgba(255, 94, 144, 0.35);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.user-actions .btn-danger:hover { transform: translateY(-1px); box-shadow: 0 8px 18px rgba(255, 94, 144, 0.45); }
+
+/* User meta typography tweaks */
+.user-meta .top-line { display: flex; align-items: center; gap: 8px; }
+.user-meta .username { color: #0f172a; font-weight: 700; }
+.user-meta .email { color: #64748b; }
+
+.role-badge { 
+  background: #eef2ff; color: #1e40af; 
+  padding: 4px 10px; border-radius: 999px; font-weight: 700; font-size: 0.72rem; 
+  text-transform: uppercase; letter-spacing: .3px; 
+}
+
+.status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-left: 2px; }
+.status-dot[data-status="active"]   { background: #22c55e; }
+.status-dot[data-status="inactive"] { background: #ef4444; }
+
+/* Responsive tweaks */
+@media (max-width: 768px) {
+  .controls-row .filters { width: 100%; }
+  .controls-row .filters select { width: calc(50% - 6px); margin-right: 6px; }
 }
 
 /* Modal design */

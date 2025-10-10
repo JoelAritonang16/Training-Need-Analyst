@@ -78,24 +78,8 @@ const AllProposals = ({ proposals, onFinalApprove, onFinalReject, onViewDetail, 
     <div className="proposals-container">
       <div className="content-header">
         <div className="header-left">
-          <h2>{headerTitle || 'Semua Usulan Pelatihan'}</h2>
+          <h2>{headerTitle || 'Persetujuan Usulan'}</h2>
           <p>Overview lengkap semua usulan pelatihan dalam sistem</p>
-        </div>
-        <div className="header-actions">
-          <button className="btn-export" onClick={handleExport}>Export CSV</button>
-          <select className="filter-select" onChange={(e)=>{
-            const v = e.target.value;
-            if (!v) return;
-            if (v === 'approval') onNavigate && onNavigate('proposal-approval');
-            if (v === 'approved') onNavigate && onNavigate('approved-proposals');
-            if (v === 'final') onNavigate && onNavigate('final-approval');
-            e.target.value = '';
-          }} defaultValue="">
-            <option value="" disabled>Pintasan Halaman</option>
-            <option value="approval">Persetujuan Usulan</option>
-            <option value="approved">Usulan Disetujui</option>
-            <option value="final">Persetujuan Akhir</option>
-          </select>
         </div>
       </div>
       
@@ -122,6 +106,7 @@ const AllProposals = ({ proposals, onFinalApprove, onFinalReject, onViewDetail, 
             <option key={unit} value={unit}>{unit}</option>
           ))}
         </select>
+        {/* Pintasan Halaman dihapus sesuai permintaan */}
       </div>
       
       <div className="proposals-grid">
@@ -154,10 +139,11 @@ const AllProposals = ({ proposals, onFinalApprove, onFinalReject, onViewDetail, 
                 Edit
               </button>
               <button
-                className="btn-detail"
+                className="btn-export"
                 onClick={() => handleExportOne(proposal.id)}
+                title="Export Excel untuk usulan ini"
               >
-                Export CSV
+                ↥ Export
               </button>
               {proposal.status === 'WAITING_SUPERADMIN_APPROVAL' && (
                 <>
