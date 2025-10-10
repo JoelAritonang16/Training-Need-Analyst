@@ -97,7 +97,7 @@
 .status-list { display: grid; gap: 10px; }
 .status-item { display: flex; align-items: center; gap: 8px; color: var(--text-secondary); font-size: 14px; }
 .status-dot { width: 8px; height: 8px; border-radius: 999px; display: inline-block; }
-.status-dot.online { background: #10b981; }
+.status-dot.online { background: #1635b3; }
 .status-dot.offline { background: #ef4444; }
 
 @media (max-width: 768px) {

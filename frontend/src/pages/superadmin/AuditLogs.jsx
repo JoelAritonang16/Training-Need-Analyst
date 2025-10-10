@@ -45,9 +45,9 @@ const AuditLogs = ({ auditLogs }) => {
 
   const getActionColor = (action) => {
     switch (action) {
-      case 'SUBMIT_PROPOSAL': return '#667eea';
+      case 'SUBMIT_PROPOSAL': return '#0271B6';
       case 'APPROVE_PROPOSAL': 
-      case 'FINAL_APPROVE': return '#00b894';
+      case 'FINAL_APPROVE': return '#0c8a5d';
       case 'REJECT_PROPOSAL': 
       case 'FINAL_REJECT': return '#e17055';
       case 'CREATE_USER': return '#00cec9';

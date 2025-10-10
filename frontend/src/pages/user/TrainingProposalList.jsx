@@ -14,6 +14,8 @@ const TrainingProposalList = ({ onCreateNew, onEdit, onViewDetail }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedProposal, setSelectedProposal] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const itemsPerPage = 6;
 
 
@@ -39,11 +41,14 @@ const TrainingProposalList = ({ onCreateNew, onEdit, onViewDetail }) => {
     }
   };
 
-  const handleViewDetail = (id) => {
-    console.log('View detail for proposal with ID:', id);
-    if (onViewDetail) {
-      onViewDetail(id);
-    }
+  const handleViewDetail = (proposal) => {
+    setSelectedProposal(proposal);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedProposal(null);
   };
 
   const handleDelete = async (id) => {
@@ -209,7 +214,7 @@ const TrainingProposalList = ({ onCreateNew, onEdit, onViewDetail }) => {
                 <div className="proposal-actions">
                   <button 
                     className="btn-detail"
-                    onClick={() => handleViewDetail(proposal.id)}
+                    onClick={() => handleViewDetail(proposal)}
                   >
                     Lihat Detail
                   </button>
@@ -259,6 +264,87 @@ const TrainingProposalList = ({ onCreateNew, onEdit, onViewDetail }) => {
             </div>
           )}
         </>
+      )}
+
+      {/* Modal Detail */}
+      {isModalOpen && selectedProposal && (
+        <div className="modal-overlay" onClick={closeModal}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <div className="modal-title-section">
+                <h2>{selectedProposal.Uraian || 'Detail Usulan'}</h2>
+                <span className={`status-badge ${getStatusBadgeClass(selectedProposal.status || 'PENDING')}`}>
+                  {getStatusText(selectedProposal.status || 'PENDING')}
+                </span>
+              </div>
+              <button className="modal-close" onClick={closeModal}>×</button>
+            </div>
+            
+            <div className="modal-body">
+              <div className="modal-info-list">
+                <div className="modal-info-item">
+                  <span className="info-label">Waktu Pelaksanaan</span>
+                  <span className="info-value">{formatDate(selectedProposal.WaktuPelaksanan)}</span>
+                </div>
+                <div className="modal-info-item">
+                  <span className="info-label">Jumlah Peserta</span>
+                  <span className="info-value">{selectedProposal.JumlahPeserta || '-'} orang</span>
+                </div>
+                <div className="modal-info-item">
+                  <span className="info-label">Hari Peserta Pelatihan</span>
+                  <span className="info-value">{selectedProposal.JumlahHariPesertaPelatihan || '-'} hari</span>
+                </div>
+                <div className="modal-info-item">
+                  <span className="info-label">Level Tingkatan</span>
+                  <span className="info-value">{selectedProposal.LevelTingkatan || '-'}</span>
+                </div>
+                <div className="modal-info-item">
+                  <span className="info-label">Tanggal Dibuat</span>
+                  <span className="info-value">{formatDate(selectedProposal.created_at)}</span>
+                </div>
+              </div>
+
+              <div className="modal-divider"></div>
+
+              <div className="modal-costs-list">
+                <div className="modal-cost-row">
+                  <span>Beban</span>
+                  <strong>{selectedProposal.Beban ? `Rp ${parseFloat(selectedProposal.Beban).toLocaleString('id-ID')}` : '-'}</strong>
+                </div>
+                <div className="modal-cost-row">
+                  <span>Beban Transportasi</span>
+                  <strong>{selectedProposal.BebanTranportasi ? `Rp ${parseFloat(selectedProposal.BebanTranportasi).toLocaleString('id-ID')}` : '-'}</strong>
+                </div>
+                <div className="modal-cost-row">
+                  <span>Beban Akomodasi</span>
+                  <strong>{selectedProposal.BebanAkomodasi ? `Rp ${parseFloat(selectedProposal.BebanAkomodasi).toLocaleString('id-ID')}` : '-'}</strong>
+                </div>
+                <div className="modal-cost-row">
+                  <span>Beban Uang Saku</span>
+                  <strong>{selectedProposal.BebanUangSaku ? `Rp ${parseFloat(selectedProposal.BebanUangSaku).toLocaleString('id-ID')}` : '-'}</strong>
+                </div>
+                <div className="modal-cost-row total">
+                  <span>Total Usulan</span>
+                  <strong>{selectedProposal.TotalUsulan ? `Rp ${parseFloat(selectedProposal.TotalUsulan).toLocaleString('id-ID')}` : '-'}</strong>
+                </div>
+              </div>
+            </div>
+
+            <div className="modal-footer">
+              <button className="btn-modal-close" onClick={closeModal}>Tutup</button>
+              {(!selectedProposal.status || selectedProposal.status === 'PENDING' || selectedProposal.status === 'REJECTED') && (
+                <>
+                  <button className="btn-modal-edit" onClick={() => { closeModal(); handleEdit(selectedProposal.id); }}>
+                    Edit
+                  </button>
+                  <button className="btn-modal-delete" onClick={() => { closeModal(); handleDelete(selectedProposal.id); }}>
+                    Hapus
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

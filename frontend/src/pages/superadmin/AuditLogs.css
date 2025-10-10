@@ -48,7 +48,7 @@
 .filter-select:focus,
 .filter-date:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: #0271B6;
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
@@ -73,7 +73,7 @@
   display: block;
   font-size: 2rem;
   font-weight: 700;
-  color: #667eea;
+  color: #0271B6;
   margin-bottom: 5px;
 }
 

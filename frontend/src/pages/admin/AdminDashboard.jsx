@@ -7,6 +7,8 @@ import ApprovedProposals from './ApprovedProposals.jsx';
 import Reports from './Reports.jsx';
 import UserCreate from './UserCreate.jsx';
 import { trainingProposalAPI } from '../../utils/api';
+import danantaraLogo from '../../assets/Danantara2.png';
+import pelindoLogo from '../../assets/Pelindoo.png';
 import './AdminDashboard.css';
 
 const AdminDashboard = ({ user, onLogout }) => {
@@ -252,7 +254,19 @@ const AdminDashboard = ({ user, onLogout }) => {
       />
       <main className="main-content">
         <div className="topbar">
-          <div className="topbar-spacer" />
+          <div className="topbar-logos">
+            <img src={danantaraLogo} alt="Danantara" className="topbar-logo" />
+            <div className="topbar-divider"></div>
+            <img src={pelindoLogo} alt="Pelindo" className="topbar-logo" />
+          </div>
+          <div className="topbar-title">
+            {activeMenu === 'dashboard' && ''}
+            {activeMenu === 'user-management' && ''}
+            {activeMenu === 'user-create' && ''}
+            {activeMenu === 'proposal-approval' && ''}
+            {activeMenu === 'approved-proposals' && ''}
+            {activeMenu === 'reports' && ''}
+          </div>
           <div className="user-menu">
             <button 
               className="user-button" 

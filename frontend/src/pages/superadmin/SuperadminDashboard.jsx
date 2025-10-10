@@ -13,6 +13,8 @@ import DivisiManagement from './DivisiManagement.jsx';
 import BranchManagement from './BranchManagement.jsx';
 import AnakPerusahaanManagement from './AnakPerusahaanManagement.jsx';
 import { trainingProposalAPI } from '../../utils/api';
+import danantaraLogo from '../../assets/Danantara2.png';
+import pelindoLogo from '../../assets/Pelindoo.png';
 import './SuperadminDashboard.css';
 
 const SuperadminDashboard = ({ user, onLogout }) => {
@@ -340,7 +342,27 @@ const SuperadminDashboard = ({ user, onLogout }) => {
       />
       <main className="main-content">
         <div className="topbar">
-          <div className="topbar-spacer" />
+          <div className="topbar-logos">
+            <img src={danantaraLogo} alt="Danantara" className="topbar-logo" />
+            <div className="topbar-divider"></div>
+            <img src={pelindoLogo} alt="Pelindo" className="topbar-logo" />
+          </div>
+          <div className="topbar-title">
+            {activeMenu === 'dashboard' && ''}
+            {activeMenu === 'proposal-form' && ''}
+            {activeMenu === 'proposal-approval' && ''}
+            {activeMenu === 'approved-proposals' && ''}
+            {activeMenu === 'user-management' && ''}
+            {activeMenu === 'user-create' && ''}
+            {activeMenu === 'user-edit' && ''}
+            {activeMenu === 'final-approval' && ''}
+            {activeMenu === 'all-proposals' && ''}
+            {activeMenu === 'system-config' && ''}
+            {activeMenu === 'divisi-management' && ''}
+            {activeMenu === 'branch-management' && ''}
+            {activeMenu === 'anak-perusahaan-management' && ''}
+            {activeMenu === 'audit-logs' && ''}
+          </div>
           <div className="user-menu">
             <button 
               className="user-button" 

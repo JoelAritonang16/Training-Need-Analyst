@@ -129,16 +129,20 @@ const TrainingProposalDetail = ({ proposalId, onEdit, onBack }) => {
 
   return (
     <div className="training-proposal-detail">
+      <div className="page-title">
+        <h2>Detail Usulan Pelatihan</h2>
+        <p>Informasi lengkap mengenai usulan pelatihan Anda</p>
+      </div>
+
       <div className="page-header">
         <div className="header-content">
           <div className="header-info">
             <h1>{proposal.Uraian || 'Uraian Tidak Tersedia'}</h1>
-            <p>Detail usulan pelatihan</p>
-          </div>
-          <div className="header-actions">
-            <span className={`status-badge ${getStatusBadgeClass(proposal.status || 'PENDING')}`}>
-              {getStatusText(proposal.status || 'PENDING')}
-            </span>
+            <div className="header-meta">
+              <span className={`status-badge ${getStatusBadgeClass(proposal.status || 'PENDING')}`}>
+                {getStatusText(proposal.status || 'PENDING')}
+              </span>
+            </div>
           </div>
         </div>
       </div>

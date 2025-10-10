@@ -1,4 +1,5 @@
 import React from 'react';
+import './DashboardOverview.css';
 
 const DashboardOverview = ({ user, proposals, onNavigate }) => {
   const totalProposals = proposals ? proposals.length : 0;

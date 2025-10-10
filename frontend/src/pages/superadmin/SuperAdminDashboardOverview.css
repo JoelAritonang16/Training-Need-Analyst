@@ -68,7 +68,7 @@
 }
 
 .stat-card {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #0271B6 0%, #1e5a8e 100%);
   color: white;
   padding: 25px;
   border-radius: 15px;
@@ -147,7 +147,7 @@
 }
 
 .action-btn.primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #0271B6 0%, #1e5a8e 100%);
   color: white;
 }
 

@@ -58,7 +58,44 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 20px;
+  margin: -20px -20px 30px -20px;
+  padding: 20px 40px;
+  background: linear-gradient(120deg, #1e5a8e 0%, #2980b9 100%);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 0 0 12px 12px;
+}
+
+.topbar-logos {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.topbar-logo {
+  height: 30px;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+.topbar-divider {
+  width: 2px;
+  height: 35px;
+  background: linear-gradient(180deg, 
+    transparent 0%, 
+    rgba(255, 255, 255, 0.5) 20%, 
+    rgba(255, 255, 255, 0.8) 50%, 
+    rgba(255, 255, 255, 0.5) 80%, 
+    transparent 100%
+  );
+}
+
+.topbar-title {
+  color: white;
+  font-size: 1.5rem;
+  font-weight: 700;
+  flex: 1;
+  text-align: center;
 }
 
 .topbar-spacer {
@@ -68,30 +105,42 @@
 /* User dropdown */
 .user-menu { position: relative; }
 .user-button {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  color: #333;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
   border-radius: 999px;
-  padding: 6px 10px;
+  padding: 8px 16px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   cursor: pointer;
+  transition: all 0.3s ease;
 }
-.user-button:hover { background: #f9fafb; }
+.user-button:hover { 
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.4);
+}
 .user-avatar {
-  width: 28px;
-  height: 28px;
-  background: #284D90;
-  color: #fff;
+  width: 32px;
+  height: 32px;
+  background: white;
+  color: #2980b9;
   border-radius: 999px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 700;
+  font-size: 14px;
 }
-.user-name { font-weight: 500; }
-.chevron { opacity: 0.7; transition: transform 0.2s ease; }
+.user-name { 
+  font-weight: 500;
+  color: white;
+}
+.chevron { 
+  opacity: 0.9; 
+  transition: transform 0.2s ease;
+  color: white;
+}
 .chevron.open { transform: rotate(180deg); }
 .user-dropdown {
   position: absolute;
@@ -172,7 +221,7 @@
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #0271B6 0%, #1e5a8e 100%);
 }
 
 .stat-card.budget::before {
@@ -191,7 +240,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #0271B6 0%, #1e5a8e 100%);
   border-radius: 12px;
   color: white;
   flex-shrink: 0;
@@ -235,13 +284,13 @@
   border-radius: 8px;
   text-align: center;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  border-left: 4px solid #667eea;
+  border-left: 4px solid #0271B6;
 }
 
 .user-stat-card h3 {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #667eea;
+  color: #0271B6;
   margin: 0 0 5px 0;
 }
 
@@ -298,7 +347,7 @@
 }
 
 .btn-toggle.activate {
-  background: #28a745;
+  background: #0c8a5d;
   color: white;
 }
 
@@ -322,7 +371,7 @@
 }
 
 .btn-final-approve {
-  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  background: linear-gradient(135deg, #0c8a5d 0%, #17a2b8 100%);
   color: white;
   border: none;
   padding: 10px 18px;
@@ -376,7 +425,7 @@
 
 .filter-select:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: #0271B6;
 }
 
 /* System Configuration */
@@ -395,7 +444,7 @@
   padding: 30px;
   border-radius: 12px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
-  border-left: 4px solid #667eea;
+  border-left: 4px solid #0271B6;
 }
 
 .config-card h3 {
@@ -439,7 +488,7 @@
   padding: 12px 15px;
   background: #f8f9fa;
   border-radius: 6px;
-  border-left: 3px solid #667eea;
+  border-left: 3px solid #0271B6;
 }
 
 .permission-count {
@@ -581,7 +630,7 @@
 }
 
 .status-indicator.online {
-  background: #28a745;
+  background: #0c8a5d;
   box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.2);
 }
 
@@ -620,7 +669,7 @@
   padding: 15px;
   background: #f8f9fa;
   border-radius: 8px;
-  border-left: 4px solid #667eea;
+  border-left: 4px solid #0271B6;
   transition: all 0.3s ease;
 }
 

@@ -143,7 +143,7 @@ const UserDashboard = ({ user, onLogout, onUserUpdate, proposals = [] }) => {
             {activeMenu === 'proposal-list' && ''}
             {activeMenu === 'proposal-create' && ''}
             {activeMenu === 'proposal-edit' && 'Edit Usulan Pelatihan'}
-            {activeMenu === 'proposal-detail' && 'Detail Usulan Pelatihan'}
+            {activeMenu === 'proposal-detail' && ''}
             {activeMenu === 'profile' && ''}
           </div>
           <div className="user-menu">
