@@ -7,7 +7,7 @@ import TrainingProposalEdit from './TrainingProposalEdit.jsx';
 import TrainingProposalDetail from './TrainingProposalDetail.jsx';
 import UserProfile from './UserProfile.jsx';
 import danantaraLogo from '../../assets/Danantara2.png';
-import pelindoLogo from '../../assets/Pelindoo.png';
+import pelindoLogo from '../../assets/LogoFixx.png';
 import './UserDashboard.css';
 
 const UserDashboard = ({ user, onLogout, onUserUpdate, proposals = [] }) => {

@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { anakPerusahaanAPI, branchAPI } from '../../utils/api';
+import ConfirmModal from '../../components/ConfirmModal';
+import AlertModal from '../../components/AlertModal';
 import './AnakPerusahaanManagement.css';
 
 const AnakPerusahaanManagement = () => {
@@ -13,6 +15,8 @@ const AnakPerusahaanManagement = () => {
     nama: '',
     branchIds: []
   });
+  const [confirmDelete, setConfirmDelete] = useState({ open: false, id: null });
+  const [alert, setAlert] = useState({ open: false, type: 'info', title: '', message: '' });
 
   useEffect(() => {
     fetchData();
@@ -66,13 +70,28 @@ const AnakPerusahaanManagement = () => {
       if (result.success) {
         setShowAddModal(false);
         fetchData();
-        alert('Anak perusahaan berhasil ditambahkan!');
+        setAlert({
+          open: true,
+          type: 'success',
+          title: 'Berhasil',
+          message: 'Anak perusahaan berhasil ditambahkan!'
+        });
       } else {
-        alert('Error: ' + result.message);
+        setAlert({
+          open: true,
+          type: 'error',
+          title: 'Error',
+          message: result.message
+        });
       }
     } catch (error) {
       console.error('Error adding anak perusahaan:', error);
-      alert('Terjadi kesalahan saat menambahkan anak perusahaan');
+      setAlert({
+        open: true,
+        type: 'error',
+        title: 'Error',
+        message: 'Terjadi kesalahan saat menambahkan anak perusahaan'
+      });
     } finally {
       setLoading(false);
     }
@@ -87,36 +106,69 @@ const AnakPerusahaanManagement = () => {
       if (result.success) {
         setShowEditModal(false);
         fetchData();
-        alert('Anak perusahaan berhasil diupdate!');
+        setAlert({
+          open: true,
+          type: 'success',
+          title: 'Berhasil',
+          message: 'Anak perusahaan berhasil diupdate!'
+        });
       } else {
-        alert('Error: ' + result.message);
+        setAlert({
+          open: true,
+          type: 'error',
+          title: 'Error',
+          message: result.message
+        });
       }
     } catch (error) {
       console.error('Error updating anak perusahaan:', error);
-      alert('Terjadi kesalahan saat mengupdate anak perusahaan');
+      setAlert({
+        open: true,
+        type: 'error',
+        title: 'Error',
+        message: 'Terjadi kesalahan saat mengupdate anak perusahaan'
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDeleteAnakPerusahaan = async (id) => {
-    if (window.confirm('Apakah Anda yakin ingin menghapus anak perusahaan ini?')) {
-      try {
-        setLoading(true);
-        const result = await anakPerusahaanAPI.delete(id);
-        
-        if (result.success) {
-          fetchData();
-          alert('Anak perusahaan berhasil dihapus!');
-        } else {
-          alert('Error: ' + result.message);
-        }
-      } catch (error) {
-        console.error('Error deleting anak perusahaan:', error);
-        alert('Terjadi kesalahan saat menghapus anak perusahaan');
-      } finally {
-        setLoading(false);
+  const handleDeleteAnakPerusahaan = (id) => {
+    setConfirmDelete({ open: true, id });
+  };
+
+  const confirmDeleteAction = async () => {
+    try {
+      setLoading(true);
+      const result = await anakPerusahaanAPI.delete(confirmDelete.id);
+      
+      if (result.success) {
+        fetchData();
+        setAlert({
+          open: true,
+          type: 'success',
+          title: 'Berhasil',
+          message: 'Anak perusahaan berhasil dihapus!'
+        });
+      } else {
+        setAlert({
+          open: true,
+          type: 'error',
+          title: 'Error',
+          message: result.message
+        });
       }
+    } catch (error) {
+      console.error('Error deleting anak perusahaan:', error);
+      setAlert({
+        open: true,
+        type: 'error',
+        title: 'Error',
+        message: 'Terjadi kesalahan saat menghapus anak perusahaan'
+      });
+    } finally {
+      setLoading(false);
+      setConfirmDelete({ open: false, id: null });
     }
   };
 
@@ -148,95 +200,115 @@ const AnakPerusahaanManagement = () => {
         </div>
       </div>
 
-      {/* Add Modal */}
+      {/* Add Form */}
       {showAddModal && (
-        <div className="modal">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h3>Tambah Anak Perusahaan</h3>
-              <button className="close-btn" onClick={() => setShowAddModal(false)}>×</button>
+        <div className="form-container">
+          <h3>Tambah Anak Perusahaan Baru</h3>
+          <form onSubmit={handleSubmitAdd}>
+            <div className="form-group">
+              <label htmlFor="nama">Nama Anak Perusahaan *</label>
+              <input
+                type="text"
+                id="nama"
+                name="nama"
+                value={formData.nama}
+                onChange={(e) => setFormData({...formData, nama: e.target.value})}
+                required
+                placeholder="Masukkan nama anak perusahaan"
+                disabled={loading}
+              />
             </div>
-            <form onSubmit={handleSubmitAdd}>
-              <div className="form-group">
-                <label>Nama Anak Perusahaan</label>
-                <input
-                  type="text"
-                  value={formData.nama}
-                  onChange={(e) => setFormData({...formData, nama: e.target.value})}
-                  required
-                />
+            
+            <div className="form-group">
+              <label>Branch Terkait</label>
+              <div className="checkbox-group">
+                {branchList.map(branch => (
+                  <label key={branch.id} className="checkbox-label">
+                    <input
+                      type="checkbox"
+                      checked={formData.branchIds.includes(branch.id)}
+                      onChange={(e) => handleBranchChange(branch.id, e.target.checked)}
+                    />
+                    {branch.nama}
+                  </label>
+                ))}
               </div>
-              
-              <div className="form-group">
-                <label>Branch Terkait</label>
-                <div className="checkbox-group">
-                  {branchList.map(branch => (
-                    <label key={branch.id} className="checkbox-label">
-                      <input
-                        type="checkbox"
-                        checked={formData.branchIds.includes(branch.id)}
-                        onChange={(e) => handleBranchChange(branch.id, e.target.checked)}
-                      />
-                      {branch.nama}
-                    </label>
-                  ))}
-                </div>
-              </div>
-              
-              <div className="form-actions">
-                <button type="button" onClick={() => setShowAddModal(false)}>Batal</button>
-                <button type="submit" disabled={loading}>
-                  {loading ? 'Menyimpan...' : 'Simpan'}
-                </button>
-              </div>
-            </form>
-          </div>
+            </div>
+            
+            <div className="form-actions">
+              <button 
+                type="button" 
+                className="btn-secondary"
+                onClick={() => setShowAddModal(false)}
+                disabled={loading}
+              >
+                Batal
+              </button>
+              <button 
+                type="submit" 
+                className="btn-primary"
+                disabled={loading}
+              >
+                {loading ? 'Menyimpan...' : 'Simpan'}
+              </button>
+            </div>
+          </form>
         </div>
       )}
 
-      {/* Edit Modal */}
+      {/* Edit Form */}
       {showEditModal && selectedAnakPerusahaan && (
-        <div className="modal">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h3>Edit Anak Perusahaan</h3>
-              <button className="close-btn" onClick={() => setShowEditModal(false)}>×</button>
+        <div className="form-container">
+          <h3>Edit Anak Perusahaan</h3>
+          <form onSubmit={handleSubmitEdit}>
+            <div className="form-group">
+              <label htmlFor="nama-edit">Nama Anak Perusahaan *</label>
+              <input
+                type="text"
+                id="nama-edit"
+                name="nama"
+                value={formData.nama}
+                onChange={(e) => setFormData({...formData, nama: e.target.value})}
+                required
+                placeholder="Masukkan nama anak perusahaan"
+                disabled={loading}
+              />
             </div>
-            <form onSubmit={handleSubmitEdit}>
-              <div className="form-group">
-                <label>Nama Anak Perusahaan</label>
-                <input
-                  type="text"
-                  value={formData.nama}
-                  onChange={(e) => setFormData({...formData, nama: e.target.value})}
-                  required
-                />
+            
+            <div className="form-group">
+              <label>Branch Terkait</label>
+              <div className="checkbox-group">
+                {branchList.map(branch => (
+                  <label key={branch.id} className="checkbox-label">
+                    <input
+                      type="checkbox"
+                      checked={formData.branchIds.includes(branch.id)}
+                      onChange={(e) => handleBranchChange(branch.id, e.target.checked)}
+                    />
+                    {branch.nama}
+                  </label>
+                ))}
               </div>
-              
-              <div className="form-group">
-                <label>Branch Terkait</label>
-                <div className="checkbox-group">
-                  {branchList.map(branch => (
-                    <label key={branch.id} className="checkbox-label">
-                      <input
-                        type="checkbox"
-                        checked={formData.branchIds.includes(branch.id)}
-                        onChange={(e) => handleBranchChange(branch.id, e.target.checked)}
-                      />
-                      {branch.nama}
-                    </label>
-                  ))}
-                </div>
-              </div>
-              
-              <div className="form-actions">
-                <button type="button" onClick={() => setShowEditModal(false)}>Batal</button>
-                <button type="submit" disabled={loading}>
-                  {loading ? 'Menyimpan...' : 'Update'}
-                </button>
-              </div>
-            </form>
-          </div>
+            </div>
+            
+            <div className="form-actions">
+              <button 
+                type="button" 
+                className="btn-secondary"
+                onClick={() => setShowEditModal(false)}
+                disabled={loading}
+              >
+                Batal
+              </button>
+              <button 
+                type="submit" 
+                className="btn-primary"
+                disabled={loading}
+              >
+                {loading ? 'Menyimpan...' : 'Update'}
+              </button>
+            </div>
+          </form>
         </div>
       )}
 
@@ -295,6 +367,26 @@ const AnakPerusahaanManagement = () => {
           </table>
         </div>
       </div>
+
+      {/* Confirm Delete Modal */}
+      <ConfirmModal
+        open={confirmDelete.open}
+        title="Konfirmasi Hapus"
+        message="Apakah Anda yakin ingin menghapus anak perusahaan ini?"
+        confirmText="Hapus"
+        cancelText="Batal"
+        onConfirm={confirmDeleteAction}
+        onCancel={() => setConfirmDelete({ open: false, id: null })}
+      />
+
+      {/* Alert Modal */}
+      <AlertModal
+        open={alert.open}
+        type={alert.type}
+        title={alert.title}
+        message={alert.message}
+        onConfirm={() => setAlert({ ...alert, open: false })}
+      />
     </div>
   );
 };

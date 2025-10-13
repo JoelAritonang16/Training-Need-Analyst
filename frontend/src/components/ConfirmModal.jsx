@@ -13,11 +13,10 @@ const ConfirmModal = ({
   if (!open) return null;
 
   return (
-    <div className="confirm-overlay" role="dialog" aria-modal="true">
-      <div className="confirm-modal card-like">
+    <div className="confirm-overlay" role="dialog" aria-modal="true" onClick={onCancel}>
+      <div className="confirm-modal card-like" onClick={(e) => e.stopPropagation()}>
         <div className="confirm-header centered">
-          <img src="/LogoPelindo.png" alt="PT Pelindo" className="confirm-logo" />
-          <h2 className="confirm-title">{}</h2>
+          <h2 className="confirm-title">{title}</h2>
           <p className="confirm-message">{message}</p>
         </div>
         <div className="confirm-actions two-buttons">

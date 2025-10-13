@@ -85,10 +85,27 @@
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  margin-right: 8px;
   transition: all 0.2s ease;
 }
 .btn-edit:hover:not(:disabled) { background: #d9ebff; }
+
+.btn-delete {
+  background: linear-gradient(135deg, #ff6aa2, #ff4f7b);
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 6px 14px rgba(255, 94, 144, 0.35);
+}
+
+.btn-delete:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(255, 94, 144, 0.45);
+}
 .error-message {
   margin-bottom: 20px;
   border-left: 4px solid #e74c3c;

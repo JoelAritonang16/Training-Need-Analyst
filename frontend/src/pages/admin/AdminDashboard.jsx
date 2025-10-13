@@ -8,7 +8,7 @@ import Reports from './Reports.jsx';
 import UserCreate from './UserCreate.jsx';
 import { trainingProposalAPI } from '../../utils/api';
 import danantaraLogo from '../../assets/Danantara2.png';
-import pelindoLogo from '../../assets/Pelindoo.png';
+import pelindoLogo from '../../assets/LogoFixx.png';
 import './AdminDashboard.css';
 
 const AdminDashboard = ({ user, onLogout }) => {
@@ -23,6 +23,8 @@ const AdminDashboard = ({ user, onLogout }) => {
   const [proposals, setProposals] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [selectedProposal, setSelectedProposal] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Fetch proposals from database
   useEffect(() => {
@@ -176,7 +178,35 @@ const AdminDashboard = ({ user, onLogout }) => {
   };
 
   const handleViewDetail = (proposalId) => {
-    console.log('View detail:', proposalId);
+    const proposal = proposals.find(p => p.id === proposalId);
+    if (proposal) {
+      setSelectedProposal(proposal);
+      setIsModalOpen(true);
+    }
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedProposal(null);
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return '-';
+    return new Date(dateString).toLocaleDateString('id-ID', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  const getStatusText = (status) => {
+    const statusTexts = {
+      'MENUNGGU': 'Menunggu',
+      'APPROVE_ADMIN': 'Disetujui Admin',
+      'APPROVE_SUPERADMIN': 'Disetujui Superadmin',
+      'DITOLAK': 'Ditolak'
+    };
+    return statusTexts[status] || status;
   };
 
   const handleGenerateReport = (reportType, dateRange) => {
@@ -288,6 +318,75 @@ const AdminDashboard = ({ user, onLogout }) => {
         </div>
         {renderContent()}
       </main>
+
+      {/* Modal Detail Proposal */}
+      {isModalOpen && selectedProposal && (
+        <div className="modal-overlay" onClick={closeModal}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <div className="modal-title-section">
+                <h2>{selectedProposal.Uraian || 'Detail Usulan'}</h2>
+                <span className="status-badge">{getStatusText(selectedProposal.status)}</span>
+              </div>
+              <button className="modal-close" onClick={closeModal}>×</button>
+            </div>
+            
+            <div className="modal-body">
+              <div className="modal-info-list">
+                <div className="modal-info-item">
+                  <span className="info-label">Waktu Pelaksanaan</span>
+                  <span className="info-value">{formatDate(selectedProposal.WaktuPelaksanan)}</span>
+                </div>
+                <div className="modal-info-item">
+                  <span className="info-label">Jumlah Peserta</span>
+                  <span className="info-value">{selectedProposal.JumlahPeserta || '-'} orang</span>
+                </div>
+                <div className="modal-info-item">
+                  <span className="info-label">Hari Peserta Pelatihan</span>
+                  <span className="info-value">{selectedProposal.JumlahHariPesertaPelatihan || '-'} hari</span>
+                </div>
+                <div className="modal-info-item">
+                  <span className="info-label">Level Tingkatan</span>
+                  <span className="info-value">{selectedProposal.LevelTingkatan || '-'}</span>
+                </div>
+                <div className="modal-info-item">
+                  <span className="info-label">Tanggal Dibuat</span>
+                  <span className="info-value">{formatDate(selectedProposal.created_at)}</span>
+                </div>
+              </div>
+
+              <div className="modal-divider"></div>
+
+              <div className="modal-costs-list">
+                <div className="modal-cost-row">
+                  <span>Beban</span>
+                  <strong>{selectedProposal.Beban ? `Rp ${parseFloat(selectedProposal.Beban).toLocaleString('id-ID')}` : '-'}</strong>
+                </div>
+                <div className="modal-cost-row">
+                  <span>Beban Transportasi</span>
+                  <strong>{selectedProposal.BebanTranportasi ? `Rp ${parseFloat(selectedProposal.BebanTranportasi).toLocaleString('id-ID')}` : '-'}</strong>
+                </div>
+                <div className="modal-cost-row">
+                  <span>Beban Akomodasi</span>
+                  <strong>{selectedProposal.BebanAkomodasi ? `Rp ${parseFloat(selectedProposal.BebanAkomodasi).toLocaleString('id-ID')}` : '-'}</strong>
+                </div>
+                <div className="modal-cost-row">
+                  <span>Beban Uang Saku</span>
+                  <strong>{selectedProposal.BebanUangSaku ? `Rp ${parseFloat(selectedProposal.BebanUangSaku).toLocaleString('id-ID')}` : '-'}</strong>
+                </div>
+                <div className="modal-cost-row total">
+                  <span>Total Usulan</span>
+                  <strong>{selectedProposal.TotalUsulan ? `Rp ${parseFloat(selectedProposal.TotalUsulan).toLocaleString('id-ID')}` : '-'}</strong>
+                </div>
+              </div>
+            </div>
+
+            <div className="modal-footer">
+              <button className="btn-modal-close" onClick={closeModal}>Tutup</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

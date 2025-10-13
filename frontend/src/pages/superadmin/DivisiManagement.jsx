@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { divisiAPI } from '../../utils/api';
+import ConfirmModal from '../../components/ConfirmModal';
+import AlertModal from '../../components/AlertModal';
 import './DivisiManagement.css';
 
 const DivisiManagement = () => {
@@ -11,6 +13,8 @@ const DivisiManagement = () => {
   const [formData, setFormData] = useState({
     nama: ''
   });
+  const [confirmDelete, setConfirmDelete] = useState({ open: false, id: null });
+  const [alert, setAlert] = useState({ open: false, type: 'info', title: '', message: '' });
 
   // Fetch divisi data
   useEffect(() => {
@@ -62,7 +66,12 @@ const DivisiManagement = () => {
       }
       
       if (result.success) {
-        alert(editingDivisi ? 'Divisi berhasil diupdate!' : 'Divisi berhasil dibuat!');
+        setAlert({
+          open: true,
+          type: 'success',
+          title: 'Berhasil',
+          message: editingDivisi ? 'Divisi berhasil diupdate!' : 'Divisi berhasil dibuat!'
+        });
         setFormData({ nama: '' });
         setShowForm(false);
         setEditingDivisi(null);
@@ -84,24 +93,42 @@ const DivisiManagement = () => {
     setShowForm(true);
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm('Apakah Anda yakin ingin menghapus divisi ini?')) {
-      try {
-        setIsLoading(true);
-        const result = await divisiAPI.delete(id);
-        
-        if (result.success) {
-          alert('Divisi berhasil dihapus!');
-          fetchDivisi(); // Refresh data
-        } else {
-          alert('Error: ' + result.message);
-        }
-      } catch (err) {
-        console.error('Error deleting divisi:', err);
-        alert('Terjadi kesalahan saat menghapus divisi');
-      } finally {
-        setIsLoading(false);
+  const handleDelete = (id) => {
+    setConfirmDelete({ open: true, id });
+  };
+
+  const confirmDeleteAction = async () => {
+    try {
+      setIsLoading(true);
+      const result = await divisiAPI.delete(confirmDelete.id);
+      
+      if (result.success) {
+        fetchDivisi(); // Refresh data
+        setAlert({
+          open: true,
+          type: 'success',
+          title: 'Berhasil',
+          message: 'Divisi berhasil dihapus!'
+        });
+      } else {
+        setAlert({
+          open: true,
+          type: 'error',
+          title: 'Error',
+          message: result.message
+        });
       }
+    } catch (err) {
+      console.error('Error deleting divisi:', err);
+      setAlert({
+        open: true,
+        type: 'error',
+        title: 'Error',
+        message: 'Terjadi kesalahan saat menghapus divisi'
+      });
+    } finally {
+      setIsLoading(false);
+      setConfirmDelete({ open: false, id: null });
     }
   };
 
@@ -224,6 +251,26 @@ const DivisiManagement = () => {
           </div>
         )}
       </div>
+
+      {/* Confirm Delete Modal */}
+      <ConfirmModal
+        open={confirmDelete.open}
+        title="Konfirmasi Hapus"
+        message="Apakah Anda yakin ingin menghapus divisi ini?"
+        confirmText="Hapus"
+        cancelText="Batal"
+        onConfirm={confirmDeleteAction}
+        onCancel={() => setConfirmDelete({ open: false, id: null })}
+      />
+
+      {/* Alert Modal */}
+      <AlertModal
+        open={alert.open}
+        type={alert.type}
+        title={alert.title}
+        message={alert.message}
+        onConfirm={() => setAlert({ ...alert, open: false })}
+      />
     </div>
   );
 };

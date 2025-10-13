@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { branchAPI } from '../../utils/api';
+import ConfirmModal from '../../components/ConfirmModal';
+import AlertModal from '../../components/AlertModal';
 import './BranchManagement.css';
 
 const BranchManagement = () => {
@@ -11,6 +13,8 @@ const BranchManagement = () => {
   const [formData, setFormData] = useState({
     nama: ''
   });
+  const [confirmDelete, setConfirmDelete] = useState({ open: false, id: null });
+  const [alert, setAlert] = useState({ open: false, type: 'info', title: '', message: '' });
 
   // Fetch branch data
   useEffect(() => {
@@ -62,7 +66,12 @@ const BranchManagement = () => {
       }
       
       if (result.success) {
-        alert(editingBranch ? 'Branch berhasil diupdate!' : 'Branch berhasil dibuat!');
+        setAlert({
+          open: true,
+          type: 'success',
+          title: 'Berhasil',
+          message: editingBranch ? 'Branch berhasil diupdate!' : 'Branch berhasil dibuat!'
+        });
         setFormData({ nama: '' });
         setShowForm(false);
         setEditingBranch(null);
@@ -84,24 +93,42 @@ const BranchManagement = () => {
     setShowForm(true);
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm('Apakah Anda yakin ingin menghapus branch ini?')) {
-      try {
-        setIsLoading(true);
-        const result = await branchAPI.delete(id);
-        
-        if (result.success) {
-          alert('Branch berhasil dihapus!');
-          fetchBranch(); // Refresh data
-        } else {
-          alert('Error: ' + result.message);
-        }
-      } catch (err) {
-        console.error('Error deleting branch:', err);
-        alert('Terjadi kesalahan saat menghapus branch');
-      } finally {
-        setIsLoading(false);
+  const handleDelete = (id) => {
+    setConfirmDelete({ open: true, id });
+  };
+
+  const confirmDeleteAction = async () => {
+    try {
+      setIsLoading(true);
+      const result = await branchAPI.delete(confirmDelete.id);
+      
+      if (result.success) {
+        fetchBranch(); // Refresh data
+        setAlert({
+          open: true,
+          type: 'success',
+          title: 'Berhasil',
+          message: 'Branch berhasil dihapus!'
+        });
+      } else {
+        setAlert({
+          open: true,
+          type: 'error',
+          title: 'Error',
+          message: result.message
+        });
       }
+    } catch (err) {
+      console.error('Error deleting branch:', err);
+      setAlert({
+        open: true,
+        type: 'error',
+        title: 'Error',
+        message: 'Terjadi kesalahan saat menghapus branch'
+      });
+    } finally {
+      setIsLoading(false);
+      setConfirmDelete({ open: false, id: null });
     }
   };
 
@@ -224,6 +251,26 @@ const BranchManagement = () => {
           </div>
         )}
       </div>
+
+      {/* Confirm Delete Modal */}
+      <ConfirmModal
+        open={confirmDelete.open}
+        title="Konfirmasi Hapus"
+        message="Apakah Anda yakin ingin menghapus branch ini?"
+        confirmText="Hapus"
+        cancelText="Batal"
+        onConfirm={confirmDeleteAction}
+        onCancel={() => setConfirmDelete({ open: false, id: null })}
+      />
+
+      {/* Alert Modal */}
+      <AlertModal
+        open={alert.open}
+        type={alert.type}
+        title={alert.title}
+        message={alert.message}
+        onConfirm={() => setAlert({ ...alert, open: false })}
+      />
     </div>
   );
 };

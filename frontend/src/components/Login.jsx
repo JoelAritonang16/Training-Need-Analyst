@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import './Login.css';
 import batikImage from '../assets/BatikPelindo.png';
 import danantaraLogo from '../assets/Danantara2.png';
-import pelindoLogo from '../assets/Pelindoo.png';
+import pelindoLogo from '../assets/LogoFixx.png';
 
 const Login = ({ onLoginSuccess }) => {
   // Semua state dan fungsi Anda tetap sama (tidak ada perubahan di sini)

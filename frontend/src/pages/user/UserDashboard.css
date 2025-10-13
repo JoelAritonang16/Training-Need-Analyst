@@ -13,11 +13,11 @@
 
 /* Push content by sidebar width */
 .sidebar + .main-content { 
-  margin-left: 280px;
+  margin-left: 260px;
   box-shadow: -2px 0 8px rgba(0, 0, 0, 0.05);
 }
 .sidebar.collapsed + .main-content { 
-  margin-left: 72px;
+  margin-left: 80px;
   box-shadow: none;
 }
 
@@ -68,10 +68,16 @@
 }
 
 .topbar-logo {
-  height: 30px;
+  height: 50px;
+  max-width: 150px;
   width: auto;
   object-fit: contain;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+.topbar-logo:first-child {
+  height: 40px;
+  max-width: 130px;
 }
 
 .topbar-divider {
@@ -177,7 +183,7 @@
 
 /* Dashboard Overview Styles */
 .dashboard-overview {
-  max-width: 1200px;
+  width: 100%;
 }
 
 .stats-grid {
@@ -334,7 +340,7 @@
 
 /* Proposals Container */
 .proposals-container {
-  max-width: 1200px;
+  width: 100%;
 }
 
 .proposals-grid {
@@ -425,6 +431,7 @@
 
 /* Profile Container */
 .profile-container {
+  width: 100%;
   max-width: 800px;
 }
 

@@ -86,7 +86,7 @@ const Login = ({ onLoginSuccess }) => {
     <div className="login-container" style={loginBackgroundStyle}>
       <div className="login-card" style={loginCardStyle}>  {/* Apply style baru di sini */}
         <div className="login-header">
-          <img src="/LogoPelindo.png" alt="Logo Pelindo" className="login-logo" />
+          <img src="/LogoFixx.png" alt="Logo Pelindo" className="login-logo" />
           <h1>Login</h1>
           <h2>Masukkan Username dan Password Anda</h2>
         </div>
