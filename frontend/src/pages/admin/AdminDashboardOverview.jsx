@@ -1,4 +1,11 @@
 import React from "react";
+import {
+  LuUsers,
+  LuClipboardList,
+  LuCheckCircle2,
+  LuWallet,
+  LuFileCheck2,
+} from 'react-icons/lu';
 import "./AdminDashboardOverview.css";
 
 const AdminDashboardOverview = ({ users, proposals, onNavigate }) => {
@@ -19,7 +26,7 @@ const AdminDashboardOverview = ({ users, proposals, onNavigate }) => {
 
       <div className="stats-grid">
         <div className="stat-card">
-          <div className="stat-icon">👥</div>
+          <div className="stat-icon"><LuUsers size={24} /></div>
           <div className="stat-content">
             <h3>{totalUsers}</h3>
             <p>Total Pengguna</p>
@@ -28,7 +35,7 @@ const AdminDashboardOverview = ({ users, proposals, onNavigate }) => {
         </div>
 
         <div className="stat-card">
-          <div className="stat-icon">📝</div>
+          <div className="stat-icon"><LuClipboardList size={24} /></div>
           <div className="stat-content">
             <h3>{totalProposals}</h3>
             <p>Total Usulan</p>
@@ -37,7 +44,7 @@ const AdminDashboardOverview = ({ users, proposals, onNavigate }) => {
         </div>
 
         <div className="stat-card">
-          <div className="stat-icon">✅</div>
+          <div className="stat-icon"><LuCheckCircle2 size={24} /></div>
           <div className="stat-content">
             <h3>{approvedCount}</h3>
             <p>Disetujui Admin</p>
@@ -46,7 +53,7 @@ const AdminDashboardOverview = ({ users, proposals, onNavigate }) => {
         </div>
 
         <div className="stat-card">
-          <div className="stat-icon">💰</div>
+          <div className="stat-icon"><LuWallet size={24} /></div>
           <div className="stat-content">
             <h3>
               Rp{" "}
@@ -67,21 +74,21 @@ const AdminDashboardOverview = ({ users, proposals, onNavigate }) => {
             className="action-btn primary"
             onClick={() => onNavigate("proposal-approval")}
           >
-            <span className="btn-icon">✅</span>
+            <span className="btn-icon"><LuCheckCircle2 size={18} /></span>
             Review Usulan ({pendingCount})
           </button>
           <button
             className="action-btn secondary"
             onClick={() => onNavigate("user-management")}
           >
-            <span className="btn-icon">👥</span>
+            <span className="btn-icon"><LuUsers size={18} /></span>
             Kelola Pengguna
           </button>
           <button
             className="action-btn secondary"
             onClick={() => onNavigate("approved-proposals")}
           >
-            <span className="btn-icon">📋</span>
+            <span className="btn-icon"><LuFileCheck2 size={18} /></span>
             Konfirmasi ke Super Admin ({approvedCount})
           </button>
         </div>
@@ -91,7 +98,7 @@ const AdminDashboardOverview = ({ users, proposals, onNavigate }) => {
         <h3>Aktivitas Terbaru</h3>
         <div className="activity-list">
           <div className="activity-item">
-            <div className="activity-icon">📝</div>
+            <div className="activity-icon"><LuClipboardList size={18} /></div>
             <div className="activity-content">
               <p>
                 <strong>john_doe</strong> mengajukan usulan "Pelatihan
@@ -101,14 +108,14 @@ const AdminDashboardOverview = ({ users, proposals, onNavigate }) => {
             </div>
           </div>
           <div className="activity-item">
-            <div className="activity-icon">✅</div>
+            <div className="activity-icon"><LuCheckCircle2 size={18} /></div>
             <div className="activity-content">
               <p>Usulan "Workshop Project Management" telah disetujui</p>
               <small>1 hari yang lalu</small>
             </div>
           </div>
           <div className="activity-item">
-            <div className="activity-icon">👤</div>
+            <div className="activity-icon"><LuUsers size={18} /></div>
             <div className="activity-content">
               <p>
                 Pengguna baru <strong>jane_smith</strong> telah didaftarkan

@@ -1,4 +1,16 @@
 import React from 'react';
+import {
+  LuUsers,
+  LuCheckCircle2,
+  LuClipboardList,
+  LuShieldCheck,
+  LuBookOpen,
+  LuBuilding,
+  LuStore,
+  LuFactory,
+  LuSettings,
+  LuScrollText,
+} from 'react-icons/lu';
 import './SuperAdminDashboardOverview.css';
 
 const SuperAdminDashboardOverview = ({ users, proposals, auditLogs, onNavigate }) => {
@@ -12,16 +24,16 @@ const SuperAdminDashboardOverview = ({ users, proposals, auditLogs, onNavigate }
 
   // Sidebar-equivalent items to display as tiles on the dashboard
   const menuTiles = [
-    { id: 'user-management', icon: '👥', label: 'Manajemen User' },
-    { id: 'proposal-approval', icon: '✅', label: 'Persetujuan Usulan' },
-    { id: 'approved-proposals', icon: '📄', label: 'Usulan Disetujui' },
-    { id: 'final-approval', icon: '🔐', label: 'Persetujuan Akhir' },
-    { id: 'all-proposals', icon: '📚', label: 'Semua Usulan' },
-    { id: 'divisi-management', icon: '🏢', label: 'Manajemen Divisi' },
-    { id: 'branch-management', icon: '🏪', label: 'Manajemen Branch' },
-    { id: 'anak-perusahaan-management', icon: '🏭', label: 'Manajemen Anak Perusahaan' },
-    { id: 'system-config', icon: '⚙️', label: 'Konfigurasi Sistem' },
-    { id: 'audit-logs', icon: '📜', label: 'Log Audit' },
+    { id: 'user-management', icon: <LuUsers size={22} />, label: 'Manajemen User' },
+    { id: 'proposal-approval', icon: <LuCheckCircle2 size={22} />, label: 'Persetujuan Usulan' },
+    { id: 'approved-proposals', icon: <LuClipboardList size={22} />, label: 'Usulan Disetujui' },
+    { id: 'final-approval', icon: <LuShieldCheck size={22} />, label: 'Persetujuan Akhir' },
+    { id: 'all-proposals', icon: <LuBookOpen size={22} />, label: 'Semua Usulan' },
+    { id: 'divisi-management', icon: <LuBuilding size={22} />, label: 'Manajemen Divisi' },
+    { id: 'branch-management', icon: <LuStore size={22} />, label: 'Manajemen Branch' },
+    { id: 'anak-perusahaan-management', icon: <LuFactory size={22} />, label: 'Manajemen Anak Perusahaan' },
+    { id: 'system-config', icon: <LuSettings size={22} />, label: 'Konfigurasi Sistem' },
+    { id: 'audit-logs', icon: <LuScrollText size={22} />, label: 'Log Audit' },
   ];
 
   return (

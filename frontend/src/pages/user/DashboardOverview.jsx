@@ -1,4 +1,5 @@
 import React from 'react';
+import { LuClipboardList, LuBookOpen } from 'react-icons/lu';
 import './DashboardOverview.css';
 
 const DashboardOverview = ({ user, proposals, onNavigate }) => {
@@ -37,12 +38,14 @@ const DashboardOverview = ({ user, proposals, onNavigate }) => {
             className="btn-primary"
             onClick={() => onNavigate('proposal-create')}
           >
+            <span className="btn-icon"><LuClipboardList size={18} /></span>
             Buat Usulan Baru
           </button>
           <button 
             className="btn-secondary"
             onClick={() => onNavigate('proposal-list')}
           >
+            <span className="btn-icon"><LuBookOpen size={18} /></span>
             Lihat Daftar Usulan
           </button>
         </div>

@@ -216,6 +216,18 @@
 
   .btn-icon {
     font-size: 1.2rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Plain outline style for Lucide icons in buttons */
+  .btn-icon svg {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor; /* follows button text color */
+    stroke-width: 1.8;
+    fill: none;
   }
 
   .recent-proposals {

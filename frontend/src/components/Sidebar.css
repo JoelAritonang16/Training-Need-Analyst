@@ -15,6 +15,21 @@
   border-right: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+/* Remove all list styling globally within sidebar */
+.sidebar ul,
+.sidebar li {
+  list-style: none !important;
+  list-style-type: none !important;
+  margin: 0;
+  padding: 0;
+}
+
+.sidebar ul::before,
+.sidebar li::before {
+  display: none !important;
+  content: none !important;
+}
+
 .sidebar.collapsed {
   width: 80px;
 }
@@ -76,13 +91,16 @@
 }
 
 .nav-menu {
-  list-style: none;
+  list-style: none !important;
+  list-style-type: none !important;
   margin: 0;
   padding: 0;
 }
 
 .nav-item {
   position: relative;
+  list-style: none !important;
+  list-style-type: none !important;
 }
 
 .nav-link {
@@ -100,6 +118,8 @@
   cursor: pointer;
   transition: all 0.3s ease;
   border-right: 4px solid transparent;
+  position: relative;
+  text-decoration: none;
 }
 
 .nav-link:hover {
@@ -117,42 +137,89 @@
 }
 
 .nav-icon {
-  font-size: 1.3rem;
   width: 28px;
-  text-align: center;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Plain outline style for Lucide icons */
+.nav-icon svg {
+  width: 20px;
+  height: 20px;
+  stroke: #e9f5ff;
+  stroke-width: 1.8;
+  fill: none;
+}
+
+.nav-link:hover .nav-icon svg,
+.nav-link.active .nav-icon svg {
+  stroke: #ffffff;
 }
 
 /* ===== Dropdown Menu ===== */
+.dropdown-toggle {
+  position: relative;
+}
+
 .dropdown-chevron {
   margin-left: auto;
   transition: transform 0.25s ease;
   font-size: 0.9rem;
+  flex-shrink: 0;
 }
 
 .dropdown-chevron.open {
   transform: rotate(180deg);
 }
 
+.nav-item.dropdown {
+  position: relative;
+}
+
+.nav-item.dropdown.open .nav-link {
+  background: rgba(255, 255, 255, 0.1);
+}
+
 .submenu {
+  list-style: none !important;
+  list-style-type: none !important;
   max-height: 0;
   overflow: hidden;
   transition: all 0.3s ease;
   background: rgba(255, 255, 255, 0.05);
   border-left: 2px solid rgba(255, 255, 255, 0.2);
+  margin: 0;
+  padding: 0;
 }
 
 .submenu.open {
   max-height: 500px;
 }
 
+.submenu .nav-item {
+  list-style: none !important;
+  list-style-type: none !important;
+}
+
 .submenu .nav-link {
   padding: 10px 20px 10px 50px;
   font-size: 0.9rem;
   opacity: 0.9;
+  border-right: none;
 }
 
 .submenu .nav-link:hover {
   background: rgba(255, 255, 255, 0.12);
+  border-right: none;
+}
+
+.submenu .nav-link.active {
+  background: rgba(255, 255, 255, 0.15);
+  border-right: none;
+  font-weight: 600;
 }
 
 /* ===== Collapsed ===== */

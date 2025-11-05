@@ -1,5 +1,21 @@
 import React, { useState } from 'react';
 import './Sidebar.css';
+import {
+  LuGauge,
+  LuUsers,
+  LuClipboardList,
+  LuBookOpen,
+  LuCheckCircle2,
+  LuShieldCheck,
+  LuBuilding2,
+  LuBuilding,
+  LuStore,
+  LuFactory,
+  LuSettings,
+  LuFileBarChart,
+  LuScrollText,
+  LuUserCircle
+} from 'react-icons/lu';
 
 const Sidebar = ({ user, activeMenu, onMenuChange, onLogout }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -35,28 +51,28 @@ const Sidebar = ({ user, activeMenu, onMenuChange, onLogout }) => {
     
     const baseMenus = {
       user: [
-        { id: 'dashboard', icon: '📊', label: 'Dashboard', path: '/dashboard' },
-        { id: 'proposal-create', icon: '📝', label: 'Buat Usulan Baru', path: '/training-proposals/create' },
-        { id: 'proposal-list', icon: '📋', label: 'Daftar Usulan', path: '/training-proposals' },
-        { id: 'profile', icon: '👤', label: 'Profil Saya', path: '/profile' }
+        { id: 'dashboard', icon: <LuGauge size={18} />, label: 'Dashboard', path: '/dashboard' },
+        { id: 'proposal-create', icon: <LuClipboardList size={18} />, label: 'Buat Usulan Baru', path: '/training-proposals/create' },
+        { id: 'proposal-list', icon: <LuBookOpen size={18} />, label: 'Daftar Usulan', path: '/training-proposals' },
+        { id: 'profile', icon: <LuUserCircle size={18} />, label: 'Profil Saya', path: '/profile' }
       ],
       admin: [
-        { id: 'dashboard', icon: '📊', label: 'Dashboard', path: '/dashboard' },
-        { id: 'user-management', icon: '👥', label: 'Manajemen User', path: '/user-management' },
-        { id: 'proposal-approval', icon: '✅', label: 'Persetujuan Usulan', path: '/proposal-approval' },
-        { id: 'approved-proposals', icon: '📄', label: 'Usulan Disetujui', path: '/approved-proposals' },
-        { id: 'reports', icon: '📈', label: 'Laporan', path: '/reports' },
-        { id: 'profile', icon: '👤', label: 'Profil', path: '/profile' }
+        { id: 'dashboard', icon: <LuGauge size={18} />, label: 'Dashboard', path: '/dashboard' },
+        { id: 'user-management', icon: <LuUsers size={18} />, label: 'Manajemen User', path: '/user-management' },
+        { id: 'proposal-approval', icon: <LuCheckCircle2 size={18} />, label: 'Persetujuan Usulan', path: '/proposal-approval' },
+        { id: 'approved-proposals', icon: <LuClipboardList size={18} />, label: 'Usulan Disetujui', path: '/approved-proposals' },
+        { id: 'reports', icon: <LuFileBarChart size={18} />, label: 'Laporan', path: '/reports' },
+        { id: 'profile', icon: <LuUserCircle size={18} />, label: 'Profil', path: '/profile' }
       ],
       superadmin: [
-        { id: 'dashboard', icon: '📊', label: 'Dashboard', path: '/dashboard' },
-        { id: 'user-management', icon: '👥', label: 'Manajemen User', path: '/user-management' },
-        { id: 'all-proposals', icon: '📚', label: 'Semua Usulan', path: '/all-proposals' },
-        { id: 'company-management', icon: '🏢', label: 'Manajemen Perusahaan', path: '/company-management' },
-        { id: 'system-config', icon: '⚙️', label: 'Konfigurasi Sistem', path: '/system-config' },
-        { id: 'reports', icon: '📈', label: 'Laporan', path: '/reports' },
-        { id: 'audit-logs', icon: '📜', label: 'Log Audit', path: '/audit-logs' },
-        { id: 'profile', icon: '👤', label: 'Profil', path: '/profile' }
+        { id: 'dashboard', icon: <LuGauge size={18} />, label: 'Dashboard', path: '/dashboard' },
+        { id: 'user-management', icon: <LuUsers size={18} />, label: 'Manajemen User', path: '/user-management' },
+        { id: 'all-proposals', icon: <LuBookOpen size={18} />, label: 'Semua Usulan', path: '/all-proposals' },
+        { id: 'company-management', icon: <LuBuilding2 size={18} />, label: 'Manajemen Perusahaan', path: '/company-management' },
+        { id: 'system-config', icon: <LuSettings size={18} />, label: 'Konfigurasi Sistem', path: '/system-config' },
+        { id: 'reports', icon: <LuFileBarChart size={18} />, label: 'Laporan', path: '/reports' },
+        { id: 'audit-logs', icon: <LuScrollText size={18} />, label: 'Log Audit', path: '/audit-logs' },
+        { id: 'profile', icon: <LuUserCircle size={18} />, label: 'Profil', path: '/profile' }
       ]
     };
 
@@ -118,7 +134,7 @@ const Sidebar = ({ user, activeMenu, onMenuChange, onLogout }) => {
                     onClick={() => onMenuChange('proposal-approval')}
                     title={isCollapsed ? 'Persetujuan Usulan' : ''}
                   >
-                    <span className="nav-icon">✅</span>
+                    <span className="nav-icon"><LuCheckCircle2 size={18} /></span>
                     {!isCollapsed && <span className="nav-label">Persetujuan Usulan</span>}
                   </button>
                 </li>
@@ -128,7 +144,7 @@ const Sidebar = ({ user, activeMenu, onMenuChange, onLogout }) => {
                     onClick={() => onMenuChange('approved-proposals')}
                     title={isCollapsed ? 'Usulan Disetujui' : ''}
                   >
-                    <span className="nav-icon">📄</span>
+                    <span className="nav-icon"><LuClipboardList size={18} /></span>
                     {!isCollapsed && <span className="nav-label">Usulan Disetujui</span>}
                   </button>
                 </li>
@@ -138,7 +154,7 @@ const Sidebar = ({ user, activeMenu, onMenuChange, onLogout }) => {
                     onClick={() => onMenuChange('final-approval')}
                     title={isCollapsed ? 'Persetujuan Akhir' : ''}
                   >
-                    <span className="nav-icon">🔐</span>
+                    <span className="nav-icon"><LuShieldCheck size={18} /></span>
                     {!isCollapsed && <span className="nav-label">Persetujuan Akhir</span>}
                   </button>
                 </li>
@@ -171,7 +187,7 @@ const Sidebar = ({ user, activeMenu, onMenuChange, onLogout }) => {
                     onClick={() => onMenuChange('divisi-management')}
                     title={isCollapsed ? 'Manajemen Divisi' : ''}
                   >
-                    <span className="nav-icon">🏢</span>
+                    <span className="nav-icon"><LuBuilding size={18} /></span>
                     {!isCollapsed && <span className="nav-label">Manajemen Divisi</span>}
                   </button>
                 </li>
@@ -181,7 +197,7 @@ const Sidebar = ({ user, activeMenu, onMenuChange, onLogout }) => {
                     onClick={() => onMenuChange('branch-management')}
                     title={isCollapsed ? 'Manajemen Branch' : ''}
                   >
-                    <span className="nav-icon">🏪</span>
+                    <span className="nav-icon"><LuStore size={18} /></span>
                     {!isCollapsed && <span className="nav-label">Manajemen Branch</span>}
                   </button>
                 </li>
@@ -191,7 +207,7 @@ const Sidebar = ({ user, activeMenu, onMenuChange, onLogout }) => {
                     onClick={() => onMenuChange('anak-perusahaan-management')}
                     title={isCollapsed ? 'Manajemen Anak Perusahaan' : ''}
                   >
-                    <span className="nav-icon">🏭</span>
+                    <span className="nav-icon"><LuFactory size={18} /></span>
                     {!isCollapsed && <span className="nav-label">Manajemen Anak Perusahaan</span>}
                   </button>
                 </li>

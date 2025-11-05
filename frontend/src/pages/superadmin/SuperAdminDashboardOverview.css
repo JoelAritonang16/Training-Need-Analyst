@@ -51,7 +51,15 @@
   box-shadow: 0 12px 26px rgba(0,0,0,0.10);
 }
 
-.tile-icon { font-size: 1.45rem; }
+.tile-icon { font-size: 1.45rem; display: inline-flex; align-items: center; justify-content: center; }
+.tile-icon svg {
+  width: 22px;
+  height: 22px;
+  stroke: #0271B6; /* PELINDO blue */
+  stroke-width: 1.9;
+  fill: none;
+}
+.menu-tile:hover .tile-icon svg { stroke: #1b7fbf; }
 .tile-label { font-weight: 700; color: #111827; }
 
 .content-header p {
