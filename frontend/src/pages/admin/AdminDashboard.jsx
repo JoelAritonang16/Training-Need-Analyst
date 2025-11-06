@@ -7,6 +7,8 @@ import ApprovedProposals from './ApprovedProposals.jsx';
 import Reports from './Reports.jsx';
 import UserCreate from './UserCreate.jsx';
 import UserCreateForAdmin from './UserCreateForAdmin.jsx';
+import DraftTNA2026 from './DraftTNA2026.jsx';
+import TempatDiklatRealisasi from './TempatDiklatRealisasi.jsx';
 import { trainingProposalAPI } from '../../utils/api';
 import danantaraLogo from '../../assets/Danantara2.png';
 import pelindoLogo from '../../assets/LogoFixx.png';
@@ -264,11 +266,30 @@ const AdminDashboard = ({ user, onLogout }) => {
           />
         );
       
+      case 'draft-tna-2026':
+        return (
+          <DraftTNA2026 
+            user={user}
+            currentUserRole="admin"
+            onNavigate={handleMenuChange}
+          />
+        );
+      
+      case 'tempat-diklat-realisasi':
+        return (
+          <TempatDiklatRealisasi 
+            user={user}
+            currentUserRole="admin"
+            onNavigate={handleMenuChange}
+          />
+        );
+      
       default:
         return (
           <AdminDashboardOverview 
             users={users}
             proposals={proposals}
+            user={user}
             onNavigate={handleMenuChange}
           />
         );

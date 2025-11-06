@@ -269,3 +269,89 @@ export const userProfileAPI = {
     });
   }
 };
+
+// Draft TNA 2026 API
+export const draftTNA2026API = {
+  getAll: async (filters = {}) => {
+    console.log('Getting all draft TNA 2026 with filters:', filters);
+    const queryParams = new URLSearchParams();
+    if (filters.branchId) queryParams.append('branchId', filters.branchId);
+    if (filters.divisiId) queryParams.append('divisiId', filters.divisiId);
+    
+    const queryString = queryParams.toString();
+    const endpoint = queryString ? `/api/draft-tna-2026?${queryString}` : '/api/draft-tna-2026';
+    return apiCall(endpoint);
+  },
+  
+  getById: async (id) => {
+    return apiCall(`/api/draft-tna-2026/${id}`);
+  },
+  
+  create: async (data) => {
+    return apiCall('/api/draft-tna-2026', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
+  },
+  
+  update: async (id, data) => {
+    return apiCall(`/api/draft-tna-2026/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data)
+    });
+  },
+  
+  delete: async (id) => {
+    return apiCall(`/api/draft-tna-2026/${id}`, {
+      method: 'DELETE'
+    });
+  },
+  
+  getRekapGabungan: async () => {
+    return apiCall('/api/draft-tna-2026/rekap/gabungan');
+  }
+};
+
+// Tempat Diklat Realisasi API
+export const tempatDiklatRealisasiAPI = {
+  getAll: async (filters = {}) => {
+    console.log('Getting all tempat diklat realisasi with filters:', filters);
+    const queryParams = new URLSearchParams();
+    if (filters.branchId) queryParams.append('branchId', filters.branchId);
+    if (filters.bulan) queryParams.append('bulan', filters.bulan);
+    if (filters.tahun) queryParams.append('tahun', filters.tahun);
+    
+    const queryString = queryParams.toString();
+    const endpoint = queryString ? `/api/tempat-diklat-realisasi?${queryString}` : '/api/tempat-diklat-realisasi';
+    return apiCall(endpoint);
+  },
+  
+  getRekapPerBulan: async (tahun) => {
+    const queryParams = new URLSearchParams();
+    if (tahun) queryParams.append('tahun', tahun);
+    
+    const queryString = queryParams.toString();
+    const endpoint = queryString ? `/api/tempat-diklat-realisasi/rekap/bulan?${queryString}` : '/api/tempat-diklat-realisasi/rekap/bulan';
+    return apiCall(endpoint);
+  },
+  
+  create: async (data) => {
+    return apiCall('/api/tempat-diklat-realisasi', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
+  },
+  
+  update: async (id, data) => {
+    return apiCall(`/api/tempat-diklat-realisasi/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data)
+    });
+  },
+  
+  delete: async (id) => {
+    return apiCall(`/api/tempat-diklat-realisasi/${id}`, {
+      method: 'DELETE'
+    });
+  }
+};

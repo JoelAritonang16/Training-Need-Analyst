@@ -14,7 +14,10 @@ import {
   LuSettings,
   LuFileBarChart,
   LuScrollText,
-  LuUserCircle
+  LuUserCircle,
+  LuFileText,
+  LuMapPin,
+  LuBarChart3
 } from 'react-icons/lu';
 
 const Sidebar = ({ user, activeMenu, onMenuChange, onLogout }) => {
@@ -61,6 +64,8 @@ const Sidebar = ({ user, activeMenu, onMenuChange, onLogout }) => {
         { id: 'user-management', icon: <LuUsers size={18} />, label: 'Manajemen User', path: '/user-management' },
         { id: 'proposal-approval', icon: <LuCheckCircle2 size={18} />, label: 'Persetujuan Usulan', path: '/proposal-approval' },
         { id: 'approved-proposals', icon: <LuClipboardList size={18} />, label: 'Usulan Disetujui', path: '/approved-proposals' },
+        { id: 'draft-tna-2026', icon: <LuFileText size={18} />, label: 'Draft TNA 2026', path: '/draft-tna-2026' },
+        { id: 'tempat-diklat-realisasi', icon: <LuMapPin size={18} />, label: 'Tempat Diklat Realisasi', path: '/tempat-diklat-realisasi' },
         { id: 'reports', icon: <LuFileBarChart size={18} />, label: 'Laporan', path: '/reports' },
         { id: 'profile', icon: <LuUserCircle size={18} />, label: 'Profil', path: '/profile' }
       ],
@@ -68,6 +73,9 @@ const Sidebar = ({ user, activeMenu, onMenuChange, onLogout }) => {
         { id: 'dashboard', icon: <LuGauge size={18} />, label: 'Dashboard', path: '/dashboard' },
         { id: 'user-management', icon: <LuUsers size={18} />, label: 'Manajemen User', path: '/user-management' },
         { id: 'all-proposals', icon: <LuBookOpen size={18} />, label: 'Semua Usulan', path: '/all-proposals' },
+        { id: 'draft-tna-2026', icon: <LuFileText size={18} />, label: 'Draft TNA 2026', path: '/draft-tna-2026' },
+        { id: 'tempat-diklat-realisasi', icon: <LuMapPin size={18} />, label: 'Tempat Diklat Realisasi', path: '/tempat-diklat-realisasi' },
+        { id: 'rekap-gabungan', icon: <LuBarChart3 size={18} />, label: 'Rekap Gabungan', path: '/rekap-gabungan' },
         { id: 'company-management', icon: <LuBuilding2 size={18} />, label: 'Manajemen Perusahaan', path: '/company-management' },
         { id: 'system-config', icon: <LuSettings size={18} />, label: 'Konfigurasi Sistem', path: '/system-config' },
         { id: 'reports', icon: <LuFileBarChart size={18} />, label: 'Laporan', path: '/reports' },

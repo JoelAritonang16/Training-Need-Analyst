@@ -304,6 +304,57 @@
     color: #721c24;
   }
 
+  /* Charts Section */
+  .charts-section {
+    background: linear-gradient(135deg, #ffffff 0%, #f8fbff 100%);
+    padding: 35px;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(2, 113, 182, 0.1);
+    margin-bottom: 30px;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+    border: 1px solid rgba(2, 113, 182, 0.1);
+  }
+
+  .charts-section h3 {
+    color: #1e5a8e;
+    margin-bottom: 25px;
+    font-size: 1.6rem;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    text-align: center;
+  }
+
+  .charts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 20px;
+  }
+
+  .chart-card {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e5e7eb;
+  }
+
+  .chart-card h4 {
+    color: #1e293b;
+    margin-bottom: 20px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    text-align: center;
+  }
+
+  .dashboard-overview .stat-card small {
+    color: #94a3b8;
+    font-size: 0.8rem;
+    font-weight: 400;
+    margin-top: 5px;
+  }
+
   @media (max-width: 768px) {
     .dashboard-overview {
       padding: 15px;

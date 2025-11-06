@@ -7,6 +7,8 @@ import DivisiModel from "./Divisi.js";
 import BranchModel from "./Branch.js";
 import AnakPerusahaanModel from "./AnakPerusahaan.js";
 import AnakPerusahaanBranchModel from "./AnakPerusahaanBranch.js";
+import DraftTNA2026Model from "./DraftTNA2026.js";
+import TempatDiklatRealisasiModel from "./TempatDiklatRealisasi.js";
 
 const db = {};
 
@@ -18,6 +20,8 @@ db.Divisi = DivisiModel(sequelize, Sequelize);
 db.Branch = BranchModel(sequelize, Sequelize);
 db.AnakPerusahaan = AnakPerusahaanModel(sequelize, Sequelize);
 db.AnakPerusahaanBranch = AnakPerusahaanBranchModel(sequelize, Sequelize);
+db.DraftTNA2026 = DraftTNA2026Model(sequelize, Sequelize);
+db.TempatDiklatRealisasi = TempatDiklatRealisasiModel(sequelize, Sequelize);
 
 // Define associations
 db.User.belongsTo(db.Divisi, { foreignKey: 'divisiId', as: 'divisi' });
@@ -45,6 +49,19 @@ db.Branch.hasMany(db.TrainingProposal, { foreignKey: 'branchId', as: 'proposals'
 // Proposal -> User (proposal belongs to user)
 db.TrainingProposal.belongsTo(db.User, { foreignKey: 'userId', as: 'user' });
 db.User.hasMany(db.TrainingProposal, { foreignKey: 'userId', as: 'proposals' });
+
+// DraftTNA2026 associations
+db.DraftTNA2026.belongsTo(db.Branch, { foreignKey: 'branchId', as: 'branch' });
+db.Branch.hasMany(db.DraftTNA2026, { foreignKey: 'branchId', as: 'draftTNA2026' });
+db.DraftTNA2026.belongsTo(db.Divisi, { foreignKey: 'divisiId', as: 'divisi' });
+db.Divisi.hasMany(db.DraftTNA2026, { foreignKey: 'divisiId', as: 'draftTNA2026' });
+db.DraftTNA2026.belongsTo(db.User, { foreignKey: 'createdBy', as: 'creator' });
+db.DraftTNA2026.belongsTo(db.User, { foreignKey: 'updatedBy', as: 'updater' });
+
+// TempatDiklatRealisasi associations
+db.TempatDiklatRealisasi.belongsTo(db.Branch, { foreignKey: 'branchId', as: 'branch' });
+db.Branch.hasMany(db.TempatDiklatRealisasi, { foreignKey: 'branchId', as: 'tempatDiklatRealisasi' });
+db.TempatDiklatRealisasi.belongsTo(db.User, { foreignKey: 'createdBy', as: 'creator' });
 
 // Many-to-many associations for AnakPerusahaan and Branch
 db.AnakPerusahaan.belongsToMany(db.Branch, { 
@@ -95,5 +112,7 @@ export const Divisi = db.Divisi;
 export const Branch = db.Branch;
 export const AnakPerusahaan = db.AnakPerusahaan;
 export const AnakPerusahaanBranch = db.AnakPerusahaanBranch;
+export const DraftTNA2026 = db.DraftTNA2026;
+export const TempatDiklatRealisasi = db.TempatDiklatRealisasi;
 
 export default db;

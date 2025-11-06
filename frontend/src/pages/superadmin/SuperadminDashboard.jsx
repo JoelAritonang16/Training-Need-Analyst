@@ -12,6 +12,9 @@ import UserEdit from '../admin/UserEdit.jsx';
 import DivisiManagement from './DivisiManagement.jsx';
 import BranchManagement from './BranchManagement.jsx';
 import AnakPerusahaanManagement from './AnakPerusahaanManagement.jsx';
+import DraftTNA2026 from '../admin/DraftTNA2026.jsx';
+import TempatDiklatRealisasi from '../admin/TempatDiklatRealisasi.jsx';
+import RekapGabungan from './RekapGabungan.jsx';
 import { trainingProposalAPI } from '../../utils/api';
 import danantaraLogo from '../../assets/Danantara2.png';
 import pelindoLogo from '../../assets/LogoFixx.png';
@@ -357,6 +360,31 @@ const SuperadminDashboard = ({ user, onLogout }) => {
         return (
           <AuditLogs 
             auditLogs={auditLogs}
+          />
+        );
+      
+      case 'draft-tna-2026':
+        return (
+          <DraftTNA2026 
+            user={user}
+            currentUserRole="superadmin"
+            onNavigate={handleNavigate}
+          />
+        );
+      
+      case 'tempat-diklat-realisasi':
+        return (
+          <TempatDiklatRealisasi 
+            user={user}
+            currentUserRole="superadmin"
+            onNavigate={handleNavigate}
+          />
+        );
+      
+      case 'rekap-gabungan':
+        return (
+          <RekapGabungan 
+            onNavigate={handleNavigate}
           />
         );
       
