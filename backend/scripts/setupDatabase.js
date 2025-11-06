@@ -11,16 +11,16 @@ const setupDatabase = async () => {
       password: config.development.password
     });
 
-    console.log('✅ Connected to MySQL server');
+    console.log('Connected to MySQL server');
 
     // Create database if not exists
     const dbName = config.development.database;
     await connection.execute(`CREATE DATABASE IF NOT EXISTS \`${dbName}\``);
-    console.log(`✅ Database '${dbName}' created or already exists`);
+    console.log(`Database '${dbName}' created or already exists`);
 
     // Use the database
     await connection.execute(`USE \`${dbName}\``);
-    console.log(`✅ Using database '${dbName}'`);
+    console.log(`Using database '${dbName}'`);
 
     // Create users table if not exists
     const createUsersTable = `
@@ -36,15 +36,15 @@ const setupDatabase = async () => {
     `;
 
     await connection.execute(createUsersTable);
-    console.log('✅ Users table created or already exists');
+    console.log('Users table created or already exists');
 
     // Close connection
     await connection.end();
-    console.log('✅ Database setup completed successfully');
+    console.log('Database setup completed successfully');
 
     return true;
   } catch (error) {
-    console.error('❌ Database setup error:', error);
+    console.error('Database setup error:', error);
     return false;
   }
 };
@@ -53,10 +53,10 @@ const setupDatabase = async () => {
 if (import.meta.url === `file://${process.argv[1]}`) {
   setupDatabase().then(success => {
     if (success) {
-      console.log('\n🎉 Database is ready!');
+      console.log('\nDatabase is ready!');
       console.log('You can now run: npm run create-test-user');
     } else {
-      console.log('\n❌ Database setup failed');
+      console.log('\nDatabase setup failed');
       process.exit(1);
     }
   });

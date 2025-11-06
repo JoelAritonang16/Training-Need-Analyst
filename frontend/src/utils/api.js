@@ -88,9 +88,16 @@ export const authAPI = {
 };
 
 export const trainingProposalAPI = {
-  getAll: async () => {
-    console.log('Fetching all proposals...');
-    return apiCall('/api/training-proposals');
+  getAll: async (filters = {}) => {
+    console.log('Fetching all proposals with filters:', filters);
+    const queryParams = new URLSearchParams();
+    if (filters.branchId) queryParams.append('branchId', filters.branchId);
+    if (filters.divisiId) queryParams.append('divisiId', filters.divisiId);
+    if (filters.status) queryParams.append('status', filters.status);
+    
+    const queryString = queryParams.toString();
+    const endpoint = queryString ? `/api/training-proposals?${queryString}` : '/api/training-proposals';
+    return apiCall(endpoint);
   },
   
   getById: async (id) => {

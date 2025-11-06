@@ -81,7 +81,9 @@ const ProposalApproval = ({ proposals, onApprove, onReject, onViewDetail }) => {
               </span>
             </div>
             <div className="proposal-details">
-              <p><strong>Pengaju:</strong> User ID {proposal.userId}</p>
+              <p><strong>Pengaju:</strong> {proposal.user?.username || proposal.user?.fullName || `User ID ${proposal.userId}`}</p>
+              {proposal.branch && <p><strong>Branch:</strong> {proposal.branch.nama}</p>}
+              {proposal.user?.divisi && <p><strong>Divisi:</strong> {proposal.user.divisi.nama}</p>}
               <p><strong>Waktu Pelaksanaan:</strong> {new Date(proposal.WaktuPelaksanan).toLocaleDateString('id-ID')}</p>
               <p><strong>Jumlah Peserta:</strong> {proposal.JumlahPeserta} orang</p>
               <p><strong>Level Tingkatan:</strong> {proposal.LevelTingkatan}</p>
@@ -120,7 +122,7 @@ const ProposalApproval = ({ proposals, onApprove, onReject, onViewDetail }) => {
 
       {pendingProposals.length === 0 && (
         <div className="empty-state">
-          <div className="empty-icon">✅</div>
+          <div className="empty-icon">OK</div>
           <h3>Tidak Ada Usulan Pending</h3>
           <p>Semua usulan pelatihan telah diproses. Tidak ada usulan yang menunggu persetujuan.</p>
         </div>

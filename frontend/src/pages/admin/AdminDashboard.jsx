@@ -6,6 +6,7 @@ import ProposalApproval from './ProposalApproval.jsx';
 import ApprovedProposals from './ApprovedProposals.jsx';
 import Reports from './Reports.jsx';
 import UserCreate from './UserCreate.jsx';
+import UserCreateForAdmin from './UserCreateForAdmin.jsx';
 import { trainingProposalAPI } from '../../utils/api';
 import danantaraLogo from '../../assets/Danantara2.png';
 import pelindoLogo from '../../assets/LogoFixx.png';
@@ -229,8 +230,8 @@ const AdminDashboard = ({ user, onLogout }) => {
         );
       case 'user-create':
         return (
-          <UserCreate 
-            currentUserRole="admin"
+          <UserCreateForAdmin 
+            currentUser={user}
             onNavigate={handleMenuChange}
           />
         );

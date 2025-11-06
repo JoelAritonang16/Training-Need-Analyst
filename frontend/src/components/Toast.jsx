@@ -19,10 +19,10 @@ const Toast = ({ message, type = 'success', isOpen, onClose, duration = 3000 }) 
       <div className={`toast toast-${type}`} onClick={(e) => e.stopPropagation()}>
         <div className="toast-content">
           <span className="toast-icon">
-            {type === 'success' && '✓'}
-            {type === 'error' && '✕'}
-            {type === 'warning' && '⚠'}
-            {type === 'info' && 'ℹ'}
+            {type === 'success' && 'OK'}
+            {type === 'error' && 'X'}
+            {type === 'warning' && '!'}
+            {type === 'info' && 'i'}
           </span>
           <span className="toast-message">{message}</span>
         </div>

@@ -171,7 +171,7 @@ const TrainingProposalForm = ({ user, proposal = null, onSuccess }) => {
       console.log('API Response:', result);
       
       if (result && result.success) {
-        console.log('✅ Success! Proposal created/updated:', result.proposal);
+        console.log('Success! Proposal created/updated:', result.proposal);
         alert(proposal ? 'Usulan pelatihan berhasil diupdate!' : 'Usulan pelatihan berhasil diajukan!');
         
         if (onSuccess) {
@@ -201,7 +201,7 @@ const TrainingProposalForm = ({ user, proposal = null, onSuccess }) => {
       }
 
     } catch (error) {
-      console.error('❌ Form submission error:', error);
+      console.error('Form submission error:', error);
       setError(error.message || 'Terjadi kesalahan saat menyimpan usulan pelatihan');
       alert('Error: ' + error.message);
     } finally {

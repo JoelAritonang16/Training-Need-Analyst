@@ -95,7 +95,7 @@ const TrainingProposalDetail = ({ proposalId, onEdit, onBack }) => {
     return (
       <div className="training-proposal-detail">
         <div className="error-state">
-          <div className="error-icon">⚠️</div>
+          <div className="error-icon">!</div>
           <h3>Terjadi Kesalahan</h3>
           <p>{error}</p>
           <div className="error-suggestions">
@@ -119,7 +119,7 @@ const TrainingProposalDetail = ({ proposalId, onEdit, onBack }) => {
     return (
       <div className="training-proposal-detail">
         <div className="error-state">
-          <div className="error-icon">❌</div>
+          <div className="error-icon">X</div>
           <h3>Usulan Tidak Ditemukan</h3>
           <p>Usulan pelatihan dengan ID {id} tidak ditemukan.</p>
         </div>

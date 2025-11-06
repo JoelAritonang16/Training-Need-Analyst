@@ -47,7 +47,7 @@ const ApprovedProposals = ({ proposals, onConfirmToSuperAdmin, onViewDetail }) =
 
       {approvedProposals.length === 0 && (
         <div className="empty-state">
-          <div className="empty-icon">📋</div>
+          <div className="empty-icon">-</div>
           <h3>Tidak Ada Usulan Disetujui</h3>
           <p>Belum ada usulan yang disetujui untuk dikonfirmasi ke Super Admin.</p>
         </div>

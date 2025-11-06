@@ -59,7 +59,7 @@ const UserProfile = ({ user, proposals, onUpdateProfile }) => {
       const data = await response.json();
 
       if (data.success) {
-        console.log('✅ Upload success:', data);
+        console.log('Upload success:', data);
         
         // Update local state
         setProfileData(prev => ({
@@ -106,7 +106,7 @@ const UserProfile = ({ user, proposals, onUpdateProfile }) => {
       console.log('API Response:', response);
       
       if (response.success) {
-        console.log('✅ Profile updated successfully!');
+        console.log('Profile updated successfully!');
         console.log('Updated user data:', response.user);
         console.log('New username from server:', response.user.username);
         
@@ -127,11 +127,11 @@ const UserProfile = ({ user, proposals, onUpdateProfile }) => {
         }
         setIsEditing(false);
       } else {
-        console.error('❌ Update failed:', response.message);
+        console.error('Update failed:', response.message);
         alert('Gagal memperbarui profil: ' + response.message);
       }
     } catch (error) {
-      console.error('❌ Error updating profile:', error);
+      console.error('Error updating profile:', error);
       alert('Terjadi kesalahan: ' + error.message);
     }
   };
@@ -301,7 +301,7 @@ const UserProfile = ({ user, proposals, onUpdateProfile }) => {
         <h3>Ringkasan Aktivitas</h3>
         <div className="activity-grid">
           <div className="activity-item">
-            <div className="activity-icon">📝</div>
+            <div className="activity-icon">SUBMIT</div>
             <div className="activity-content">
               <h4>Usulan Terakhir</h4>
               <p>{proposals.length > 0 ? proposals[0].uraian : 'Belum ada usulan'}</p>
@@ -310,7 +310,7 @@ const UserProfile = ({ user, proposals, onUpdateProfile }) => {
           </div>
           
           <div className="activity-item">
-            <div className="activity-icon">✅</div>
+            <div className="activity-icon">OK</div>
             <div className="activity-content">
               <h4>Status Terbaru</h4>
               <p>{proposals.length > 0 ? proposals[0].status : 'Tidak ada status'}</p>

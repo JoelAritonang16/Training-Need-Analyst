@@ -38,6 +38,14 @@ db.TrainingProposalItem.belongsTo(db.TrainingProposal, {
   as: 'proposal'
 });
 
+// Proposal -> Branch (proposal belongs to branch)
+db.TrainingProposal.belongsTo(db.Branch, { foreignKey: 'branchId', as: 'branch' });
+db.Branch.hasMany(db.TrainingProposal, { foreignKey: 'branchId', as: 'proposals' });
+
+// Proposal -> User (proposal belongs to user)
+db.TrainingProposal.belongsTo(db.User, { foreignKey: 'userId', as: 'user' });
+db.User.hasMany(db.TrainingProposal, { foreignKey: 'userId', as: 'proposals' });
+
 // Many-to-many associations for AnakPerusahaan and Branch
 db.AnakPerusahaan.belongsToMany(db.Branch, { 
   through: db.AnakPerusahaanBranch, 

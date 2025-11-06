@@ -32,15 +32,15 @@ app.get('/test', (req, res) => {
 
 const PORT = 5001;
 app.listen(PORT, () => {
-  console.log(`✅ Test server running on port ${PORT}`);
-  console.log('✅ Basic Express setup is working');
-  console.log('✅ CORS is configured');
-  console.log('✅ Session middleware is working');
-  console.log('✅ Environment variables loaded');
+  console.log(`Test server running on port ${PORT}`);
+  console.log('Basic Express setup is working');
+  console.log('CORS is configured');
+  console.log('Session middleware is working');
+  console.log('Environment variables loaded');
   
   // Exit after 3 seconds
   setTimeout(() => {
-    console.log('✅ Test completed successfully');
+    console.log('Test completed successfully');
     process.exit(0);
   }, 3000);
 });

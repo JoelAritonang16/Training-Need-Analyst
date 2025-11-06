@@ -70,8 +70,19 @@ const UserManagement = ({ users, onAddUser, onEditUser, onDeleteUser, onToggleSt
   const fetchUsers = async () => {
     try {
       setLoading(true);
+      const token = localStorage.getItem('token');
+      const headers = {
+        'Content-Type': 'application/json'
+      };
+      
+      // Add Authorization header if token exists
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
       const response = await fetch(`http://localhost:5000/api/users?currentUserRole=${currentUserRole}`, {
         method: 'GET',
+        headers: headers,
         credentials: 'include'
       });
       const data = await response.json();
@@ -345,7 +356,7 @@ const UserManagement = ({ users, onAddUser, onEditUser, onDeleteUser, onToggleSt
       <div className="card-surface">
         <div className="inner-card header-row">
           <div className="list-title">
-            <span className="list-icon">👥</span>
+            <span className="list-icon">USERS</span>
             <h3>Daftar Pengguna</h3>
             <span className="count-badge" aria-label={`Total pengguna: ${totalUsers}`}>{totalUsers}</span>
           </div>
@@ -413,7 +424,11 @@ const UserManagement = ({ users, onAddUser, onEditUser, onDeleteUser, onToggleSt
 
             {pagedUsers.length === 0 && (
               <div className="empty-state">
-                <div>Tidak ada pengguna ditemukan</div>
+                <div>
+                  {currentUserRole === 'admin' 
+                    ? 'Belum ada pengguna yang dibuat untuk branch Anda. Mulai dengan menambahkan pengguna pertama.'
+                    : 'Tidak ada pengguna ditemukan'}
+                </div>
                 <button className="btn-primary" style={{marginTop: '12px'}} onClick={handleAddUser}>+ Tambah Pengguna</button>
               </div>
             )}

@@ -26,20 +26,20 @@ const AuditLogs = ({ auditLogs }) => {
 
   const getActionIcon = (action) => {
     switch (action) {
-      case 'SUBMIT_PROPOSAL': return '📝';
-      case 'APPROVE_PROPOSAL': return '✅';
-      case 'REJECT_PROPOSAL': return '❌';
-      case 'FINAL_APPROVE': return '🔐';
-      case 'FINAL_REJECT': return '🚫';
-      case 'CREATE_USER': return '👤';
-      case 'UPDATE_USER': return '✏️';
-      case 'DELETE_USER': return '🗑️';
-      case 'LOGIN': return '🔑';
-      case 'LOGOUT': return '🚪';
-      case 'SYSTEM_CONFIG': return '⚙️';
-      case 'BACKUP_SYSTEM': return '💾';
-      case 'RESTORE_SYSTEM': return '🔄';
-      default: return '📋';
+      case 'SUBMIT_PROPOSAL': return 'SUBMIT';
+      case 'APPROVE_PROPOSAL': return 'APPROVE';
+      case 'REJECT_PROPOSAL': return 'REJECT';
+      case 'FINAL_APPROVE': return 'FINAL_OK';
+      case 'FINAL_REJECT': return 'FINAL_NO';
+      case 'CREATE_USER': return 'CREATE';
+      case 'UPDATE_USER': return 'UPDATE';
+      case 'DELETE_USER': return 'DELETE';
+      case 'LOGIN': return 'LOGIN';
+      case 'LOGOUT': return 'LOGOUT';
+      case 'SYSTEM_CONFIG': return 'CONFIG';
+      case 'BACKUP_SYSTEM': return 'BACKUP';
+      case 'RESTORE_SYSTEM': return 'RESTORE';
+      default: return 'LOG';
     }
   };
 
@@ -155,7 +155,7 @@ const AuditLogs = ({ auditLogs }) => {
 
       {filteredLogs.length === 0 && (
         <div className="empty-state">
-          <div className="empty-icon">📋</div>
+          <div className="empty-icon">-</div>
           <h3>Tidak Ada Log Ditemukan</h3>
           <p>Tidak ada aktivitas yang sesuai dengan filter yang dipilih.</p>
         </div>

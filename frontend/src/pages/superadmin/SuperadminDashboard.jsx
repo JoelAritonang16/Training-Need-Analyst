@@ -39,13 +39,15 @@ const SuperadminDashboard = ({ user, onLogout }) => {
     fetchProposals();
   }, []);
 
-  const fetchProposals = async () => {
+  const [proposalFilters, setProposalFilters] = useState({});
+
+  const fetchProposals = async (filters = {}) => {
     try {
       setIsLoading(true);
       setError(null);
       
-      console.log('SuperadminDashboard: Fetching proposals from database...');
-      const data = await trainingProposalAPI.getAll();
+      console.log('SuperadminDashboard: Fetching proposals from database with filters:', filters);
+      const data = await trainingProposalAPI.getAll(filters);
       
       if (data.success) {
         console.log('SuperadminDashboard: Proposals fetched:', data.proposals);
@@ -59,6 +61,11 @@ const SuperadminDashboard = ({ user, onLogout }) => {
     } finally {
       setIsLoading(false);
     }
+  };
+  
+  const handleProposalFilterChange = (filters) => {
+    setProposalFilters(filters);
+    fetchProposals(filters);
   };
 
   const [auditLogs, setAuditLogs] = useState([
@@ -254,6 +261,7 @@ const SuperadminDashboard = ({ user, onLogout }) => {
             onViewDetail={handleViewDetail}
             onEditProposal={handleEditProposal}
             onNavigate={handleNavigate}
+            onFilterChange={handleProposalFilterChange}
             initialStatusFilter="waiting"
             headerTitle="Persetujuan Usulan"
           />
@@ -268,6 +276,7 @@ const SuperadminDashboard = ({ user, onLogout }) => {
             onViewDetail={handleViewDetail}
             onEditProposal={handleEditProposal}
             onNavigate={handleNavigate}
+            onFilterChange={handleProposalFilterChange}
             initialStatusFilter="approved"
             headerTitle="Usulan Disetujui"
           />
@@ -322,6 +331,7 @@ const SuperadminDashboard = ({ user, onLogout }) => {
             onViewDetail={handleViewDetail}
             onEditProposal={handleEditProposal}
             onNavigate={handleNavigate}
+            onFilterChange={handleProposalFilterChange}
           />
         );
       

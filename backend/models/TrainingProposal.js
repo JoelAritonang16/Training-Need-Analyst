@@ -61,6 +61,15 @@ const TrainingProposal = (sequelize, Sequelize) => {
           key: 'id'
         }
       },
+      branchId: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        references: {
+          model: 'branch',
+          key: 'id'
+        },
+        comment: 'Branch ID dari user yang membuat proposal (auto-assigned)'
+      },
       status: {
         type: DataTypes.ENUM('MENUNGGU', 'APPROVE_ADMIN', 'APPROVE_SUPERADMIN', 'DITOLAK'),
         allowNull: false,

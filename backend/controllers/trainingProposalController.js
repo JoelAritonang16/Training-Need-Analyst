@@ -1,4 +1,4 @@
-import { TrainingProposal, TrainingProposalItem } from "../models/index.js";
+import { TrainingProposal, TrainingProposalItem, User, Branch, Divisi } from "../models/index.js";
 import ExcelJS from "exceljs";
 
 const trainingProposalController = {
@@ -7,19 +7,115 @@ const trainingProposalController = {
     try {
       // Asumsi role dan id user saat ini didapat dari middleware otentikasi
       const { id: currentUserId, role: currentUserRole } = req.user;
+      const { branchId, divisiId, status } = req.query; // Query params for filtering
+
+      console.log('=== GET ALL PROPOSALS ===');
+      console.log('Current User Role:', currentUserRole);
+      console.log('Current User ID:', currentUserId);
+      console.log('Query params:', { branchId, divisiId, status });
 
       let whereClause = {};
 
-      // Filter berdasarkan role: user biasa hanya bisa melihat proposal miliknya
+      // Filter berdasarkan role
       if (currentUserRole === "user") {
-        whereClause.userId = currentUserId; // Hanya tampilkan proposal yang dibuat oleh user ini
+        // User hanya bisa melihat proposal miliknya
+        whereClause.userId = currentUserId;
+      } else if (currentUserRole === "admin") {
+        // Admin hanya bisa melihat proposal dari branch mereka
+        // Get admin's branchId
+        let adminBranchId = null;
+        
+        // Try to get from req.user first (should be set by middleware)
+        if (req.user && req.user.branchId) {
+          adminBranchId = req.user.branchId;
+          console.log('Admin branchId from req.user:', adminBranchId);
+        } else {
+          // Fallback: Query database to get admin's branchId
+          const admin = await User.findByPk(currentUserId, {
+            attributes: ['id', 'username', 'branchId']
+          });
+          if (admin && admin.branchId) {
+            adminBranchId = admin.branchId;
+            console.log('Admin branchId from database:', adminBranchId);
+          }
+        }
+        
+        if (adminBranchId) {
+          whereClause.branchId = Number(adminBranchId);
+          console.log('Admin filtering by branchId:', whereClause.branchId);
+        } else {
+          console.log('Admin branchId not found, returning empty list');
+          return res.json({
+            success: true,
+            proposals: []
+          });
+        }
       }
-      // 'admin' dan 'superadmin' bisa melihat semua proposal, jadi whereClause tetap kosong
+      // Superadmin can see all proposals, but can filter by branchId and divisiId from query params
 
-      const proposals = await TrainingProposal.findAll({
+      // Additional filters for superadmin (from query params)
+      if (currentUserRole === "superadmin") {
+        if (branchId) {
+          whereClause.branchId = Number(branchId);
+          console.log('Superadmin filtering by branchId:', whereClause.branchId);
+        }
+        if (status) {
+          whereClause.status = status;
+          console.log('Superadmin filtering by status:', whereClause.status);
+        }
+        // Note: divisiId filter will be handled after query in JavaScript (because it's nested in user)
+      }
+
+      // Build include array with user, branch, and divisi info
+      const includeArray = [
+        { 
+          model: TrainingProposalItem, 
+          as: 'items' 
+        },
+        {
+          model: User,
+          as: 'user',
+          attributes: ['id', 'username', 'fullName', 'email', 'branchId', 'divisiId'],
+          include: [
+            {
+              model: Branch,
+              as: 'branch',
+              attributes: ['id', 'nama']
+            },
+            {
+              model: Divisi,
+              as: 'divisi',
+              attributes: ['id', 'nama']
+            }
+          ]
+        },
+        {
+          model: Branch,
+          as: 'branch',
+          attributes: ['id', 'nama']
+        }
+      ];
+
+      console.log('Final whereClause:', JSON.stringify(whereClause, null, 2));
+
+      let proposals = await TrainingProposal.findAll({
         where: whereClause,
-        include: [{ model: TrainingProposalItem, as: 'items' }]
+        include: includeArray,
+        order: [['created_at', 'DESC']]
       });
+
+      // Additional filter for divisiId if specified (for superadmin)
+      // This needs to be done in JavaScript because divisiId is nested in user
+      if (currentUserRole === "superadmin" && divisiId) {
+        const divisiIdNum = Number(divisiId);
+        proposals = proposals.filter(p => {
+          const userDivisiId = p.user?.divisiId ? Number(p.user.divisiId) : null;
+          return userDivisiId === divisiIdNum;
+        });
+        console.log('After divisiId filter:', proposals.length, 'proposals');
+      }
+
+      console.log('Found proposals:', proposals.length);
 
       res.json({
         success: true,
@@ -38,7 +134,38 @@ const trainingProposalController = {
   async exportProposalsXlsx(req, res) {
     try {
       const { id: currentUserId, role: currentUserRole } = req.user;
-      const whereClause = currentUserRole === 'user' ? { userId: currentUserId } : {};
+      
+      let whereClause = {};
+      
+      // Filter berdasarkan role (same as getAllProposals)
+      if (currentUserRole === 'user') {
+        whereClause.userId = currentUserId;
+      } else if (currentUserRole === 'admin') {
+        // Admin hanya bisa export proposal dari branch mereka
+        let adminBranchId = null;
+        
+        if (req.user && req.user.branchId) {
+          adminBranchId = req.user.branchId;
+        } else {
+          const admin = await User.findByPk(currentUserId, {
+            attributes: ['id', 'username', 'branchId']
+          });
+          if (admin && admin.branchId) {
+            adminBranchId = admin.branchId;
+          }
+        }
+        
+        if (adminBranchId) {
+          whereClause.branchId = Number(adminBranchId);
+        } else {
+          return res.status(403).json({
+            success: false,
+            message: "Tidak dapat mengekspor: Branch tidak ditemukan"
+          });
+        }
+      }
+      // Superadmin can export all proposals
+      
       const proposals = await TrainingProposal.findAll({ 
         where: whereClause,
         include: [{ model: TrainingProposalItem, as: 'items' }]
@@ -260,6 +387,21 @@ const trainingProposalController = {
       const { id: userId } = req.user;
       console.log('User ID from auth:', userId);
 
+      // Get user's branchId to auto-assign to proposal
+      const user = await User.findByPk(userId, {
+        attributes: ['id', 'username', 'branchId', 'divisiId']
+      });
+      
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: "User tidak ditemukan"
+        });
+      }
+      
+      const branchId = user.branchId;
+      console.log('User branchId for proposal:', branchId);
+
       // Jika items ada, validasi minimal satu item dengan uraian
       if (Array.isArray(items) && items.length > 0) {
         const validItems = items.filter(it => (it?.Uraian || '').trim() !== '');
@@ -273,7 +415,7 @@ const trainingProposalController = {
         });
       }
 
-      // Buat proposal baru
+      // Buat proposal baru dengan branchId dari user
       const proposalData = {
         Uraian,
         WaktuPelaksanan,
@@ -285,7 +427,8 @@ const trainingProposalController = {
         BebanAkomodasi,
         BebanUangSaku,
         TotalUsulan,
-        userId
+        userId,
+        branchId: branchId // Auto-assign branchId from user
       };
       
       console.log('Data yang akan disimpan:', proposalData);

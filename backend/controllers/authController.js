@@ -1,5 +1,5 @@
 import bcrypt from 'bcrypt';
-import { User } from '../models/index.js';
+import { User, Branch, Divisi, AnakPerusahaan } from '../models/index.js';
 
 const authController = {
   // Login user
@@ -18,9 +18,26 @@ const authController = {
         });
       }
 
-      // Find user by username
+      // Find user by username with branch and divisi info
       const user = await User.findOne({
-        where: { username: username }
+        where: { username: username },
+        include: [
+          {
+            model: Branch,
+            as: 'branch',
+            attributes: ['id', 'nama']
+          },
+          {
+            model: Divisi,
+            as: 'divisi',
+            attributes: ['id', 'nama']
+          },
+          {
+            model: AnakPerusahaan,
+            as: 'anakPerusahaan',
+            attributes: ['id', 'nama']
+          }
+        ]
       });
 
       if (!user) {
@@ -46,7 +63,10 @@ const authController = {
       req.session.user = {
         id: user.id,
         username: user.username,
-        role: user.role || 'user'
+        role: user.role || 'user',
+        branchId: user.branchId,
+        divisiId: user.divisiId,
+        anakPerusahaanId: user.anakPerusahaanId
       };
       
       // Save session explicitly
@@ -67,6 +87,7 @@ const authController = {
         const token = `token_${user.id}_${Date.now()}`;
         
         // Login successful
+        console.log('Login successful - returning user data with branchId:', user.branchId);
         res.json({
           success: true,
           message: "Login berhasil",
@@ -78,7 +99,13 @@ const authController = {
             fullName: user.fullName,
             email: user.email,
             phone: user.phone,
-            unit: user.unit
+            unit: user.unit,
+            branchId: user.branchId,
+            divisiId: user.divisiId,
+            anakPerusahaanId: user.anakPerusahaanId,
+            branch: user.branch,
+            divisi: user.divisi,
+            anakPerusahaan: user.anakPerusahaan
           }
         });
       });
@@ -135,10 +162,34 @@ const authController = {
       // First try session-based authentication
       if (req.session && req.session.user) {
         const user = await User.findByPk(req.session.user.id, {
-          attributes: ['id', 'username', 'role', 'fullName', 'email', 'phone', 'unit', 'profilePhoto', 'created_at']
+          attributes: ['id', 'username', 'role', 'fullName', 'email', 'phone', 'unit', 'profilePhoto', 'branchId', 'divisiId', 'anakPerusahaanId', 'created_at'],
+          include: [
+            {
+              model: Branch,
+              as: 'branch',
+              attributes: ['id', 'nama']
+            },
+            {
+              model: Divisi,
+              as: 'divisi',
+              attributes: ['id', 'nama']
+            },
+            {
+              model: AnakPerusahaan,
+              as: 'anakPerusahaan',
+              attributes: ['id', 'nama']
+            }
+          ]
         });
 
         if (user) {
+          console.log('CheckAuth - Found user from token:', {
+            id: user.id,
+            username: user.username,
+            branchId: user.branchId,
+            branch: user.branch?.nama
+          });
+          
           return res.json({
             success: true,
             user: {
@@ -150,6 +201,12 @@ const authController = {
               phone: user.phone,
               unit: user.unit,
               profilePhoto: user.profilePhoto,
+              branchId: user.branchId,
+              divisiId: user.divisiId,
+              anakPerusahaanId: user.anakPerusahaanId,
+              branch: user.branch,
+              divisi: user.divisi,
+              anakPerusahaan: user.anakPerusahaan,
               created_at: user.created_at
             }
           });
@@ -168,24 +225,48 @@ const authController = {
           if (parts.length >= 2) {
             const userId = parts[1];
             const user = await User.findByPk(userId, {
-              attributes: ['id', 'username', 'role', 'fullName', 'email', 'phone', 'unit', 'profilePhoto', 'created_at']
+              attributes: ['id', 'username', 'role', 'fullName', 'email', 'phone', 'unit', 'profilePhoto', 'branchId', 'divisiId', 'anakPerusahaanId', 'created_at'],
+              include: [
+                {
+                  model: Branch,
+                  as: 'branch',
+                  attributes: ['id', 'nama']
+                },
+                {
+                  model: Divisi,
+                  as: 'divisi',
+                  attributes: ['id', 'nama']
+                },
+                {
+                  model: AnakPerusahaan,
+                  as: 'anakPerusahaan',
+                  attributes: ['id', 'nama']
+                }
+              ]
             });
             
-            if (user) {
-              return res.json({
-                success: true,
-                user: {
-                  id: user.id,
-                  username: user.username,
-                  role: user.role || 'user',
-                  fullName: user.fullName,
-                  email: user.email,
-                  phone: user.phone,
-                  unit: user.unit,
-                  profilePhoto: user.profilePhoto,
-                  created_at: user.created_at
-                }
-              });
+        if (user) {
+          console.log('CheckAuth - Session user found, returning data with branchId:', user.branchId);
+          return res.json({
+            success: true,
+            user: {
+              id: user.id,
+              username: user.username,
+              role: user.role || 'user',
+              fullName: user.fullName,
+              email: user.email,
+              phone: user.phone,
+              unit: user.unit,
+              profilePhoto: user.profilePhoto,
+              branchId: user.branchId,
+              divisiId: user.divisiId,
+              anakPerusahaanId: user.anakPerusahaanId,
+              branch: user.branch,
+              divisi: user.divisi,
+              anakPerusahaan: user.anakPerusahaan,
+              created_at: user.created_at
+            }
+          });
             }
           }
         }

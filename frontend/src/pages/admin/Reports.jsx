@@ -48,7 +48,7 @@ const Reports = ({ proposals, users, onGenerateReport }) => {
       
       <div className="reports-grid">
         <div className="report-card">
-          <div className="report-icon">📊</div>
+          <div className="report-icon">STATS</div>
           <h3>Laporan Bulanan</h3>
           <p>Ringkasan usulan pelatihan bulan ini termasuk status persetujuan dan anggaran</p>
           <button 
@@ -84,7 +84,7 @@ const Reports = ({ proposals, users, onGenerateReport }) => {
         </div>
 
         <div className="report-card">
-          <div className="report-icon">👥</div>
+          <div className="report-icon">USERS</div>
           <h3>Laporan Pengguna</h3>
           <p>Statistik pengguna sistem, aktivitas, dan tingkat partisipasi</p>
           <button 
@@ -96,7 +96,7 @@ const Reports = ({ proposals, users, onGenerateReport }) => {
         </div>
 
         <div className="report-card">
-          <div className="report-icon">📋</div>
+          <div className="report-icon">LIST</div>
           <h3>Laporan Status Usulan</h3>
           <p>Breakdown status usulan pelatihan dan waktu pemrosesan</p>
           <button 
@@ -108,7 +108,7 @@ const Reports = ({ proposals, users, onGenerateReport }) => {
         </div>
 
         <div className="report-card">
-          <div className="report-icon">🏢</div>
+          <div className="report-icon">BRANCH</div>
           <h3>Laporan per Unit</h3>
           <p>Analisis usulan pelatihan berdasarkan unit/divisi</p>
           <button 

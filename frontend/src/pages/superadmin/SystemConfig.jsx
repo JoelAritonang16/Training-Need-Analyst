@@ -183,14 +183,14 @@ const SystemConfig = ({ onSaveConfig, onBackupSystem, onRestoreSystem }) => {
               className="btn-backup"
               onClick={onBackupSystem}
             >
-              <span className="btn-icon">💾</span>
+              <span className="btn-icon">SAVE</span>
               Backup Sistem Sekarang
             </button>
             <button 
               className="btn-restore"
               onClick={onRestoreSystem}
             >
-              <span className="btn-icon">🔄</span>
+              <span className="btn-icon">RESTORE</span>
               Restore dari Backup
             </button>
           </div>

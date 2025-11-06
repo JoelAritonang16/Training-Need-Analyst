@@ -1,10 +1,36 @@
 import React, { useState, useEffect } from 'react';
-import { API_BASE_URL } from '../../utils/api';
+import { API_BASE_URL, branchAPI, divisiAPI } from '../../utils/api';
 import './AllProposals.css';
 
-const AllProposals = ({ proposals, onFinalApprove, onFinalReject, onViewDetail, onEditProposal, onNavigate, initialStatusFilter, headerTitle }) => {
+const AllProposals = ({ proposals, onFinalApprove, onFinalReject, onViewDetail, onEditProposal, onNavigate, initialStatusFilter, headerTitle, onFilterChange }) => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [unitFilter, setUnitFilter] = useState('all');
+  const [branchFilter, setBranchFilter] = useState('all');
+  const [divisiFilter, setDivisiFilter] = useState('all');
+  const [branchList, setBranchList] = useState([]);
+  const [divisiList, setDivisiList] = useState([]);
+  
+  useEffect(() => {
+    fetchBranchAndDivisi();
+  }, []);
+  
+  const fetchBranchAndDivisi = async () => {
+    try {
+      const [branchResult, divisiResult] = await Promise.all([
+        branchAPI.getAll(),
+        divisiAPI.getAll()
+      ]);
+      
+      if (branchResult.success) {
+        setBranchList(branchResult.branch || []);
+      }
+      if (divisiResult.success) {
+        setDivisiList(divisiResult.divisi || []);
+      }
+    } catch (error) {
+      console.error('Error fetching branch and divisi:', error);
+    }
+  };
 
   // Apply initial status filter if provided
   useEffect(() => {
@@ -59,6 +85,24 @@ const AllProposals = ({ proposals, onFinalApprove, onFinalReject, onViewDetail, 
     }
   };
 
+  // Handle filter changes and notify parent
+  useEffect(() => {
+    if (onFilterChange) {
+      const filters = {
+        ...(branchFilter !== 'all' && { branchId: branchFilter }),
+        ...(divisiFilter !== 'all' && { divisiId: divisiFilter }),
+        ...(statusFilter !== 'all' && { 
+          status: statusFilter === 'pending' ? 'MENUNGGU' :
+                  statusFilter === 'approved' ? 'APPROVE_ADMIN' :
+                  statusFilter === 'waiting' ? 'APPROVE_ADMIN' :
+                  statusFilter === 'final_approved' ? 'APPROVE_SUPERADMIN' :
+                  statusFilter === 'rejected' ? 'DITOLAK' : undefined
+        })
+      };
+      onFilterChange(filters);
+    }
+  }, [branchFilter, divisiFilter, statusFilter, onFilterChange]);
+
   const filteredProposals = proposals.filter(proposal => {
     const statusMatch = statusFilter === 'all' || 
       (statusFilter === 'pending' && proposal.status === 'MENUNGGU') ||
@@ -69,7 +113,15 @@ const AllProposals = ({ proposals, onFinalApprove, onFinalReject, onViewDetail, 
     
     const unitMatch = unitFilter === 'all' || proposal.LevelTingkatan === unitFilter;
     
-    return statusMatch && unitMatch;
+    const branchMatch = branchFilter === 'all' || 
+      (proposal.branchId && Number(proposal.branchId) === Number(branchFilter)) ||
+      (proposal.branch && Number(proposal.branch.id) === Number(branchFilter));
+    
+    const divisiMatch = divisiFilter === 'all' || 
+      (proposal.user?.divisiId && Number(proposal.user.divisiId) === Number(divisiFilter)) ||
+      (proposal.user?.divisi && Number(proposal.user.divisi.id) === Number(divisiFilter));
+    
+    return statusMatch && unitMatch && branchMatch && divisiMatch;
   });
 
   const uniqueUnits = [...new Set(proposals.map(p => p.LevelTingkatan))];
@@ -84,6 +136,26 @@ const AllProposals = ({ proposals, onFinalApprove, onFinalReject, onViewDetail, 
       </div>
       
       <div className="proposals-filter">
+        <select 
+          className="filter-select"
+          value={branchFilter}
+          onChange={(e) => setBranchFilter(e.target.value)}
+        >
+          <option value="all">Semua Branch</option>
+          {branchList.map(branch => (
+            <option key={branch.id} value={branch.id}>{branch.nama}</option>
+          ))}
+        </select>
+        <select 
+          className="filter-select"
+          value={divisiFilter}
+          onChange={(e) => setDivisiFilter(e.target.value)}
+        >
+          <option value="all">Semua Divisi</option>
+          {divisiList.map(divisi => (
+            <option key={divisi.id} value={divisi.id}>{divisi.nama}</option>
+          ))}
+        </select>
         <select 
           className="filter-select"
           value={statusFilter}
@@ -106,7 +178,6 @@ const AllProposals = ({ proposals, onFinalApprove, onFinalReject, onViewDetail, 
             <option key={unit} value={unit}>{unit}</option>
           ))}
         </select>
-        {/* Pintasan Halaman dihapus sesuai permintaan */}
       </div>
       
       <div className="proposals-grid">
@@ -119,7 +190,9 @@ const AllProposals = ({ proposals, onFinalApprove, onFinalReject, onViewDetail, 
               </span>
             </div>
             <div className="proposal-details">
-              <p><strong>Pengaju:</strong> User ID {proposal.userId}</p>
+              <p><strong>Pengaju:</strong> {proposal.user?.username || proposal.user?.fullName || `User ID ${proposal.userId}`}</p>
+              {proposal.branch && <p><strong>Branch:</strong> {proposal.branch.nama}</p>}
+              {proposal.user?.divisi && <p><strong>Divisi:</strong> {proposal.user.divisi.nama}</p>}
               <p><strong>Waktu Pelaksanaan:</strong> {new Date(proposal.WaktuPelaksanan).toLocaleDateString('id-ID')}</p>
               <p><strong>Level:</strong> {proposal.LevelTingkatan}</p>
               <p><strong>Jumlah Peserta:</strong> {proposal.JumlahPeserta} orang</p>
@@ -168,7 +241,7 @@ const AllProposals = ({ proposals, onFinalApprove, onFinalReject, onViewDetail, 
 
       {filteredProposals.length === 0 && (
         <div className="empty-state">
-          <div className="empty-icon">📋</div>
+          <div className="empty-icon">-</div>
           <h3>Tidak Ada Usulan Ditemukan</h3>
           <p>Tidak ada usulan yang sesuai dengan filter yang dipilih.</p>
         </div>

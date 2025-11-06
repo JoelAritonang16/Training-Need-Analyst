@@ -10,15 +10,90 @@ const userController = {
     try {
       const { currentUserRole } = req.query;
       
+      console.log('=== GET ALL USERS ===');
+      console.log('Current User Role:', currentUserRole);
+      console.log('Session:', req.session?.user ? { id: req.session.user.id, username: req.session.user.username, branchId: req.session.user.branchId } : 'No session');
+      console.log('Req.user:', req.user ? { id: req.user.id, username: req.user.username, branchId: req.user.branchId } : 'No req.user');
+      
       let whereClause = {};
       
       // Role-based filtering
       if (currentUserRole === 'admin') {
         whereClause.role = 'user';
+        
+        // Get current admin's branchId - ALWAYS query database to ensure accuracy
+        let currentAdminBranchId = null;
+        let currentAdminId = null;
+        
+        // Get admin ID from session, req.user, or token
+        if (req.session && req.session.user && req.session.user.id) {
+          currentAdminId = req.session.user.id;
+        } else if (req.user && req.user.id) {
+          currentAdminId = req.user.id;
+        } else {
+          // Try to get from token
+          const authHeader = req.headers.authorization;
+          if (authHeader && authHeader.startsWith('Bearer ')) {
+            const token = authHeader.substring(7);
+            if (token.startsWith('token_')) {
+              const parts = token.split('_');
+              if (parts.length >= 2) {
+                currentAdminId = parts[1];
+              }
+            }
+          }
+        }
+        
+        // ALWAYS query database to get admin's branchId (most reliable method)
+        if (currentAdminId) {
+          const currentAdmin = await User.findByPk(currentAdminId, {
+            attributes: ['id', 'username', 'branchId']
+          });
+          
+          if (currentAdmin) {
+            if (currentAdmin.branchId) {
+              currentAdminBranchId = currentAdmin.branchId;
+              console.log('GetAllUsers - Admin branchId from database:', currentAdminBranchId, 'Admin:', currentAdmin.username);
+            } else {
+              console.log('GetAllUsers - ERROR: Admin has no branchId. Admin:', currentAdmin.username);
+            }
+          } else {
+            console.log('GetAllUsers - ERROR: Admin not found in database. ID:', currentAdminId);
+          }
+        } else {
+          console.log('GetAllUsers - ERROR: Could not determine admin ID');
+        }
+        
+        // CRITICAL: Always filter by admin's branchId - if not found, return empty
+        if (currentAdminBranchId) {
+          // Ensure branchId is a number
+          whereClause.branchId = Number(currentAdminBranchId);
+          console.log('GetAllUsers - FINAL: Filtering users by branchId:', whereClause.branchId, '(type:', typeof whereClause.branchId, ')');
+        } else {
+          console.log('GetAllUsers - ERROR: Admin branchId not found. Returning empty list');
+          // Return empty list if admin branchId is not found
+          return res.json({
+            success: true,
+            users: []
+          });
+        }
       } else if (currentUserRole === 'superadmin') {
         whereClause.role = { [Op.in]: ['user', 'admin'] };
+        // Superadmin can see all users, no branch filtering
+        console.log('GetAllUsers - Superadmin: No branch filtering');
       }
 
+      console.log('GetAllUsers - Final whereClause:', JSON.stringify(whereClause, null, 2));
+      
+      // If admin, ensure branchId filter is set
+      if (currentUserRole === 'admin' && !whereClause.branchId) {
+        console.log('GetAllUsers - CRITICAL ERROR: Admin filter but no branchId in whereClause!');
+        return res.json({
+          success: true,
+          users: []
+        });
+      }
+      
       const users = await User.findAll({
         where: whereClause,
         attributes: ['id', 'username', 'role', 'divisiId', 'branchId', 'anakPerusahaanId', 'created_at'],
@@ -40,6 +115,62 @@ const userController = {
           }
         ]
       });
+      
+      console.log('GetAllUsers - Found users count:', users.length);
+      users.forEach(u => {
+        console.log(`  - User: ${u.username}, BranchId: ${u.branchId}, Branch: ${u.branch?.nama || 'N/A'}`);
+      });
+      
+      // Additional validation: Double-check if admin, filter out any users that don't match branchId
+      if (currentUserRole === 'admin' && whereClause.branchId) {
+        // Ensure both are numbers for comparison
+        const expectedBranchId = Number(whereClause.branchId);
+        const filteredUsers = users.filter(u => {
+          const userBranchId = Number(u.branchId);
+          const matches = userBranchId === expectedBranchId;
+          if (!matches) {
+            console.log(`GetAllUsers - Filtering out user ${u.username}: branchId ${userBranchId} !== ${expectedBranchId}`);
+          }
+          return matches;
+        });
+        
+        if (filteredUsers.length !== users.length) {
+          console.log('GetAllUsers - WARNING: Found users that do not match branchId filter!');
+          console.log(`  Expected branchId: ${expectedBranchId} (type: ${typeof expectedBranchId})`);
+          console.log(`  Filtered ${users.length} users down to ${filteredUsers.length}`);
+          // Use filtered list
+          const transformedUsers = filteredUsers.map(user => {
+            // Determine unit based on role
+            let unit = 'Belum dipilih';
+            if (user.role === 'user') {
+              unit = user.divisi?.nama || 'Belum dipilih';
+            } else if (user.role === 'admin') {
+              unit = user.anakPerusahaan?.nama || 'Belum dipilih';
+            }
+
+            return {
+              id: user.id,
+              username: user.username,
+              email: `${user.username}@pelindo.com`,
+              unit: unit,
+              divisi: user.divisi,
+              branch: user.branch,
+              anakPerusahaan: user.anakPerusahaan,
+              divisiId: user.divisiId,
+              branchId: user.branchId,
+              anakPerusahaanId: user.anakPerusahaanId,
+              role: user.role || 'user',
+              status: 'active',
+              createdAt: user.created_at
+            };
+          });
+
+          return res.json({
+            success: true,
+            users: transformedUsers
+          });
+        }
+      }
 
       // Transform data to include role and status
       const transformedUsers = users.map(user => {
@@ -324,12 +455,66 @@ const userController = {
         const n = Number(v);
         return Number.isNaN(n) ? null : n;
       };
-      const divisiId = coerceId(req.body.divisiId);
-      const branchId = coerceId(req.body.branchId);
-      const anakPerusahaanId = coerceId(req.body.anakPerusahaanId);
+      let divisiId = coerceId(req.body.divisiId);
+      let branchId = coerceId(req.body.branchId);
+      let anakPerusahaanId = coerceId(req.body.anakPerusahaanId);
 
       console.log('=== CREATE USER WITH ROLE VALIDATION ===');
       console.log('Payload:', { username, role, currentUserRole, divisiId, branchId, anakPerusahaanId });
+
+      // Auto-assign branchId from admin user if currentUserRole is admin
+      if (currentUserRole === 'admin') {
+        console.log('Admin user creating user - checking session/token for branchId');
+        console.log('Session user:', req.session?.user);
+        
+        // Get current admin user from session/token
+        let currentAdminUser = null;
+        
+        // Try session first
+        if (req.session && req.session.user) {
+          console.log('Using session-based auth');
+          console.log('Session user ID:', req.session.user.id);
+          console.log('Session user branchId:', req.session.user.branchId);
+          
+          // If branchId is already in session, use it directly
+          if (req.session.user.branchId) {
+            branchId = req.session.user.branchId;
+            console.log(`Auto-assigned branchId ${branchId} from session`);
+          } else {
+            // Fallback: fetch from database
+            currentAdminUser = await User.findByPk(req.session.user.id, {
+              attributes: ['id', 'branchId', 'anakPerusahaanId']
+            });
+            console.log('Fetched admin user from DB:', currentAdminUser);
+          }
+        } else {
+          console.log('No session found, trying token-based auth');
+          // Try token-based auth
+          const authHeader = req.headers.authorization;
+          if (authHeader && authHeader.startsWith('Bearer ')) {
+            const token = authHeader.substring(7);
+            console.log('Token:', token);
+            if (token.startsWith('token_')) {
+              const parts = token.split('_');
+              if (parts.length >= 2) {
+                const userId = parts[1];
+                console.log('Extracted userId from token:', userId);
+                currentAdminUser = await User.findByPk(userId, {
+                  attributes: ['id', 'branchId', 'anakPerusahaanId']
+                });
+                console.log('Fetched admin user from token:', currentAdminUser);
+              }
+            }
+          }
+        }
+        
+        if (currentAdminUser && currentAdminUser.branchId) {
+          branchId = currentAdminUser.branchId; // Auto-assign admin's branch
+          console.log(`Auto-assigned branchId ${branchId} from admin user ${currentAdminUser.id}`);
+        } else {
+          console.log('Could not determine admin branchId - currentAdminUser:', currentAdminUser);
+        }
+      }
 
       // Role-based access control
       if (currentUserRole === 'admin' && role !== 'user') {
@@ -381,7 +566,7 @@ const userController = {
       } else if (role === 'admin') {
         userData.anakPerusahaanId = anakPerusahaanId;
         userData.divisiId = null;
-        userData.branchId = null; // ensure branch cleared for admin
+        userData.branchId = branchId; // admin perlu branch assignment
       }
 
       const user = await User.create(userData);
@@ -486,7 +671,7 @@ const userController = {
       } else if (role === 'admin') {
         updateData.anakPerusahaanId = anakPerusahaanId || null;
         updateData.divisiId = null; // Clear divisi for admin role
-        // Admin doesn't need branchId as it's handled through anak perusahaan
+        updateData.branchId = branchId || null; // Admin perlu branch assignment
       }
 
       const updatedUser = await user.update(updateData);
@@ -646,7 +831,7 @@ const userController = {
       const userId = req.user.id;
       
       if (!req.file) {
-        console.log('❌ No file uploaded');
+        console.log('No file uploaded');
         return res.status(400).json({
           success: false,
           message: 'Tidak ada file yang diupload'
@@ -669,10 +854,10 @@ const userController = {
           console.log('Trying to delete old photo:', oldPhotoPath);
           if (fs.existsSync(oldPhotoPath)) {
             fs.unlinkSync(oldPhotoPath);
-            console.log('✅ Old photo deleted');
+            console.log('Old photo deleted');
           }
         } catch (deleteError) {
-          console.log('⚠️ Could not delete old photo:', deleteError.message);
+          console.log('Could not delete old photo:', deleteError.message);
           // Continue anyway
         }
       }
@@ -683,9 +868,9 @@ const userController = {
       
       try {
         await user.update({ profilePhoto: photoPath });
-        console.log('✅ Photo path saved to database');
+        console.log('Photo path saved to database');
       } catch (dbError) {
-        console.error('❌ Database update error:', dbError);
+        console.error('Database update error:', dbError);
         throw dbError;
       }
 
@@ -696,7 +881,7 @@ const userController = {
         photoUrl: `http://localhost:5000/${photoPath}`
       });
     } catch (error) {
-      console.error('❌ Upload profile photo error:', error);
+      console.error('Upload profile photo error:', error);
       console.error('Error stack:', error.stack);
       res.status(500).json({
         success: false,

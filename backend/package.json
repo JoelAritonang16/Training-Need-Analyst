@@ -18,6 +18,7 @@
   "license": "ISC",
   "type": "module",
   "dependencies": {
+    "axios-cookiejar-support": "^6.0.4",
     "bcrypt": "^5.1.1",
     "bcryptjs": "^3.0.2",
     "connect-session-sequelize": "^7.1.7",
@@ -31,6 +32,7 @@
     "node-fetch": "^2.7.0",
     "sequelize": "^6.37.7",
     "sequelize-cli": "^6.6.3",
+    "tough-cookie": "^5.1.2",
     "winston": "^3.11.0"
   }
 }

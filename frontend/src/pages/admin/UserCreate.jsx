@@ -50,10 +50,10 @@ const UserCreate = ({ currentUserRole = 'superadmin', onNavigate }) => {
       setFormData(prev => ({
         ...prev,
         role,
-        // clear user-related fields
+        // clear user-related fields (admin tidak perlu divisi)
         divisiId: '',
-        branchId: '',
-        // keep admin-related field
+        // keep admin-related fields
+        branchId: prev.branchId || '', // admin perlu branch
         anakPerusahaanId: prev.anakPerusahaanId || ''
       }));
     } else {
@@ -71,10 +71,17 @@ const UserCreate = ({ currentUserRole = 'superadmin', onNavigate }) => {
         setLoading(false);
         return;
       }
-      if (formData.role === 'admin' && !formData.anakPerusahaanId) {
-        alert('Pilih Anak Perusahaan untuk role Admin');
-        setLoading(false);
-        return;
+      if (formData.role === 'admin') {
+        if (!formData.branchId) {
+          alert('Pilih Branch untuk role Admin');
+          setLoading(false);
+          return;
+        }
+        if (!formData.anakPerusahaanId) {
+          alert('Pilih Anak Perusahaan untuk role Admin');
+          setLoading(false);
+          return;
+        }
       }
 
       const toNumberOrNull = (v) => (v === '' || v === null || v === undefined ? null : Number(v));
@@ -157,13 +164,23 @@ const UserCreate = ({ currentUserRole = 'superadmin', onNavigate }) => {
           )}
 
           {formData.role === 'admin' && (
-            <div className="form-group">
-              <label>Anak Perusahaan</label>
-              <select value={formData.anakPerusahaanId} onChange={(e)=>setFormData({...formData, anakPerusahaanId:e.target.value})}>
-                <option value="">Pilih Anak Perusahaan</option>
-                {anakPerusahaanList.map(a=> <option key={a.id} value={a.id}>{a.nama}</option>)}
-              </select>
-            </div>
+            <>
+              <div className="form-group">
+                <label>Branch *</label>
+                <select value={formData.branchId} onChange={(e)=>setFormData({...formData, branchId:e.target.value})} required>
+                  <option value="">Pilih Branch</option>
+                  {branchList.map(b=> <option key={b.id} value={b.id}>{b.nama}</option>)}
+                </select>
+                <small className="form-help">Admin akan mengelola branch yang dipilih</small>
+              </div>
+              <div className="form-group">
+                <label>Anak Perusahaan *</label>
+                <select value={formData.anakPerusahaanId} onChange={(e)=>setFormData({...formData, anakPerusahaanId:e.target.value})} required>
+                  <option value="">Pilih Anak Perusahaan</option>
+                  {anakPerusahaanList.map(a=> <option key={a.id} value={a.id}>{a.nama}</option>)}
+                </select>
+              </div>
+            </>
           )}
 
           <div className="form-actions">

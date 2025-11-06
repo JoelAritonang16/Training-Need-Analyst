@@ -48,22 +48,22 @@ function App() {
         console.log('Auth check response data:', data);
         
         if (data.success) {
-          console.log('✅ User authenticated:', data.user.username);
+          console.log('User authenticated:', data.user.username);
           setUser(data.user);
         } else {
-          console.log('❌ Auth check failed, clearing token');
+          console.log('Auth check failed, clearing token');
           localStorage.removeItem('token');
           localStorage.removeItem('user');
           setUser(null);
         }
       } else {
-        console.log('❌ Auth check failed with status:', response.status);
+        console.log('Auth check failed with status:', response.status);
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         setUser(null);
       }
     } catch (error) {
-      console.error('❌ Auth check error:', error);
+      console.error('Auth check error:', error);
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       setUser(null);
@@ -115,7 +115,7 @@ function App() {
       // Close modal
       setShowLogoutConfirm(false);
       
-      console.log('✅ Logged out successfully');
+      console.log('Logged out successfully');
       console.log('=== LOGOUT END ===');
     }
   };

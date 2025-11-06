@@ -107,7 +107,7 @@ const TrainingProposalList = ({ onCreateNew, onEdit, onViewDetail }) => {
     return (
       <div className="proposals-container">
         <div className="error-state">
-          <div className="error-icon">⚠️</div>
+          <div className="error-icon">!</div>
           <h3>Terjadi Kesalahan</h3>
           <p>{error}</p>
           <div className="error-suggestions">
@@ -148,7 +148,7 @@ const TrainingProposalList = ({ onCreateNew, onEdit, onViewDetail }) => {
             }}
             className="search-input"
           />
-          <span className="search-icon">🔍</span>
+          <span className="search-icon">Search</span>
         </div>
         
         <div className="filter-dropdown">
@@ -170,7 +170,7 @@ const TrainingProposalList = ({ onCreateNew, onEdit, onViewDetail }) => {
 
       {filteredProposals.length === 0 ? (
         <div className="empty-state">
-          <div className="empty-icon">📋</div>
+          <div className="empty-icon">-</div>
           <h3>Tidak Ada Usulan Pelatihan</h3>
           <p>
             {searchTerm || statusFilter !== 'all' 

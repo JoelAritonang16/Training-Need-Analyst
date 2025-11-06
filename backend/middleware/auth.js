@@ -1,4 +1,4 @@
-import { User } from '../models/index.js';
+import { User, Branch } from '../models/index.js';
 
 const auth = {
   // Check if user is authenticated
@@ -11,11 +11,19 @@ const auth = {
       
       // First try session-based authentication
       if (req.session && req.session.user) {
-        const user = await User.findByPk(req.session.user.id);
+        const user = await User.findByPk(req.session.user.id, {
+          include: [
+            {
+              model: Branch,
+              as: 'branch',
+              attributes: ['id', 'nama']
+            }
+          ]
+        });
         
         if (user) {
           req.user = user;
-          console.log('Auth middleware - User authenticated via session:', user.username);
+          console.log('Auth middleware - User authenticated via session:', user.username, 'branchId:', user.branchId);
           return next();
         }
       }
@@ -33,11 +41,19 @@ const auth = {
           const userId = req.headers['x-user-id'];
           
           if (userId) {
-            const user = await User.findByPk(userId);
+            const user = await User.findByPk(userId, {
+              include: [
+                {
+                  model: Branch,
+                  as: 'branch',
+                  attributes: ['id', 'nama']
+                }
+              ]
+            });
             
             if (user) {
               req.user = user;
-              console.log('Auth middleware - User authenticated via token:', user.username);
+              console.log('Auth middleware - User authenticated via token:', user.username, 'branchId:', user.branchId);
               return next();
             }
           }
@@ -48,10 +64,18 @@ const auth = {
             const parts = token.split('_');
             if (parts.length >= 2) {
               const userId = parts[1];
-              const user = await User.findByPk(userId);
+              const user = await User.findByPk(userId, {
+                include: [
+                  {
+                    model: Branch,
+                    as: 'branch',
+                    attributes: ['id', 'nama']
+                  }
+                ]
+              });
               if (user) {
                 req.user = user;
-                console.log('Auth middleware - User authenticated via token (extracted ID):', user.username);
+                console.log('Auth middleware - User authenticated via token (extracted ID):', user.username, 'branchId:', user.branchId);
                 return next();
               }
             }

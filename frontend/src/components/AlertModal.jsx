@@ -14,13 +14,13 @@ const AlertModal = ({
   const getIcon = () => {
     switch (type) {
       case 'success':
-        return '✓';
+        return 'OK';
       case 'error':
-        return '✕';
+        return 'X';
       case 'warning':
-        return '⚠';
+        return '!';
       default:
-        return 'ℹ';
+        return 'i';
     }
   };
 

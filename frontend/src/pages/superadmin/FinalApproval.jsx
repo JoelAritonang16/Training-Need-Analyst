@@ -56,7 +56,7 @@ const FinalApproval = ({ proposals, onFinalApprove, onFinalReject, onViewDetail 
 
       {waitingFinalApproval.length === 0 && (
         <div className="empty-state">
-          <div className="empty-icon">🔐</div>
+          <div className="empty-icon">FINAL</div>
           <h3>Tidak Ada Usulan Menunggu Persetujuan</h3>
           <p>Semua usulan telah diproses. Tidak ada usulan yang menunggu persetujuan akhir Super Admin.</p>
         </div>
