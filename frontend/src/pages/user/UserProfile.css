@@ -168,6 +168,335 @@ html, body {
   transform: scale(1.1);
 }
 
+/* Notification Style - Match Logout Popup */
+.notification-center {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.5);
+  animation: fadeIn 0.2s ease-out;
+}
+
+.notification-content {
+  background: white;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 350px;
+  overflow: hidden;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+  animation: popIn 0.3s ease-out;
+  font-family: 'Poppins', sans-serif;
+}
+
+/* Notification Header */
+.notification-header {
+  background: #003366;
+  color: white;
+  padding: 15px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.notification-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.notification-icon {
+  font-size: 1.2rem;
+}
+
+.notification-close {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.notification-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+/* Notification Body */
+.notification-message {
+  padding: 20px;
+  color: #333;
+  line-height: 1.5;
+  font-size: 0.95rem;
+  text-align: center;
+}
+
+/* Status Bar */
+.notification-status {
+  height: 4px;
+  background: #f0f0f0;
+  overflow: hidden;
+}
+
+.notification-status-bar {
+  height: 100%;
+  width: 100%;
+  background: #3b82f6;
+  animation: progressBar 3s linear forwards;
+}
+
+.notification-content.success .notification-status-bar {
+  background: #10b981;
+}
+
+.notification-content.error .notification-status-bar {
+  background: #ef4444;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes popIn {
+  0% {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes progressBar {
+  0% { width: 100%; }
+  100% { width: 0%; }
+}
+
+/* Uploading Overlay */
+.uploading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(3px);
+}
+
+.uploading-spinner {
+  background: white;
+  padding: 24px 32px;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.uploading-spinner p {
+  margin: 0;
+  color: #334155;
+  font-weight: 500;
+}
+
+/* Spin animation */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Modal Overlay */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+/* Modal Content */
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 10px 50px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+  transform: translateY(0);
+  opacity: 1;
+  transition: all 0.3s ease;
+  border: 1px solid #e0e6ed;
+}
+
+/* Modal Header */
+.modal-header {
+  padding: 16px 24px;
+  background: linear-gradient(145deg, #003865 0%, #0077b6 100%);
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.close-button:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Modal Body */
+.modal-body {
+  padding: 24px;
+  text-align: center;
+}
+
+.modal-body p {
+  margin: 0 0 20px;
+  color: #4a5568;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.file-preview {
+  margin: 20px 0;
+  padding: 20px;
+  border: 2px dashed #e2e8f0;
+  border-radius: 8px;
+  background-color: #f8fafc;
+}
+
+.preview-image {
+  max-width: 100%;
+  max-height: 200px;
+  border-radius: 4px;
+  margin-bottom: 10px;
+  border: 1px solid #e2e8f0;
+}
+
+/* Modal Actions */
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding: 16px 24px;
+  border-top: 1px solid #edf2f7;
+  gap: 12px;
+}
+
+.btn-cancel {
+  padding: 8px 20px;
+  background: #f1f5f9;
+  color: #4a5568;
+  border: 1px solid #cbd5e0;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-cancel:hover {
+  background: #e2e8f0;
+}
+
+.btn-confirm {
+  padding: 8px 24px;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-confirm:hover {
+  background: #2563eb;
+}
+
+.btn-confirm:disabled {
+  background: #93c5fd;
+  cursor: not-allowed;
+}
+
+/* Animation */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.modal-enter {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+.modal-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 200ms, transform 200ms;
+}
+
+.modal-exit {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.modal-exit-active {
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 200ms, transform 200ms;
+}
+
 /* === PROFILE DETAILS === */
 .profile-details h3 {
   font-size: 1.5rem;

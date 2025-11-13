@@ -1,11 +1,36 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { userProfileAPI } from '../utils/api';
 import '../pages/user/UserProfile.css';
+import { FiX, FiUpload, FiCheck, FiXCircle, FiLoader, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
 
 const Profile = ({ user: userProp, proposals = [], onUpdateProfile }) => {
   // Initialize state first, before any conditional returns
   const [isEditing, setIsEditing] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [showError, setShowError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
+  const fileInputRef = useRef(null);
+  
+  // Auto-hide notifications
+  useEffect(() => {
+    if (showSuccess) {
+      const timer = setTimeout(() => {
+        setShowSuccess(false);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [showSuccess]);
+  
+  useEffect(() => {
+    if (showError) {
+      const timer = setTimeout(() => {
+        setShowError(false);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [showError]);
   
   // Create safe user object with defaults
   const safeUser = userProp ? {
@@ -32,20 +57,29 @@ const Profile = ({ user: userProp, proposals = [], onUpdateProfile }) => {
     return <div className="profile-container">Memuat data pengguna...</div>;
   }
 
-  const handlePhotoUpload = async (e) => {
+  const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      alert('Hanya file gambar yang diperbolehkan!');
+      setErrorMessage('Hanya file gambar yang diperbolehkan!');
+      setShowError(true);
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      alert('Ukuran file maksimal 5MB!');
+      setErrorMessage('Ukuran file maksimal 5MB!');
+      setShowError(true);
       return;
     }
+    
+    // Langsung upload tanpa konfirmasi
+    await handleUploadFile(file);
+  };
 
+  const handleUploadFile = async (file) => {
+    if (!file) return;
+    
     setUploading(true);
     const formData = new FormData();
     formData.append('photo', file);
@@ -63,27 +97,38 @@ const Profile = ({ user: userProp, proposals = [], onUpdateProfile }) => {
       const data = await response.json();
 
       if (data.success) {
+        // Tambahkan timestamp untuk menghindari cache
+        const timestamp = new Date().getTime();
+        const photoUrl = `${data.profilePhoto}?t=${timestamp}`;
+        
         setProfileData(prev => ({
           ...prev,
-          profilePhoto: data.profilePhoto
+          profilePhoto: photoUrl
         }));
         
         if (onUpdateProfile) {
           onUpdateProfile({ 
             ...userProp, 
-            profilePhoto: data.profilePhoto 
+            profilePhoto: photoUrl
           });
         }
         
-        alert('Foto profil berhasil diupload!');
+        setSuccessMessage('Foto profil berhasil diupload!');
+        setShowSuccess(true);
       } else {
-        alert('Gagal upload foto: ' + data.message);
+        setErrorMessage('Gagal upload foto: ' + (data.message || 'Terjadi kesalahan'));
+        setShowError(true);
       }
     } catch (error) {
       console.error('Upload error:', error);
-      alert('Terjadi kesalahan saat upload foto: ' + error.message);
+      setErrorMessage('Terjadi kesalahan saat upload foto: ' + (error.message || 'Coba lagi nanti'));
+      setShowError(true);
     } finally {
       setUploading(false);
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   };
 
@@ -139,11 +184,73 @@ const Profile = ({ user: userProp, proposals = [], onUpdateProfile }) => {
     setIsEditing(false);
   };
 
+  // Function to reset file input
+  const resetFileInput = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   const approvedCount = proposals.filter(p => p.status === 'APPROVED').length;
   const pendingCount = proposals.filter(p => p.status === 'PENDING').length;
 
   return (
     <div className="profile-container">
+      {/* Success Notification */}
+      {showSuccess && (
+        <div className="notification-center">
+          <div className="notification-content success">
+            <div className="notification-header">
+              <div className="notification-icon success">
+                <FiCheckCircle size={18} />
+              </div>
+              <h4 className="notification-title">Berhasil</h4>
+              <button className="notification-close" onClick={() => setShowSuccess(false)}>
+                <FiX size={18} />
+              </button>
+            </div>
+            <div className="notification-message">
+              {successMessage}
+            </div>
+            <div className="notification-status">
+              <div className="notification-status-bar"></div>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Error Notification */}
+      {showError && (
+        <div className="notification-center">
+          <div className="notification-content error">
+            <div className="notification-header">
+              <div className="notification-icon error">
+                <FiAlertCircle size={18} />
+              </div>
+              <h4 className="notification-title">Terjadi Kesalahan</h4>
+              <button className="notification-close" onClick={() => setShowError(false)}>
+                <FiX size={18} />
+              </button>
+            </div>
+            <div className="notification-message">
+              {errorMessage}
+            </div>
+            <div className="notification-status">
+              <div className="notification-status-bar"></div>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Loading Overlay */}
+      {uploading && (
+        <div className="uploading-overlay">
+          <div className="uploading-spinner">
+            <FiLoader className="spin" size={32} />
+            <p>Mengunggah foto...</p>
+          </div>
+        </div>
+      )}
       <div className="content-header">
         <h2>Profil Pengguna</h2>
         <p>Informasi akun dan pengaturan profil</p>
@@ -164,16 +271,21 @@ const Profile = ({ user: userProp, proposals = [], onUpdateProfile }) => {
                   (profileData.fullName || profileData.username)?.charAt(0).toUpperCase()
                 )}
               </div>
-              <label className="upload-photo-btn" title="Upload foto profil">
+              <button 
+                className="upload-photo-btn" 
+                title="Upload foto profil"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <FiUpload className="upload-icon" />
                 <input 
+                  ref={fileInputRef}
                   type="file" 
                   accept="image/*" 
-                  onChange={handlePhotoUpload}
+                  onChange={handleFileChange}
                   disabled={uploading}
                   style={{ display: 'none' }}
                 />
-                📷
-              </label>
+              </button>
             </div>
             <div className="profile-details">
               <h3>{profileData.fullName || profileData.username}</h3>
