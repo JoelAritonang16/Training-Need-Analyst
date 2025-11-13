@@ -15,7 +15,8 @@ import AnakPerusahaanManagement from './AnakPerusahaanManagement.jsx';
 import DraftTNA2026 from '../admin/DraftTNA2026.jsx';
 import TempatDiklatRealisasi from '../admin/TempatDiklatRealisasi.jsx';
 import RekapGabungan from './RekapGabungan.jsx';
-import { trainingProposalAPI } from '../../utils/api';
+import { trainingProposalAPI, userProfileAPI } from '../../utils/api';
+import SuperAdminProfile from './SuperAdminProfile';
 import danantaraLogo from '../../assets/Danantara2.png';
 import pelindoLogo from '../../assets/LogoFixx.png';
 import './SuperadminDashboard.css';
@@ -250,6 +251,12 @@ const SuperadminDashboard = ({ user, onLogout }) => {
     setActiveMenu(menuId);
   };
 
+  const handleUpdateProfile = (updatedUser) => {
+    // Update user data in parent component if needed
+    console.log('Profile updated:', updatedUser);
+    // You might want to update the user in your global state here
+  };
+
   const renderContent = () => {
     switch (activeMenu) {
       case 'proposal-form':
@@ -385,6 +392,14 @@ const SuperadminDashboard = ({ user, onLogout }) => {
         return (
           <RekapGabungan 
             onNavigate={handleNavigate}
+          />
+        );
+      
+      case 'profile':
+        return (
+          <SuperAdminProfile 
+            user={user}
+            onUpdateProfile={handleUpdateProfile}
           />
         );
       

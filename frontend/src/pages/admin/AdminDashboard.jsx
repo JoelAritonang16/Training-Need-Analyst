@@ -9,7 +9,8 @@ import UserCreate from './UserCreate.jsx';
 import UserCreateForAdmin from './UserCreateForAdmin.jsx';
 import DraftTNA2026 from './DraftTNA2026.jsx';
 import TempatDiklatRealisasi from './TempatDiklatRealisasi.jsx';
-import { trainingProposalAPI } from '../../utils/api';
+import { trainingProposalAPI, userProfileAPI } from '../../utils/api';
+import AdminProfile from './AdminProfile';
 import danantaraLogo from '../../assets/Danantara2.png';
 import pelindoLogo from '../../assets/LogoFixx.png';
 import './AdminDashboard.css';
@@ -58,6 +59,12 @@ const AdminDashboard = ({ user, onLogout }) => {
 
   const handleMenuChange = (menuId) => {
     setActiveMenu(menuId);
+  };
+
+  const handleUpdateProfile = (updatedUser) => {
+    // Update user data in parent component if needed
+    console.log('Profile updated:', updatedUser);
+    // You might want to update the user in your global state here
   };
 
   const handleApproveProposal = async (proposalId) => {
@@ -275,12 +282,11 @@ const AdminDashboard = ({ user, onLogout }) => {
           />
         );
       
-      case 'tempat-diklat-realisasi':
+      case 'profile':
         return (
-          <TempatDiklatRealisasi 
+          <AdminProfile 
             user={user}
-            currentUserRole="admin"
-            onNavigate={handleMenuChange}
+            onUpdateProfile={handleUpdateProfile}
           />
         );
       
