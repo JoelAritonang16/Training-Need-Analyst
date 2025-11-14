@@ -33,29 +33,46 @@ const Profile = ({ user: userProp, proposals = [], onUpdateProfile }) => {
   }, [showError]);
   
   // Create safe user object with defaults
-  const safeUser = userProp ? {
-    username: userProp.username || '',
-    email: userProp.email || '',
-    unit: userProp.unit || '',
-    phone: userProp.phone || '',
-    fullName: userProp.fullName || userProp.username || 'Pengguna',
-    profilePhoto: userProp.profilePhoto || null,
-    role: userProp.role || 'user'
-  } : null;
+  const getSafeUser = (user) => {
+    if (!user) return null;
+    return {
+      username: user.username || '',
+      email: user.email || '',
+      unit: user.unit || '',
+      phone: user.phone || '',
+      fullName: user.fullName || user.username || 'Pengguna',
+      profilePhoto: user.profilePhoto || null,
+      role: user.role || 'user'
+    };
+  };
   
-  const [profileData, setProfileData] = useState(safeUser || {});
+  const [profileData, setProfileData] = useState(() => getSafeUser(userProp) || {});
+  const [originalData, setOriginalData] = useState(null);
 
   // Update profile data when user prop changes
   useEffect(() => {
-    if (safeUser) {
-      setProfileData(safeUser);
+    console.log('User prop changed:', userProp);
+    const user = getSafeUser(userProp);
+    console.log('Safe user:', user);
+    if (user) {
+      console.log('Setting profile data:', user);
+      setProfileData(user);
+      if (!isEditing) {
+        setOriginalData(user);
+      }
     }
-  }, [safeUser]);
+  }, [userProp]);
   
   // Handle loading state
+  const safeUser = getSafeUser(userProp);
   if (!userProp || !safeUser) {
+    console.log('Loading user data...');
     return <div className="profile-container">Memuat data pengguna...</div>;
   }
+  
+  console.log('Rendering with profileData:', profileData);
+  console.log('Is editing:', isEditing);
+  console.log('Safe user data:', safeUser);
 
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
@@ -79,49 +96,123 @@ const Profile = ({ user: userProp, proposals = [], onUpdateProfile }) => {
 
   const handleUploadFile = async (file) => {
     if (!file) return;
-    
+
+    // Validasi ukuran file (maks 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setErrorMessage('Ukuran file terlalu besar. Maksimal 5MB');
+      setShowError(true);
+      return;
+    }
+
+    // Validasi tipe file
+    const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
+    if (!validTypes.includes(file.type.toLowerCase())) {
+      setErrorMessage('Format file tidak didukung. Gunakan format JPG, JPEG, PNG, atau WebP');
+      setShowError(true);
+      return;
+    }
+
     setUploading(true);
     const formData = new FormData();
     formData.append('photo', file);
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/users/profile/photo', {
+      if (!token) {
+        throw new Error('Anda harus login terlebih dahulu');
+      }
+
+      console.log('Mengupload foto profil...');
+      
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/users/profile/photo`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
+          // Biarkan browser mengatur Content-Type untuk FormData
         },
+        credentials: 'include',
         body: formData
       });
 
       const data = await response.json();
+      console.log('Response upload foto:', data);
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Gagal mengupload foto');
+      }
 
       if (data.success) {
+        // Pastikan URL foto lengkap dengan domain
+        let photoUrl = data.profilePhoto || data.photoUrl;
+        if (!photoUrl) {
+          throw new Error('URL foto tidak valid dari server');
+        }
+
+        // Jika URL relatif, tambahkan base URL
+        if (!photoUrl.startsWith('http') && !photoUrl.startsWith('blob:')) {
+          const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+          photoUrl = `${baseUrl.replace(/\/+$/, '')}/${photoUrl.replace(/^\/+/, '')}`;
+        }
+        
         // Tambahkan timestamp untuk menghindari cache
         const timestamp = new Date().getTime();
-        const photoUrl = `${data.profilePhoto}?t=${timestamp}`;
+        const photoUrlWithTimestamp = `${photoUrl}${photoUrl.includes('?') ? '&' : '?'}t=${timestamp}`;
         
-        setProfileData(prev => ({
+        console.log('Foto berhasil diupload, URL:', photoUrlWithTimestamp);
+        
+        // Update state dengan foto baru
+        const updatedProfile = {
+          ...profileData,
+          profilePhoto: photoUrlWithTimestamp
+        };
+        
+        // Update state lokal
+        setProfileData(updatedProfile);
+        
+        // Update originalData untuk memastikan perubahan tersimpan
+        setOriginalData(prev => ({
           ...prev,
-          profilePhoto: photoUrl
+          profilePhoto: photoUrlWithTimestamp
         }));
         
+        // Update parent component dengan data lengkap
         if (onUpdateProfile) {
-          onUpdateProfile({ 
-            ...userProp, 
-            profilePhoto: photoUrl
+          onUpdateProfile({
+            ...userProp,
+            profilePhoto: photoUrlWithTimestamp,
+            // Pastikan field penting lainnya ikut terupdate
+            fullName: profileData.fullName,
+            username: profileData.username,
+            email: profileData.email,
+            phone: profileData.phone,
+            unit: profileData.unit,
+            role: profileData.role
           });
         }
         
-        setSuccessMessage('Foto profil berhasil diupload!');
+        // Update localStorage dengan data terbaru
+        const userData = JSON.parse(localStorage.getItem('user') || '{}');
+        if (Object.keys(userData).length > 0) {
+          const updatedUserData = {
+            ...userData,
+            profilePhoto: photoUrlWithTimestamp,
+            fullName: profileData.fullName || userData.fullName,
+            username: profileData.username || userData.username,
+            email: profileData.email || userData.email,
+            phone: profileData.phone || userData.phone,
+            unit: profileData.unit || userData.unit,
+            role: profileData.role || userData.role
+          };
+          localStorage.setItem('user', JSON.stringify(updatedUserData));
+          console.log('LocalStorage updated with new profile data');
+        }
+        
+        setSuccessMessage('Foto profil berhasil diupdate!');
         setShowSuccess(true);
-      } else {
-        setErrorMessage('Gagal upload foto: ' + (data.message || 'Terjadi kesalahan'));
-        setShowError(true);
       }
     } catch (error) {
       console.error('Upload error:', error);
-      setErrorMessage('Terjadi kesalahan saat upload foto: ' + (error.message || 'Coba lagi nanti'));
+      setErrorMessage('Gagal mengupload foto: ' + (error.message || 'Terjadi kesalahan'));
       setShowError(true);
     } finally {
       setUploading(false);
@@ -134,53 +225,120 @@ const Profile = ({ user: userProp, proposals = [], onUpdateProfile }) => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setProfileData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    console.log('Input changed - Name:', name, 'Value:', value);
+    
+    setProfileData(prev => {
+      const newData = {
+        ...prev,
+        [name]: value
+      };
+      console.log('New profile data:', newData);
+      return newData;
+    });
   };
 
   const handleSave = async () => {
     try {
-      console.log('Menyimpan perubahan profil:', profileData);
-      const response = await userProfileAPI.updateProfile(profileData);
+      console.log('Saving profile data for role:', userProp?.role, 'Data:', profileData);
       
-      if (response.success) {
-        const updatedUser = {
-          ...userProp,
-          ...response.user,
-          profilePhoto: response.user.profilePhoto || userProp?.profilePhoto
-        };
+      // Data dasar yang dibutuhkan semua role
+      const baseData = {
+        fullName: profileData.fullName?.trim() || null,
+        username: profileData.username?.trim() || '',
+        email: profileData.email?.trim() || null,
+        phone: profileData.phone?.trim() || null,
+        role: profileData.role || 'user',
+        // Tambahkan field khusus role jika diperlukan
+        ...(profileData.unit && { unit: profileData.unit.trim() })
+      };
+
+      // Validasi data berdasarkan role
+      let validationError = '';
+      
+      // Validasi untuk semua role
+      if (!baseData.username) {
+        validationError = 'Username tidak boleh kosong';
+      } else if (baseData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(baseData.email)) {
+        validationError = 'Format email tidak valid';
+      } else if (baseData.phone && !/^[0-9+\-\s]*$/.test(baseData.phone)) {
+        validationError = 'Nomor telepon hanya boleh berisi angka, +, atau -';
+      }
+
+      if (validationError) {
+        setErrorMessage(validationError);
+        setShowError(true);
+        return;
+      }
+      
+      console.log('Data to send to server:', baseData);
+      setUploading(true);
+      
+      try {
+        const response = await userProfileAPI.updateProfile(baseData);
+        console.log('Server response:', response);
         
-        setProfileData(updatedUser);
-        
-        // Show success message
-        alert('Profil berhasil diperbarui!');
-        
-        // Update parent component
-        if (onUpdateProfile) {
-          onUpdateProfile(updatedUser);
+        if (response) {
+          // Pastikan data yang diterima dari server lengkap
+          const updatedUser = {
+            ...userProp,
+            ...(response.user || {}),
+            profilePhoto: response.user?.profilePhoto || userProp?.profilePhoto || ''
+          };
+          
+          console.log('Profile updated successfully:', updatedUser);
+          
+          // Update state
+          setProfileData(updatedUser);
+          setOriginalData(updatedUser);
+          
+          // Show success message
+          setSuccessMessage(response.message || 'Profil berhasil diperbarui!');
+          setShowSuccess(true);
+          
+          // Update parent component
+          if (onUpdateProfile) {
+            onUpdateProfile(updatedUser);
+          }
+          
+          // Exit edit mode after a short delay
+          setTimeout(() => {
+            setIsEditing(false);
+            setUploading(false);
+          }, 1000);
+        } else {
+          throw new Error('Tidak ada response dari server');
         }
-        
-        // Exit edit mode
-        setIsEditing(false);
-      } else {
-        alert('Gagal memperbarui profil: ' + (response.message || 'Terjadi kesalahan'));
+      } catch (error) {
+        console.error('Error updating profile:', error);
+        setErrorMessage('Terjadi kesalahan: ' + (error.message || 'Tidak dapat menyimpan perubahan'));
+        setShowError(true);
+        setUploading(false);
       }
     } catch (error) {
-      console.error('Error updating profile:', error);
-      alert('Terjadi kesalahan: ' + (error.message || 'Tidak dapat menyimpan perubahan'));
+      console.error('Unexpected error:', error);
+      setErrorMessage('Terjadi kesalahan tak terduga');
+      setShowError(true);
+      setUploading(false);
     }
   };
 
+  const toggleEdit = () => {
+    console.log('Toggling edit mode. Current state:', isEditing);
+    if (!isEditing) {
+      // Ketika masuk mode edit, simpan data asli
+      setOriginalData(profileData);
+    } else {
+      // Ketika batal edit, kembalikan ke data asli
+      setProfileData(originalData);
+    }
+    setIsEditing(!isEditing);
+  };
+
   const handleCancel = () => {
-    setProfileData({
-      username: userProp?.username || '',
-      email: userProp?.email || '',
-      unit: userProp?.unit || '',
-      phone: userProp?.phone || '',
-      fullName: userProp?.fullName || ''
-    });
+    console.log('Canceling edit, resetting to original data');
+    if (originalData) {
+      setProfileData(originalData);
+    }
     setIsEditing(false);
   };
 
@@ -251,7 +409,7 @@ const Profile = ({ user: userProp, proposals = [], onUpdateProfile }) => {
           </div>
         </div>
       )}
-      <div className="content-header">
+      <div className="profile-header-container">
         <h2>Profil Pengguna</h2>
         <p>Informasi akun dan pengaturan profil</p>
       </div>
@@ -287,32 +445,14 @@ const Profile = ({ user: userProp, proposals = [], onUpdateProfile }) => {
                 />
               </button>
             </div>
-            <div className="profile-details">
-              <h3>{profileData.fullName || profileData.username}</h3>
-              <p className="role-badge">{userProp?.role || 'user'}</p>
-              <p className="unit-info">{profileData.unit || 'Unit/Divisi'}</p>
-            </div>
-            <button 
-              className="edit-profile-btn"
-              onClick={() => setIsEditing(!isEditing)}
-            >
-              {isEditing ? 'Batal' : 'Edit Profil'}
-            </button>
           </div>
-          
-          <div className="profile-stats">
-            <div className="stat-item">
-              <span className="stat-number">{proposals.length}</span>
-              <span className="stat-label">Total Usulan</span>
-            </div>
-            <div className="stat-item">
-              <span className="stat-number">{approvedCount}</span>
-              <span className="stat-label">Disetujui</span>
-            </div>
-            <div className="stat-item">
-              <span className="stat-number">{pendingCount}</span>
-              <span className="stat-label">Menunggu</span>
-            </div>
+          <div className="stat-item">
+            <span className="stat-number">{approvedCount}</span>
+            <span className="stat-label">Disetujui</span>
+          </div>
+          <div className="stat-item">
+            <span className="stat-number">{pendingCount}</span>
+            <span className="stat-label">Menunggu</span>
           </div>
         </div>
 
@@ -324,10 +464,11 @@ const Profile = ({ user: userProp, proposals = [], onUpdateProfile }) => {
               <input
                 type="text"
                 name="fullName"
-                value={profileData.fullName}
+                value={profileData.fullName || ''}
                 onChange={handleInputChange}
                 disabled={!isEditing}
                 placeholder="Masukkan nama lengkap"
+                className={isEditing ? '' : 'readonly-input'}
               />
             </div>
 
@@ -339,6 +480,7 @@ const Profile = ({ user: userProp, proposals = [], onUpdateProfile }) => {
                 value={profileData.username}
                 onChange={handleInputChange}
                 disabled={!isEditing}
+                className={isEditing ? '' : 'readonly-input'}
                 placeholder="Username"
               />
             </div>
@@ -351,6 +493,7 @@ const Profile = ({ user: userProp, proposals = [], onUpdateProfile }) => {
                 value={profileData.email}
                 onChange={handleInputChange}
                 disabled={!isEditing}
+                className={isEditing ? '' : 'readonly-input'}
                 placeholder="email@pelindo.com"
               />
             </div>
@@ -363,6 +506,7 @@ const Profile = ({ user: userProp, proposals = [], onUpdateProfile }) => {
                 value={profileData.unit}
                 onChange={handleInputChange}
                 disabled={!isEditing}
+                className={isEditing ? '' : 'readonly-input'}
                 placeholder="Unit/Divisi"
               />
             </div>
@@ -375,6 +519,7 @@ const Profile = ({ user: userProp, proposals = [], onUpdateProfile }) => {
                 value={profileData.phone}
                 onChange={handleInputChange}
                 disabled={!isEditing}
+                className={isEditing ? '' : 'readonly-input'}
                 placeholder="08xx-xxxx-xxxx"
               />
             </div>
@@ -385,8 +530,15 @@ const Profile = ({ user: userProp, proposals = [], onUpdateProfile }) => {
                   type="button" 
                   className="btn-save"
                   onClick={handleSave}
+                  disabled={uploading}
                 >
-                  Simpan Perubahan
+                  {uploading ? (
+                    <>
+                      <FiLoader className="spin" /> Menyimpan...
+                    </>
+                  ) : (
+                    'Simpan Perubahan'
+                  )}
                 </button>
                 <button 
                   type="button" 
@@ -398,6 +550,13 @@ const Profile = ({ user: userProp, proposals = [], onUpdateProfile }) => {
               </div>
             )}
           </form>
+          <button 
+            type="button"
+            className="edit-profile-btn"
+            onClick={toggleEdit}
+          >
+            {isEditing ? 'Batal' : 'Edit Profil'}
+          </button>
         </div>
       </div>
 

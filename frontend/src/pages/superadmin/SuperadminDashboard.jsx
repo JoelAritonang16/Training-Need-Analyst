@@ -21,7 +21,29 @@ import danantaraLogo from '../../assets/Danantara2.png';
 import pelindoLogo from '../../assets/LogoFixx.png';
 import './SuperadminDashboard.css';
 
-const SuperadminDashboard = ({ user, onLogout }) => {
+const SuperadminDashboard = ({ user, onLogout, onUserUpdate }) => {
+  const [currentUser, setCurrentUser] = useState(user);
+  
+  // Update currentUser when user prop changes
+  useEffect(() => {
+    setCurrentUser(user);
+  }, [user]);
+  
+  // Handler untuk update profil
+  const handleUserUpdate = (updatedUserData) => {
+    console.log('Updating user data in SuperadminDashboard:', updatedUserData);
+    
+    // Update state lokal dengan data terbaru
+    setCurrentUser(prev => ({
+      ...prev,
+      ...updatedUserData
+    }));
+    
+    // Panggil onUserUpdate untuk mengupdate state di App.jsx
+    if (onUserUpdate) {
+      onUserUpdate(updatedUserData);
+    }
+  };
   const [activeMenu, setActiveMenu] = useState('dashboard');
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [users, setUsers] = useState([
@@ -398,8 +420,9 @@ const SuperadminDashboard = ({ user, onLogout }) => {
       case 'profile':
         return (
           <SuperAdminProfile 
-            user={user}
-            onUpdateProfile={handleUpdateProfile}
+            user={currentUser} 
+            onLogout={onLogout}
+            onUpdateProfile={handleUserUpdate}
           />
         );
       
@@ -453,8 +476,24 @@ const SuperadminDashboard = ({ user, onLogout }) => {
               aria-haspopup="true"
               aria-expanded={isUserMenuOpen}
             >
-              <span className="user-avatar">{user?.username?.charAt(0)?.toUpperCase() || 'U'}</span>
-              <span className="user-name">{user?.username || 'User'}</span>
+              <span className="user-avatar">
+                {currentUser?.profilePhoto ? (
+                  <img 
+                    key={`avatar-${currentUser.profilePhoto}`}
+                    src={`http://localhost:5000/${currentUser.profilePhoto}?t=${new Date().getTime()}`} 
+                    alt="Profile" 
+                    style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }}
+                    onError={(e) => {
+                      // Fallback jika gambar gagal dimuat
+                      e.target.onerror = null;
+                      e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser?.username || 'User')}&background=random`;
+                    }}
+                  />
+                ) : (
+                  currentUser?.username?.charAt(0)?.toUpperCase() || 'U'
+                )}
+              </span>
+              <span className="user-name">{currentUser?.username || 'User'}</span>
               <span className={`chevron ${isUserMenuOpen ? 'open' : ''}`}>▾</span>
             </button>
             {isUserMenuOpen && (

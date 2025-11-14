@@ -19,6 +19,33 @@ html, body {
 }
 
 /* === HEADER === */
+/* Gaya untuk header profile */
+.profile-header-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  margin: 0 auto 2rem;
+  max-width: 1000px;
+  width: 100%;
+}
+
+.profile-header-container h2 {
+  margin: 0 0 8px 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #2b2d42;
+  text-align: center;
+}
+
+.profile-header-container p {
+  margin: 0;
+  color: #6c757d;
+  font-size: 1rem;
+  text-align: center;
+}
+
 .content-header {
   display: flex;
   justify-content: center;
@@ -565,8 +592,10 @@ html, body {
 }
 
 .stat-label {
-  font-size: 0.9rem;
   color: #6c757d;
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-top: 5px;
 }
 
 /* === PROFILE FORM === */

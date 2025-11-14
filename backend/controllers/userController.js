@@ -753,10 +753,21 @@ const userController = {
   async updateOwnProfile(req, res) {
     try {
       console.log('=== UPDATE OWN PROFILE START ===');
+      console.log('Headers:', req.headers);
       console.log('req.user:', req.user);
+      console.log('Request body:', req.body);
       
-      const userId = req.user.id; // From auth middleware
+      const userId = req.user?.id; // From auth middleware
       const { username, fullName, email, phone, unit } = req.body;
+      
+      // Validasi user ID
+      if (!userId) {
+        console.error('No user ID found in request');
+        return res.status(401).json({
+          success: false,
+          message: 'Tidak ada informasi pengguna yang valid'
+        });
+      }
 
       console.log('User ID:', userId);
       console.log('Request body:', req.body);
@@ -766,19 +777,39 @@ const userController = {
       console.log('Phone from body:', phone);
       console.log('Unit from body:', unit);
 
+      // Validasi input
+      if (!username) {
+        return res.status(400).json({
+          success: false,
+          message: 'Username tidak boleh kosong'
+        });
+      }
+
       // Check if user exists
+      console.log('Mencari user dengan ID:', userId);
       const user = await User.findByPk(userId);
       if (!user) {
+        console.error(`User dengan ID ${userId} tidak ditemukan`);
         return res.status(404).json({
           success: false,
           message: 'User tidak ditemukan'
         });
       }
 
+      console.log('User ditemukan:', user.toJSON());
+
       // Check if new username already exists (if username is being changed)
       if (username && username !== user.username) {
-        const existingUser = await User.findOne({ where: { username } });
+        console.log('Memeriksa ketersediaan username:', username);
+        const existingUser = await User.findOne({ 
+          where: { 
+            username,
+            id: { [Op.ne]: userId } // Exclude current user
+          } 
+        });
+        
         if (existingUser) {
+          console.log('Username sudah digunakan oleh user lain');
           return res.status(400).json({
             success: false,
             message: 'Username sudah digunakan oleh user lain'
@@ -786,37 +817,73 @@ const userController = {
         }
       }
 
-      // Update user profile fields (ALL fields can be updated)
-      const updateData = {};
-      if (username !== undefined) updateData.username = username;
-      if (fullName !== undefined) updateData.fullName = fullName;
-      if (email !== undefined) updateData.email = email;
-      if (phone !== undefined) updateData.phone = phone;
-      if (unit !== undefined) updateData.unit = unit;
+      // Update user profile fields
+      const updateData = {
+        username: username || user.username,
+        fullName: fullName !== undefined ? fullName : user.fullName,
+        email: email !== undefined ? email : user.email,
+        phone: phone !== undefined ? phone : user.phone,
+        unit: unit !== undefined ? unit : user.unit
+      };
 
-      const updatedUser = await user.update(updateData);
-      
-      console.log('Profile updated successfully');
-      console.log('Updated user:', updatedUser.toJSON());
+      console.log('Data yang akan diupdate:', updateData);
 
-      res.json({
-        success: true,
-        message: 'Profil berhasil diperbarui',
-        user: {
-          id: updatedUser.id,
-          username: updatedUser.username,
-          fullName: updatedUser.fullName,
-          email: updatedUser.email,
-          phone: updatedUser.phone,
-          unit: updatedUser.unit,
-          role: updatedUser.role
+      try {
+        // Update data user
+        await user.update(updateData);
+        
+        // Ambil data terbaru dari database
+        const updatedUser = await User.findByPk(userId);
+        
+        console.log('Profile updated successfully');
+        console.log('Updated user:', updatedUser.toJSON());
+
+        return res.json({
+          success: true,
+          message: 'Profil berhasil diperbarui',
+          user: {
+            id: updatedUser.id,
+            username: updatedUser.username,
+            fullName: updatedUser.fullName,
+            email: updatedUser.email,
+            phone: updatedUser.phone,
+            unit: updatedUser.unit,
+            role: updatedUser.role,
+            profilePhoto: updatedUser.profilePhoto
+          }
+        });
+      } catch (updateError) {
+        console.error('Error saat update user:', updateError);
+        
+        // Handle validation errors
+        if (updateError.name === 'SequelizeValidationError' || updateError.name === 'SequelizeUniqueConstraintError') {
+          const messages = updateError.errors.map(err => err.message);
+          return res.status(400).json({
+            success: false,
+            message: 'Validasi gagal',
+            errors: messages
+          });
         }
-      });
+        
+        throw updateError; // Re-throw untuk ditangkap oleh catch terluar
+      }
     } catch (error) {
       console.error('Update own profile error:', error);
-      res.status(500).json({
+      
+      // Handle specific errors
+      let errorMessage = 'Gagal memperbarui profil';
+      let statusCode = 500;
+      
+      if (error.name === 'SequelizeDatabaseError') {
+        errorMessage = 'Terjadi kesalahan pada database';
+      } else if (error.name === 'SequelizeConnectionError') {
+        errorMessage = 'Tidak dapat terhubung ke database';
+        statusCode = 503; // Service Unavailable
+      }
+      
+      res.status(statusCode).json({
         success: false,
-        message: 'Gagal memperbarui profil'
+        message: `${errorMessage}: ${error.message || 'Tidak ada detail tambahan'}`
       });
     }
   },

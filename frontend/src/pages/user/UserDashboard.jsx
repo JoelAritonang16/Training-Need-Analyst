@@ -46,16 +46,31 @@ const UserDashboard = ({ user, onLogout, onUserUpdate, proposals = [] }) => {
   };
 
   const handleUpdateProfile = (updatedUserData) => {
+    console.log('Update profile in UserDashboard:', updatedUserData);
+    
     // Update local user state with new profile data
-    console.log('Update profile:', updatedUserData);
-    setCurrentUser(prevUser => ({
-      ...prevUser,
-      ...updatedUserData
-    }));
+    setCurrentUser(prevUser => {
+      const updatedUser = {
+        ...prevUser,
+        ...updatedUserData
+      };
+      console.log('Updated currentUser:', updatedUser);
+      return updatedUser;
+    });
     
     // Call parent update handler to update App.jsx state
     if (onUserUpdate) {
       onUserUpdate(updatedUserData);
+    }
+    
+    // Force re-render of the profile image by updating the timestamp
+    const timestamp = new Date().getTime();
+    if (updatedUserData.profilePhoto) {
+      const photoWithTimestamp = `${updatedUserData.profilePhoto}${updatedUserData.profilePhoto.includes('?') ? '&' : '?'}t=${timestamp}`;
+      setCurrentUser(prev => ({
+        ...prev,
+        profilePhoto: photoWithTimestamp
+      }));
     }
   };
 

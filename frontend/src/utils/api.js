@@ -263,10 +263,32 @@ export const anakPerusahaanAPI = {
 export const userProfileAPI = {
   updateProfile: async (profileData) => {
     console.log('Updating user profile:', profileData);
-    return apiCall('/api/users/profile/me', {
-      method: 'PUT',
-      body: JSON.stringify(profileData)
-    });
+    const token = localStorage.getItem('token');
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/users/profile/me`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        credentials: 'include',
+        body: JSON.stringify(profileData)
+      });
+
+      console.log('Profile update response status:', response.status);
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Profile update error:', errorData);
+        throw new Error(errorData.message || 'Gagal memperbarui profil');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error in updateProfile:', error);
+      throw error;
+    }
   }
 };
 
