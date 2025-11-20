@@ -260,6 +260,26 @@
   opacity: 0.6;
 }
 
+/* ===== reCAPTCHA CONTAINER ===== */
+.recaptcha-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 16px 0;
+  padding: 8px 0;
+}
+
+.recaptcha-container .g-recaptcha {
+  transform: scale(0.9);
+  transform-origin: 0 0;
+}
+
+@media (max-width: 400px) {
+  .recaptcha-container .g-recaptcha {
+    transform: scale(0.8);
+  }
+}
+
 /* ===== BUTTON ===== */
 .login-button {
   width: 100%;
