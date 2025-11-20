@@ -1,5 +1,125 @@
-import { TrainingProposal, TrainingProposalItem, User, Branch, Divisi } from "../models/index.js";
+import { TrainingProposal, TrainingProposalItem, User, Branch, Divisi, Notification, DraftTNA2026, TempatDiklatRealisasi } from "../models/index.js";
 import ExcelJS from "exceljs";
+
+const createDraftAndRealisasiFromProposal = async (proposalInstance) => {
+  try {
+    if (!proposalInstance) {
+      return { draftCreated: false, reason: "NO_PROPOSAL" };
+    }
+
+    const proposal =
+      typeof proposalInstance.toJSON === "function"
+        ? proposalInstance
+        : proposalInstance;
+
+    // Ambil data user (fallback branch/divisi)
+    let proposalUser = proposal.user;
+    if (!proposalUser) {
+      proposalUser = await User.findByPk(proposal.userId, {
+        attributes: ["id", "divisiId", "branchId"],
+      });
+    }
+
+    const branchIdForDraft = proposal.branchId || proposalUser?.branchId;
+    if (!branchIdForDraft) {
+      console.warn(
+        `[Draft Sync] Draft tidak dibuat karena proposal ${proposal.id} tidak memiliki branchId.`
+      );
+      return { draftCreated: false, reason: "NO_BRANCH" };
+    }
+
+    // Cek duplikasi draft
+    const existingDraft = await DraftTNA2026.findOne({
+      where: {
+        uraian: proposal.Uraian,
+        waktuPelaksanaan: proposal.WaktuPelaksanan,
+        branchId: branchIdForDraft,
+      },
+    });
+
+    let draftCreated = false;
+    if (!existingDraft) {
+      await DraftTNA2026.create({
+        tahun: new Date(proposal.WaktuPelaksanan).getFullYear() || 2026,
+        branchId: branchIdForDraft,
+        divisiId: proposalUser?.divisiId || null,
+        uraian: proposal.Uraian,
+        waktuPelaksanaan: proposal.WaktuPelaksanan,
+        jumlahPeserta: proposal.JumlahPeserta,
+        jumlahHari: proposal.JumlahHariPesertaPelatihan,
+        levelTingkatan: proposal.LevelTingkatan,
+        beban: proposal.Beban || 0,
+        bebanTransportasi: proposal.BebanTransportasi || 0,
+        bebanAkomodasi: proposal.BebanAkomodasi || 0,
+        bebanUangSaku: proposal.BebanUangSaku || 0,
+        totalUsulan: proposal.TotalUsulan || 0,
+        status: "DRAFT",
+        createdBy: proposal.userId,
+      });
+      draftCreated = true;
+      console.log(
+        `[Draft Sync] Draft TNA otomatis dibuat dari proposal ${proposal.id}`
+      );
+    }
+
+    // Sinkronisasi Tempat Diklat Realisasi
+    try {
+      const branch = await Branch.findByPk(branchIdForDraft, {
+        attributes: ["id", "nama"],
+      });
+      const waktuPelaksanan = new Date(proposal.WaktuPelaksanan);
+      const bulan = waktuPelaksanan.getMonth() + 1;
+      const tahun = waktuPelaksanan.getFullYear();
+
+      const existingRealisasi = await TempatDiklatRealisasi.findOne({
+        where: {
+          branchId: branchIdForDraft,
+          bulan,
+          tahun,
+        },
+      });
+
+      if (existingRealisasi) {
+        await existingRealisasi.update({
+          jumlahKegiatan: existingRealisasi.jumlahKegiatan + 1,
+          totalPeserta:
+            existingRealisasi.totalPeserta + (proposal.JumlahPeserta || 0),
+          totalBiaya:
+            existingRealisasi.totalBiaya + (proposal.TotalUsulan || 0),
+          keterangan: existingRealisasi.keterangan
+            ? `${existingRealisasi.keterangan}\n- ${proposal.Uraian}`
+            : proposal.Uraian,
+        });
+      } else {
+        await TempatDiklatRealisasi.create({
+          branchId: branchIdForDraft,
+          namaTempat: branch?.nama || `Tempat Diklat ${branchIdForDraft}`,
+          alamat: null,
+          bulan,
+          tahun,
+          jumlahKegiatan: 1,
+          totalPeserta: proposal.JumlahPeserta || 0,
+          totalBiaya: proposal.TotalUsulan || 0,
+          keterangan: proposal.Uraian,
+          createdBy: proposal.userId,
+        });
+      }
+    } catch (realisasiError) {
+      console.error(
+        `[Draft Sync] Error sinkronisasi Tempat Diklat Realisasi untuk proposal ${proposal.id}:`,
+        realisasiError
+      );
+    }
+
+    return { draftCreated, branchId: branchIdForDraft };
+  } catch (error) {
+    console.error(
+      `[Draft Sync] Error membuat draft dari proposal ${proposalInstance?.id}:`,
+      error
+    );
+    return { draftCreated: false, error };
+  }
+};
 
 const trainingProposalController = {
   // Get all proposals with role-based filtering
@@ -466,6 +586,26 @@ const trainingProposalController = {
       
       console.log('Proposal berhasil dibuat:', newProposal);
 
+      // Kirim notifikasi ke admin dari branch yang sama bahwa ada proposal baru
+      const adminUsers = await User.findAll({
+        where: { 
+          role: 'admin',
+          branchId: branchId
+        },
+        attributes: ['id', 'username', 'fullName']
+      });
+      
+      for (const admin of adminUsers) {
+        await Notification.create({
+          userId: admin.id,
+          proposalId: newProposal.id,
+          type: 'PROPOSAL_SUBMITTED',
+          title: 'Proposal Baru Menunggu Review',
+          message: `Proposal baru dari ${user.fullName || user.username || 'User'} menunggu review admin.`
+        });
+      }
+      console.log(`Notifikasi dikirim ke ${adminUsers.length} admin untuk proposal baru`);
+
       res.status(201).json({
         success: true,
         message: "Usulan training berhasil dibuat",
@@ -507,6 +647,56 @@ const trainingProposalController = {
       // 'admin' atau 'superadmin' bisa mengedit semua proposal
 
       const { items, ...headerRest } = req.body;
+      
+      // Jika user mengedit proposal yang ditolak, reset status ke MENUNGGU, set flag revisi, dan kirim notifikasi
+      if (currentUserRole === "user" && proposal.status === 'DITOLAK') {
+        headerRest.status = 'MENUNGGU';
+        headerRest.alasan = null; // Clear rejection reason
+        headerRest.isRevision = true; // Tandai sebagai revisi
+        headerRest.originalProposalId = proposal.originalProposalId || proposal.id; // Simpan ID proposal asli
+        
+        // Get user info untuk notifikasi
+        const proposalUser = await User.findByPk(proposal.userId, {
+          attributes: ['id', 'username', 'fullName']
+        });
+        
+        // Kirim notifikasi ke admin bahwa proposal telah direvisi
+        const adminUsers = await User.findAll({
+          where: { 
+            role: 'admin',
+            branchId: proposal.branchId
+          },
+          attributes: ['id', 'username', 'fullName']
+        });
+        
+        for (const admin of adminUsers) {
+          await Notification.create({
+            userId: admin.id,
+            proposalId: proposal.id,
+            type: 'PROPOSAL_SUBMITTED',
+            title: '⚠️ REVISI: Proposal Direvisi Setelah Ditolak',
+            message: `Proposal dari ${proposalUser?.fullName || proposalUser?.username || 'User'} telah direvisi setelah ditolak superadmin. Ini adalah REVISI dari proposal sebelumnya. Silakan review ulang.`
+          });
+        }
+        
+        // Kirim notifikasi ke superadmin juga
+        const superadmins = await User.findAll({
+          where: { role: 'superadmin' },
+          attributes: ['id']
+        });
+        
+        for (const superadmin of superadmins) {
+          await Notification.create({
+            userId: superadmin.id,
+            proposalId: proposal.id,
+            type: 'PROPOSAL_SUBMITTED',
+            title: '⚠️ REVISI: Proposal Direvisi Setelah Ditolak',
+            message: `Proposal dari ${proposalUser?.fullName || proposalUser?.username || 'User'} telah direvisi setelah ditolak. Ini adalah REVISI dari proposal sebelumnya. Akan masuk ke admin terlebih dahulu untuk review.`
+          });
+        }
+        
+        console.log(`Notifikasi revisi dikirim ke ${adminUsers.length} admin dan ${superadmins.length} superadmin`);
+      }
 
       // Lakukan update untuk header
       await proposal.update(headerRest);
@@ -656,8 +846,21 @@ const trainingProposalController = {
         });
       }
 
-      // Cek apakah proposal ada
-      const proposal = await TrainingProposal.findByPk(proposalId);
+      // Cek apakah proposal ada dengan include user dan branch
+      const proposal = await TrainingProposal.findByPk(proposalId, {
+        include: [
+          {
+            model: User,
+            as: 'user',
+            attributes: ['id', 'username', 'fullName', 'email', 'branchId']
+          },
+          {
+            model: Branch,
+            as: 'branch',
+            attributes: ['id', 'nama']
+          }
+        ]
+      });
       if (!proposal) {
         return res.status(404).json({
           success: false,
@@ -673,7 +876,7 @@ const trainingProposalController = {
         });
       }
 
-      // Admin hanya bisa approve atau reject (tidak bisa approve superadmin)
+      // Admin bisa approve proposal yang statusnya MENUNGGU (dari user) → kirim ke superadmin
       if (currentUserRole === 'admin') {
         if (status === 'APPROVE_SUPERADMIN') {
           return res.status(403).json({
@@ -681,11 +884,37 @@ const trainingProposalController = {
             message: "Admin tidak dapat memberikan approval superadmin",
           });
         }
+        // Admin bisa approve proposal MENUNGGU untuk kirim ke superadmin
+        if (status === 'APPROVE_ADMIN' && proposal.status !== 'MENUNGGU') {
+          return res.status(400).json({
+            success: false,
+            message: "Admin hanya dapat approve proposal dengan status MENUNGGU untuk dikirim ke superadmin",
+          });
+        }
+        // Admin juga bisa konfirmasi ke user setelah superadmin approve
+        if (status === 'APPROVE_ADMIN' && proposal.status === 'APPROVE_SUPERADMIN') {
+          // Ini adalah konfirmasi ke user, diperbolehkan
+        }
       }
 
-      // Superadmin bisa melakukan semua perubahan status
-      // Jika status DITOLAK, wajib ada alasan
-      if (status === 'DITOLAK' && (!alasan || alasan.trim() === '')) {
+      // Superadmin bisa approve/reject proposal yang sudah di-approve admin (APPROVE_ADMIN)
+      if (currentUserRole === 'superadmin') {
+        if (status === 'APPROVE_SUPERADMIN' && proposal.status !== 'APPROVE_ADMIN') {
+          return res.status(400).json({
+            success: false,
+            message: "Hanya proposal dengan status APPROVE_ADMIN yang dapat di-approve oleh superadmin",
+          });
+        }
+        if (status === 'DITOLAK' && proposal.status !== 'APPROVE_ADMIN') {
+          return res.status(400).json({
+            success: false,
+            message: "Hanya proposal dengan status APPROVE_ADMIN yang dapat ditolak oleh superadmin",
+          });
+        }
+      }
+
+      // Jika status DITOLAK, wajib ada alasan (khusus superadmin)
+      if (status === 'DITOLAK' && currentUserRole === 'superadmin' && (!alasan || alasan.trim() === '')) {
         return res.status(400).json({
           success: false,
           message: "Alasan penolakan harus diisi",
@@ -701,6 +930,78 @@ const trainingProposalController = {
       }
 
       await proposal.update(updateData);
+
+      // ===== NOTIFICATION LOGIC (UPDATED FLOW) =====
+      
+      // 1. Admin approve proposal MENUNGGU → kirim ke superadmin
+      if (currentUserRole === 'admin' && status === 'APPROVE_ADMIN' && proposal.status === 'MENUNGGU') {
+        const superadmins = await User.findAll({
+          where: { role: 'superadmin' },
+          attributes: ['id']
+        });
+        
+        for (const superadmin of superadmins) {
+          await Notification.create({
+            userId: superadmin.id,
+            proposalId: proposal.id,
+            type: 'APPROVE_ADMIN',
+            title: 'Proposal Baru Menunggu Approval',
+            message: `Proposal dari ${proposal.user?.fullName || proposal.user?.username || 'User'} (Branch: ${proposal.branch?.nama || 'N/A'}) telah di-approve oleh admin dan menunggu approval superadmin.`
+          });
+        }
+        console.log(`Notifikasi dikirim ke ${superadmins.length} superadmin`);
+      }
+
+      // 2. Superadmin approve → notifikasi ke admin → admin konfirmasi ke user
+      if (currentUserRole === 'superadmin' && status === 'APPROVE_SUPERADMIN') {
+        // Cari admin dari branch yang sama dengan proposal
+        const adminUsers = await User.findAll({
+          where: { 
+            role: 'admin',
+            branchId: proposal.branchId
+          },
+          attributes: ['id', 'username', 'fullName']
+        });
+
+        // Notifikasi ke admin untuk konfirmasi ke user
+        for (const admin of adminUsers) {
+          await Notification.create({
+            userId: admin.id,
+            proposalId: proposal.id,
+            type: 'APPROVE_SUPERADMIN',
+            title: 'Proposal Disetujui Superadmin - Perlu Konfirmasi',
+            message: `Proposal dari ${proposal.user?.fullName || proposal.user?.username || 'User'} telah disetujui oleh superadmin. Silakan konfirmasi ke user bahwa request telah diterima.`
+          });
+        }
+
+        console.log(`Notifikasi dikirim ke ${adminUsers.length} admin untuk konfirmasi ke user`);
+      }
+
+      // 3. Admin konfirmasi ke user (setelah superadmin approve)
+      // Admin mengubah status dari APPROVE_SUPERADMIN ke APPROVE_ADMIN untuk menandai sudah dikonfirmasi
+      if (currentUserRole === 'admin' && status === 'APPROVE_ADMIN' && proposal.status === 'APPROVE_SUPERADMIN') {
+        // Notifikasi ke user bahwa request diterima
+        await Notification.create({
+          userId: proposal.userId,
+          proposalId: proposal.id,
+          type: 'APPROVE_SUPERADMIN',
+          title: 'Request Anda Diterima',
+          message: `Request Anda telah diterima dan disetujui. Proposal siap untuk dilaksanakan.`
+        });
+        console.log('Notifikasi konfirmasi dikirim ke user');
+      }
+
+      // 4. Superadmin reject → langsung notifikasi ke user dengan pesan (user bisa revisi)
+      if (currentUserRole === 'superadmin' && status === 'DITOLAK') {
+        await Notification.create({
+          userId: proposal.userId,
+          proposalId: proposal.id,
+          type: 'REJECT_SUPERADMIN',
+          title: 'Proposal Anda Ditolak - Perlu Revisi',
+          message: `Proposal Anda telah ditolak oleh superadmin. Alasan: ${alasan.trim()}\n\nSilakan lakukan revisi sesuai feedback dan submit ulang proposal.`
+        });
+        console.log('Notifikasi penolakan dikirim langsung ke user dengan pesan revisi');
+      }
 
       console.log('Proposal status updated successfully');
 
@@ -872,6 +1173,114 @@ const trainingProposalController = {
       res.status(500).json({ success: false, message: "Gagal mengekspor usulan" });
     }
   },
+
+  // Update implementation status (for user to confirm if proposal is implemented)
+  async updateImplementationStatus(req, res) {
+    try {
+      const proposalId = req.params.id;
+      const { implementasiStatus } = req.body;
+      const { id: currentUserId, role: currentUserRole } = req.user;
+
+      // Validasi implementasiStatus
+      const validStatuses = ['BELUM_IMPLEMENTASI', 'SUDAH_IMPLEMENTASI'];
+      if (!validStatuses.includes(implementasiStatus)) {
+        return res.status(400).json({
+          success: false,
+          message: "Status implementasi tidak valid",
+        });
+      }
+
+      // Cek apakah proposal ada dengan include user untuk mendapatkan divisiId
+      const proposal = await TrainingProposal.findByPk(proposalId, {
+        include: [
+          {
+            model: User,
+            as: 'user',
+            attributes: ['id', 'username', 'fullName', 'divisiId', 'branchId']
+          }
+        ]
+      });
+      
+      if (!proposal) {
+        return res.status(404).json({
+          success: false,
+          message: "Usulan training tidak ditemukan",
+        });
+      }
+
+      // Validasi: hanya user pemilik proposal yang bisa update status implementasi
+      if (currentUserRole === "user" && proposal.userId !== currentUserId) {
+        return res.status(403).json({
+          success: false,
+          message: "Akses ditolak: Anda hanya dapat mengupdate status implementasi proposal milik sendiri.",
+        });
+      }
+
+      // Validasi: hanya proposal yang sudah disetujui (APPROVE_ADMIN) yang bisa diupdate status implementasinya
+      if (proposal.status !== 'APPROVE_ADMIN' && proposal.status !== 'APPROVE_SUPERADMIN') {
+        return res.status(400).json({
+          success: false,
+          message: "Hanya proposal yang sudah disetujui yang dapat diupdate status implementasinya",
+        });
+      }
+
+      // Get old status
+      const oldStatus = proposal.implementasiStatus;
+      
+      // Update status implementasi
+      await proposal.update({ implementasiStatus });
+
+      console.log(`Status implementasi proposal ${proposalId} diupdate menjadi ${implementasiStatus}`);
+
+      // Auto-create Draft TNA dan Tempat Diklat Realisasi jika status berubah menjadi SUDAH_IMPLEMENTASI
+      if (implementasiStatus === 'SUDAH_IMPLEMENTASI' && oldStatus !== 'SUDAH_IMPLEMENTASI') {
+        const syncResult = await createDraftAndRealisasiFromProposal(proposal);
+        if (syncResult?.draftCreated) {
+          console.log(`Draft TNA baru dibuat dari proposal ${proposalId}`);
+        }
+      }
+
+      res.json({
+        success: true,
+        message: `Status implementasi berhasil diupdate menjadi ${implementasiStatus}`,
+        proposal: proposal,
+      });
+
+    } catch (error) {
+      console.error("Update implementation status error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Gagal mengupdate status implementasi",
+      });
+    }
+  },
+};
+
+export const syncDraftsFromRealizedProposals = async () => {
+  try {
+    const realizedProposals = await TrainingProposal.findAll({
+      where: { implementasiStatus: 'SUDAH_IMPLEMENTASI' },
+      include: [
+        {
+          model: User,
+          as: 'user',
+          attributes: ['id', 'divisiId', 'branchId'],
+        },
+      ],
+    });
+
+    let createdCount = 0;
+    for (const proposal of realizedProposals) {
+      const result = await createDraftAndRealisasiFromProposal(proposal);
+      if (result?.draftCreated) {
+        createdCount += 1;
+      }
+    }
+
+    console.log(`[Draft Sync] Sinkronisasi selesai. ${createdCount} draft baru dipastikan dari ${realizedProposals.length} proposal terealisasi.`);
+  } catch (error) {
+    console.error('[Draft Sync] Gagal sinkronisasi draft dari proposal terealisasi:', error);
+  }
 };
 
 export default trainingProposalController;

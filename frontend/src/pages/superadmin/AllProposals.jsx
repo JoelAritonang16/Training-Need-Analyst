@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { API_BASE_URL, branchAPI, divisiAPI } from '../../utils/api';
+import AlertModal from '../../components/AlertModal';
 import './AllProposals.css';
 
 const AllProposals = ({ proposals, onFinalApprove, onFinalReject, onViewDetail, onEditProposal, onNavigate, initialStatusFilter, headerTitle, onFilterChange }) => {
@@ -9,6 +10,12 @@ const AllProposals = ({ proposals, onFinalApprove, onFinalReject, onViewDetail, 
   const [divisiFilter, setDivisiFilter] = useState('all');
   const [branchList, setBranchList] = useState([]);
   const [divisiList, setDivisiList] = useState([]);
+  const [alertModal, setAlertModal] = useState({
+    open: false,
+    title: '',
+    message: '',
+    type: 'error'
+  });
   
   useEffect(() => {
     fetchBranchAndDivisi();
@@ -58,7 +65,13 @@ const AllProposals = ({ proposals, onFinalApprove, onFinalReject, onViewDetail, 
       a.remove();
       window.URL.revokeObjectURL(url);
     } catch (e) {
-      alert(e.message || 'Export gagal');
+      console.error('Export error:', e);
+      setAlertModal({
+        open: true,
+        title: 'Export Gagal',
+        message: e.message || 'Gagal mengekspor data. Silakan coba lagi.',
+        type: 'error'
+      });
     }
   };
 
@@ -81,7 +94,13 @@ const AllProposals = ({ proposals, onFinalApprove, onFinalReject, onViewDetail, 
       a.remove();
       window.URL.revokeObjectURL(url);
     } catch (e) {
-      alert(e.message || 'Export gagal');
+      console.error('Export error:', e);
+      setAlertModal({
+        open: true,
+        title: 'Export Gagal',
+        message: e.message || 'Gagal mengekspor data. Silakan coba lagi.',
+        type: 'error'
+      });
     }
   };
 
@@ -185,9 +204,21 @@ const AllProposals = ({ proposals, onFinalApprove, onFinalReject, onViewDetail, 
           <div key={proposal.id} className="proposal-card">
             <div className="proposal-header">
               <h3>{proposal.Uraian}</h3>
-              <span className={`status-badge ${proposal.status.toLowerCase().replace(/_/g, '-')}`}>
-                {proposal.status.replace(/_/g, ' ')}
-              </span>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                <span className={`status-badge ${proposal.status.toLowerCase().replace(/_/g, '-')}`}>
+                  {proposal.status.replace(/_/g, ' ')}
+                </span>
+                {proposal.isRevision && (
+                  <span className="status-badge" style={{ 
+                    backgroundColor: '#ff9800', 
+                    color: 'white',
+                    fontSize: '0.75em',
+                    padding: '2px 8px'
+                  }}>
+                    ⚠️ REVISI
+                  </span>
+                )}
+              </div>
             </div>
             <div className="proposal-details">
               <p><strong>Pengaju:</strong> {proposal.user?.username || proposal.user?.fullName || `User ID ${proposal.userId}`}</p>
@@ -246,6 +277,14 @@ const AllProposals = ({ proposals, onFinalApprove, onFinalReject, onViewDetail, 
           <p>Tidak ada usulan yang sesuai dengan filter yang dipilih.</p>
         </div>
       )}
+
+      <AlertModal
+        open={alertModal.open}
+        title={alertModal.title}
+        message={alertModal.message}
+        type={alertModal.type}
+        onConfirm={() => setAlertModal({ ...alertModal, open: false })}
+      />
     </div>
   );
 };

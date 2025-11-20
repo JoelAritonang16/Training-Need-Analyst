@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { draftTNA2026API } from '../../utils/api';
 import { LuBarChart3, LuDownload } from 'react-icons/lu';
 import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import AlertModal from '../../components/AlertModal';
 import './RekapGabungan.css';
 
 const RekapGabungan = ({ onNavigate }) => {
@@ -9,6 +10,12 @@ const RekapGabungan = ({ onNavigate }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('branches'); // 'branches' or 'divisi'
+  const [alertModal, setAlertModal] = useState({
+    open: false,
+    title: '',
+    message: '',
+    type: 'info'
+  });
 
   useEffect(() => {
     fetchRekap();
@@ -40,8 +47,12 @@ const RekapGabungan = ({ onNavigate }) => {
   };
 
   const handleExport = () => {
-    // TODO: Implement export to Excel
-    alert('Fitur export akan segera tersedia');
+    setAlertModal({
+      open: true,
+      title: 'Informasi',
+      message: 'Fitur export akan segera tersedia. Terima kasih atas kesabaran Anda.',
+      type: 'info'
+    });
   };
 
   if (loading) {
@@ -269,6 +280,14 @@ const RekapGabungan = ({ onNavigate }) => {
           </table>
         </div>
       </div>
+
+      <AlertModal
+        open={alertModal.open}
+        title={alertModal.title}
+        message={alertModal.message}
+        type={alertModal.type}
+        onConfirm={() => setAlertModal({ ...alertModal, open: false })}
+      />
     </div>
   );
 };

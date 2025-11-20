@@ -4,13 +4,42 @@ import AlertModal from '../../components/AlertModal';
 import './ProposalApproval.css';
 
 const ProposalApproval = ({ proposals, onApprove, onReject, onViewDetail }) => {
+  const [rejectReason, setRejectReason] = useState('');
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [selectedProposalId, setSelectedProposalId] = useState(null);
   const [alertModal, setAlertModal] = useState({
     open: false,
     title: '',
     message: '',
     type: 'info'
   });
-  const pendingProposals = proposals.filter(p => p.status === 'MENUNGGU');
+
+  // Superadmin melihat proposal yang sudah di-approve admin (APPROVE_ADMIN)
+  const pendingProposals = proposals.filter(p => p.status === 'APPROVE_ADMIN');
+
+  const handleRejectClick = (proposalId) => {
+    setSelectedProposalId(proposalId);
+    setShowRejectModal(true);
+    setRejectReason('');
+  };
+
+  const handleRejectConfirm = () => {
+    if (!rejectReason.trim()) {
+      setAlertModal({
+        open: true,
+        type: 'warning',
+        title: 'Peringatan',
+        message: 'Alasan penolakan harus diisi'
+      });
+      return;
+    }
+    if (onReject && selectedProposalId) {
+      onReject(selectedProposalId, rejectReason);
+      setShowRejectModal(false);
+      setRejectReason('');
+      setSelectedProposalId(null);
+    }
+  };
 
   const handleExport = async () => {
     try {
@@ -25,7 +54,7 @@ const ProposalApproval = ({ proposals, onApprove, onReject, onViewDetail }) => {
           ...(userId ? { 'X-User-Id': String(userId) } : {}),
         }
       });
-      if (!res.ok) throw new Error('Gagal mengunduh CSV');
+      if (!res.ok) throw new Error('Gagal mengunduh Excel');
       const blob = await res.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -37,10 +66,10 @@ const ProposalApproval = ({ proposals, onApprove, onReject, onViewDetail }) => {
       window.URL.revokeObjectURL(url);
     } catch (e) {
       setAlertModal({
-        open: true,
         type: 'error',
         title: 'Error',
-        message: e.message || 'Export gagal'
+        message: e.message || 'Export gagal',
+        onClose: () => setAlertModal(null)
       });
     }
   };
@@ -58,7 +87,7 @@ const ProposalApproval = ({ proposals, onApprove, onReject, onViewDetail }) => {
           ...(userId ? { 'X-User-Id': String(userId) } : {}),
         }
       });
-      if (!res.ok) throw new Error('Gagal mengunduh CSV');
+      if (!res.ok) throw new Error('Gagal mengunduh Excel');
       const blob = await res.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -70,10 +99,10 @@ const ProposalApproval = ({ proposals, onApprove, onReject, onViewDetail }) => {
       window.URL.revokeObjectURL(url);
     } catch (e) {
       setAlertModal({
-        open: true,
         type: 'error',
         title: 'Error',
-        message: e.message || 'Export gagal'
+        message: e.message || 'Export gagal',
+        onClose: () => setAlertModal(null)
       });
     }
   };
@@ -83,9 +112,13 @@ const ProposalApproval = ({ proposals, onApprove, onReject, onViewDetail }) => {
       <div className="content-header">
         <div>
           <h2>Persetujuan Usulan Pelatihan</h2>
-          <p>Review dan setujui usulan pelatihan dari pengguna. Setelah disetujui, proposal akan dikirim ke superadmin.</p>
+          <p>Review dan setujui usulan pelatihan yang telah di-approve oleh admin</p>
         </div>
-       
+        {pendingProposals.length > 0 && (
+          <button className="btn-export-all" onClick={handleExport}>
+            Export Semua
+          </button>
+        )}
       </div>
       
       <div className="proposals-grid">
@@ -110,7 +143,7 @@ const ProposalApproval = ({ proposals, onApprove, onReject, onViewDetail }) => {
               </div>
             </div>
             <div className="proposal-details">
-              <p><strong>Pengaju:</strong> {proposal.user?.username || proposal.user?.fullName || `User ID ${proposal.userId}`}</p>
+              <p><strong>Pengaju:</strong> {proposal.user?.fullName || proposal.user?.username || `User ID ${proposal.userId}`}</p>
               {proposal.branch && <p><strong>Branch:</strong> {proposal.branch.nama}</p>}
               {proposal.user?.divisi && <p><strong>Divisi:</strong> {proposal.user.divisi.nama}</p>}
               <p><strong>Waktu Pelaksanaan:</strong> {new Date(proposal.WaktuPelaksanan).toLocaleDateString('id-ID')}</p>
@@ -128,7 +161,7 @@ const ProposalApproval = ({ proposals, onApprove, onReject, onViewDetail }) => {
               </button>
               <button 
                 className="btn-reject"
-                onClick={() => onReject(proposal.id)}
+                onClick={() => handleRejectClick(proposal.id)}
               >
                 Tolak
               </button>
@@ -138,11 +171,12 @@ const ProposalApproval = ({ proposals, onApprove, onReject, onViewDetail }) => {
               >
                 Detail
               </button>
-              <button
-                className="btn-detail"
+              <button 
+                className="btn-export-one"
                 onClick={() => handleExportOne(proposal.id)}
+                title="Export Excel"
               >
-                Export CSV
+                Export
               </button>
             </div>
           </div>
@@ -151,9 +185,39 @@ const ProposalApproval = ({ proposals, onApprove, onReject, onViewDetail }) => {
 
       {pendingProposals.length === 0 && (
         <div className="empty-state">
-          <div className="empty-icon">OK</div>
-          <h3>Tidak Ada Usulan Pending</h3>
-          <p>Semua usulan pelatihan telah diproses. Tidak ada usulan yang menunggu persetujuan.</p>
+          <div className="empty-icon">📋</div>
+          <h3>Tidak Ada Usulan Menunggu</h3>
+          <p>Belum ada usulan yang telah di-approve admin dan menunggu persetujuan superadmin.</p>
+        </div>
+      )}
+
+      {/* Reject Modal */}
+      {showRejectModal && (
+        <div className="modal-overlay" onClick={() => setShowRejectModal(false)}>
+          <div className="modal-content reject-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Tolak Proposal</h2>
+              <button className="modal-close" onClick={() => setShowRejectModal(false)}>×</button>
+            </div>
+            <div className="modal-body">
+              <p className="modal-label">Alasan Penolakan:</p>
+              <textarea
+                className="reject-reason-input"
+                value={rejectReason}
+                onChange={(e) => setRejectReason(e.target.value)}
+                placeholder="Masukkan alasan penolakan proposal. Pesan ini akan dikirim ke user untuk revisi."
+                rows={5}
+              />
+            </div>
+            <div className="modal-footer">
+              <button className="btn-cancel" onClick={() => setShowRejectModal(false)}>
+                Batal
+              </button>
+              <button className="btn-confirm-reject" onClick={handleRejectConfirm}>
+                Tolak Proposal
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -170,3 +234,4 @@ const ProposalApproval = ({ proposals, onApprove, onReject, onViewDetail }) => {
 };
 
 export default ProposalApproval;
+

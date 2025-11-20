@@ -7,11 +7,13 @@ import AuthRoute from "./routes/auth.js";
 import db from "./models/index.js";
 import seedUsers from "./seeders/userSeeder.js";
 import TrainingProposalRoute from "./routes/trainingProposal.js";
+import { syncDraftsFromRealizedProposals } from "./controllers/trainingProposalController.js";
 import DivisiRoute from "./routes/divisi.js";
 import BranchRoute from "./routes/branch.js";
 import AnakPerusahaanRoute from "./routes/anakPerusahaan.js";
 import DraftTNA2026Route from "./routes/draftTNA2026.js";
 import TempatDiklatRealisasiRoute from "./routes/tempatDiklatRealisasi.js";
+import NotificationRoute from "./routes/notifications.js";
 
 dotenv.config();
 
@@ -57,6 +59,7 @@ app.use("/api/branch", BranchRoute);
 app.use("/api/anak-perusahaan", AnakPerusahaanRoute);
 app.use("/api/draft-tna-2026", DraftTNA2026Route);
 app.use("/api/tempat-diklat-realisasi", TempatDiklatRealisasiRoute);
+app.use("/api/notifications", NotificationRoute);
 
 // Health check endpoint
 app.get("/api/health", (req, res) => {
@@ -76,6 +79,7 @@ const startServer = async () => {
 
     // Seed sample users
     await seedUsers();
+    await syncDraftsFromRealizedProposals();
 
     app.listen(PORT, () => {
       console.log(`Backend API server running on port ${PORT}...`);

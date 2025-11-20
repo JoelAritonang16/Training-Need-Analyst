@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { draftTNA2026API, branchAPI, divisiAPI } from '../../utils/api';
 import { LuFileText, LuPencil, LuTrash2, LuEye, LuPlus } from 'react-icons/lu';
+import AlertModal from '../../components/AlertModal';
+import ConfirmModal from '../../components/ConfirmModal';
 import './DraftTNA2026.css';
 
 const DraftTNA2026 = ({ user, currentUserRole, onNavigate }) => {
@@ -12,6 +14,16 @@ const DraftTNA2026 = ({ user, currentUserRole, onNavigate }) => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [branches, setBranches] = useState([]);
   const [divisi, setDivisi] = useState([]);
+  const [alertModal, setAlertModal] = useState({
+    open: false,
+    title: '',
+    message: '',
+    type: 'success'
+  });
+  const [confirmDelete, setConfirmDelete] = useState({
+    open: false,
+    draftId: null
+  });
 
   useEffect(() => {
     fetchDrafts();
@@ -63,7 +75,12 @@ const DraftTNA2026 = ({ user, currentUserRole, onNavigate }) => {
 
   const handleEdit = (draft) => {
     if (currentUserRole !== 'superadmin') {
-      alert('Hanya superadmin yang dapat mengedit draft');
+      setAlertModal({
+        open: true,
+        title: 'Akses Ditolak',
+        message: 'Hanya superadmin yang dapat mengedit draft',
+        type: 'warning'
+      });
       return;
     }
     setSelectedDraft(draft);
@@ -71,33 +88,65 @@ const DraftTNA2026 = ({ user, currentUserRole, onNavigate }) => {
     setIsModalOpen(true);
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = (id) => {
     if (currentUserRole !== 'superadmin') {
-      alert('Hanya superadmin yang dapat menghapus draft');
+      setAlertModal({
+        open: true,
+        title: 'Akses Ditolak',
+        message: 'Hanya superadmin yang dapat menghapus draft',
+        type: 'warning'
+      });
       return;
     }
-    
-    if (!window.confirm('Apakah Anda yakin ingin menghapus draft ini?')) {
-      return;
-    }
+    setConfirmDelete({
+      open: true,
+      draftId: id
+    });
+  };
+
+  const confirmDeleteAction = async () => {
+    const id = confirmDelete.draftId;
+    if (!id) return;
 
     try {
       const result = await draftTNA2026API.delete(id);
       if (result.success) {
-        alert('Draft berhasil dihapus');
         fetchDrafts();
+        setAlertModal({
+          open: true,
+          title: 'Berhasil!',
+          message: 'Draft berhasil dihapus dari sistem.',
+          type: 'success'
+        });
       } else {
-        alert('Error: ' + result.message);
+        setAlertModal({
+          open: true,
+          title: 'Gagal Menghapus',
+          message: result.message || 'Gagal menghapus draft. Silakan coba lagi.',
+          type: 'error'
+        });
       }
     } catch (error) {
       console.error('Error deleting draft:', error);
-      alert('Terjadi kesalahan saat menghapus draft');
+      setAlertModal({
+        open: true,
+        title: 'Terjadi Kesalahan',
+        message: 'Terjadi kesalahan saat menghapus draft. Silakan coba lagi.',
+        type: 'error'
+      });
+    } finally {
+      setConfirmDelete({ open: false, draftId: null });
     }
   };
 
   const handleCreate = () => {
     if (currentUserRole !== 'superadmin') {
-      alert('Hanya superadmin yang dapat membuat draft');
+      setAlertModal({
+        open: true,
+        title: 'Akses Ditolak',
+        message: 'Hanya superadmin yang dapat membuat draft. Draft biasanya dibuat otomatis dari proposal yang sudah direalisasi.',
+        type: 'warning'
+      });
       return;
     }
     setSelectedDraft(null);
@@ -115,16 +164,31 @@ const DraftTNA2026 = ({ user, currentUserRole, onNavigate }) => {
       }
 
       if (result.success) {
-        alert(isEditMode ? 'Draft berhasil diupdate' : 'Draft berhasil dibuat');
+        setAlertModal({
+          open: true,
+          title: 'Berhasil!',
+          message: isEditMode ? 'Draft berhasil diperbarui.' : 'Draft berhasil dibuat.',
+          type: 'success'
+        });
         setIsModalOpen(false);
         setSelectedDraft(null);
         fetchDrafts();
       } else {
-        alert('Error: ' + result.message);
+        setAlertModal({
+          open: true,
+          title: 'Gagal Menyimpan',
+          message: result.message || 'Gagal menyimpan draft. Silakan coba lagi.',
+          type: 'error'
+        });
       }
     } catch (error) {
       console.error('Error saving draft:', error);
-      alert('Terjadi kesalahan saat menyimpan draft');
+      setAlertModal({
+        open: true,
+        title: 'Terjadi Kesalahan',
+        message: 'Terjadi kesalahan saat menyimpan draft. Silakan coba lagi.',
+        type: 'error'
+      });
     }
   };
 
@@ -263,6 +327,24 @@ const DraftTNA2026 = ({ user, currentUserRole, onNavigate }) => {
           }}
         />
       )}
+
+      <ConfirmModal
+        open={confirmDelete.open}
+        title="Konfirmasi Hapus"
+        message="Apakah Anda yakin ingin menghapus draft ini? Tindakan ini tidak dapat dibatalkan."
+        confirmText="Hapus"
+        cancelText="Batal"
+        onConfirm={confirmDeleteAction}
+        onCancel={() => setConfirmDelete({ open: false, draftId: null })}
+      />
+
+      <AlertModal
+        open={alertModal.open}
+        title={alertModal.title}
+        message={alertModal.message}
+        type={alertModal.type}
+        onConfirm={() => setAlertModal({ ...alertModal, open: false })}
+      />
     </div>
   );
 };
@@ -283,6 +365,8 @@ const DraftModal = ({ draft, isEditMode, isSuperadmin, isAdmin, branches, divisi
     totalUsulan: draft?.totalUsulan || 0,
     status: draft?.status || 'DRAFT',
   });
+  
+  const [focusedField, setFocusedField] = useState(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -302,9 +386,25 @@ const DraftModal = ({ draft, isEditMode, isSuperadmin, isAdmin, branches, divisi
     });
   };
 
+  const formatCurrency = (value) => {
+    if (!value && value !== 0) return '0';
+    return parseFloat(value).toLocaleString('id-ID');
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave(formData);
+    // Pastikan semua nilai numerik dikirim sebagai number, bukan string
+    const submitData = {
+      ...formData,
+      beban: parseFloat(formData.beban) || 0,
+      bebanTransportasi: parseFloat(formData.bebanTransportasi) || 0,
+      bebanAkomodasi: parseFloat(formData.bebanAkomodasi) || 0,
+      bebanUangSaku: parseFloat(formData.bebanUangSaku) || 0,
+      totalUsulan: parseFloat(formData.totalUsulan) || 0,
+      jumlahPeserta: parseInt(formData.jumlahPeserta) || 0,
+      jumlahHari: parseInt(formData.jumlahHari) || 0,
+    };
+    onSave(submitData);
   };
 
   // Admin can only view, superadmin can create/edit
@@ -359,11 +459,13 @@ const DraftModal = ({ draft, isEditMode, isSuperadmin, isAdmin, branches, divisi
                 onChange={handleChange}
                 required
                 disabled={isViewOnly}
-                rows={3}
+                rows={1}
               />
             </div>
 
-            <div className="form-group">
+            <hr className="form-section-divider" />
+
+            <div className="form-group form-span-2">
               <label>Waktu Pelaksanaan *</label>
               <input
                 type="date"
@@ -378,26 +480,34 @@ const DraftModal = ({ draft, isEditMode, isSuperadmin, isAdmin, branches, divisi
             <div className="form-group">
               <label>Jumlah Peserta *</label>
               <input
-                type="number"
+                type="text"
                 name="jumlahPeserta"
                 value={formData.jumlahPeserta}
-                onChange={handleChange}
+                onChange={(e) => {
+                  const numericValue = e.target.value.replace(/[^\d]/g, '');
+                  handleChange({ target: { name: 'jumlahPeserta', value: numericValue } });
+                }}
                 required
                 min="1"
                 disabled={isViewOnly}
+                placeholder="0"
               />
             </div>
 
             <div className="form-group">
               <label>Jumlah Hari *</label>
               <input
-                type="number"
+                type="text"
                 name="jumlahHari"
                 value={formData.jumlahHari}
-                onChange={handleChange}
+                onChange={(e) => {
+                  const numericValue = e.target.value.replace(/[^\d]/g, '');
+                  handleChange({ target: { name: 'jumlahHari', value: numericValue } });
+                }}
                 required
                 min="1"
                 disabled={isViewOnly}
+                placeholder="0"
               />
             </div>
 
@@ -415,69 +525,150 @@ const DraftModal = ({ draft, isEditMode, isSuperadmin, isAdmin, branches, divisi
               </select>
             </div>
 
+            <hr className="form-section-divider" />
+
             <div className="form-group">
               <label>Beban (Rp) *</label>
               <input
-                type="number"
+                type="text"
                 name="beban"
-                value={formData.beban}
-                onChange={handleChange}
+                value={isViewOnly || focusedField !== 'beban' ? formatCurrency(formData.beban) : (formData.beban || '')}
+                onChange={(e) => {
+                  const numericValue = e.target.value.replace(/[^\d]/g, '');
+                  setFormData(prev => {
+                    const newData = { ...prev, beban: numericValue || 0 };
+                    const beban = parseFloat(newData.beban) || 0;
+                    const transportasi = parseFloat(newData.bebanTransportasi) || 0;
+                    const akomodasi = parseFloat(newData.bebanAkomodasi) || 0;
+                    const uangSaku = parseFloat(newData.bebanUangSaku) || 0;
+                    newData.totalUsulan = beban + transportasi + akomodasi + uangSaku;
+                    return newData;
+                  });
+                }}
+                onFocus={() => setFocusedField('beban')}
+                onBlur={() => {
+                  setFocusedField(null);
+                  if (!isViewOnly) {
+                    setFormData(prev => ({ ...prev, beban: prev.beban || '0' }));
+                  }
+                }}
                 required
-                min="0"
                 disabled={isViewOnly}
+                placeholder="0"
               />
             </div>
 
             <div className="form-group">
-              <label>Beban Transportasi (Rp) *</label>
+              <label>Transportasi (Rp) *</label>
               <input
-                type="number"
+                type="text"
                 name="bebanTransportasi"
-                value={formData.bebanTransportasi}
-                onChange={handleChange}
+                value={isViewOnly || focusedField !== 'bebanTransportasi' ? formatCurrency(formData.bebanTransportasi) : (formData.bebanTransportasi || '')}
+                onChange={(e) => {
+                  const numericValue = e.target.value.replace(/[^\d]/g, '');
+                  setFormData(prev => {
+                    const newData = { ...prev, bebanTransportasi: numericValue || 0 };
+                    const beban = parseFloat(newData.beban) || 0;
+                    const transportasi = parseFloat(newData.bebanTransportasi) || 0;
+                    const akomodasi = parseFloat(newData.bebanAkomodasi) || 0;
+                    const uangSaku = parseFloat(newData.bebanUangSaku) || 0;
+                    newData.totalUsulan = beban + transportasi + akomodasi + uangSaku;
+                    return newData;
+                  });
+                }}
+                onFocus={() => setFocusedField('bebanTransportasi')}
+                onBlur={() => {
+                  setFocusedField(null);
+                  if (!isViewOnly) {
+                    setFormData(prev => ({ ...prev, bebanTransportasi: prev.bebanTransportasi || '0' }));
+                  }
+                }}
                 required
-                min="0"
                 disabled={isViewOnly}
+                placeholder="0"
               />
             </div>
 
             <div className="form-group">
-              <label>Beban Akomodasi (Rp) *</label>
+              <label>Akomodasi (Rp) *</label>
               <input
-                type="number"
+                type="text"
                 name="bebanAkomodasi"
-                value={formData.bebanAkomodasi}
-                onChange={handleChange}
+                value={isViewOnly || focusedField !== 'bebanAkomodasi' ? formatCurrency(formData.bebanAkomodasi) : (formData.bebanAkomodasi || '')}
+                onChange={(e) => {
+                  const numericValue = e.target.value.replace(/[^\d]/g, '');
+                  setFormData(prev => {
+                    const newData = { ...prev, bebanAkomodasi: numericValue || 0 };
+                    const beban = parseFloat(newData.beban) || 0;
+                    const transportasi = parseFloat(newData.bebanTransportasi) || 0;
+                    const akomodasi = parseFloat(newData.bebanAkomodasi) || 0;
+                    const uangSaku = parseFloat(newData.bebanUangSaku) || 0;
+                    newData.totalUsulan = beban + transportasi + akomodasi + uangSaku;
+                    return newData;
+                  });
+                }}
+                onFocus={() => setFocusedField('bebanAkomodasi')}
+                onBlur={() => {
+                  setFocusedField(null);
+                  if (!isViewOnly) {
+                    setFormData(prev => ({ ...prev, bebanAkomodasi: prev.bebanAkomodasi || '0' }));
+                  }
+                }}
                 required
-                min="0"
                 disabled={isViewOnly}
+                placeholder="0"
               />
             </div>
 
             <div className="form-group">
-              <label>Beban Uang Saku (Rp) *</label>
+              <label>Uang Saku (Rp) *</label>
               <input
-                type="number"
+                type="text"
                 name="bebanUangSaku"
-                value={formData.bebanUangSaku}
-                onChange={handleChange}
+                value={isViewOnly || focusedField !== 'bebanUangSaku' ? formatCurrency(formData.bebanUangSaku) : (formData.bebanUangSaku || '')}
+                onChange={(e) => {
+                  const numericValue = e.target.value.replace(/[^\d]/g, '');
+                  setFormData(prev => {
+                    const newData = { ...prev, bebanUangSaku: numericValue || 0 };
+                    const beban = parseFloat(newData.beban) || 0;
+                    const transportasi = parseFloat(newData.bebanTransportasi) || 0;
+                    const akomodasi = parseFloat(newData.bebanAkomodasi) || 0;
+                    const uangSaku = parseFloat(newData.bebanUangSaku) || 0;
+                    newData.totalUsulan = beban + transportasi + akomodasi + uangSaku;
+                    return newData;
+                  });
+                }}
+                onFocus={() => setFocusedField('bebanUangSaku')}
+                onBlur={() => {
+                  setFocusedField(null);
+                  if (!isViewOnly) {
+                    setFormData(prev => ({ ...prev, bebanUangSaku: prev.bebanUangSaku || '0' }));
+                  }
+                }}
                 required
-                min="0"
                 disabled={isViewOnly}
+                placeholder="0"
               />
             </div>
 
-            <div className="form-group">
+            <div className="form-group form-span-2">
               <label>Total Usulan (Rp) *</label>
               <input
-                type="number"
+                type="text"
                 name="totalUsulan"
-                value={formData.totalUsulan}
+                value={formatCurrency(formData.totalUsulan)}
                 onChange={handleChange}
                 required
-                min="0"
                 disabled={true}
                 readOnly
+                style={{ 
+                  fontSize: '0.8rem',
+                  fontWeight: '700',
+                  background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
+                  borderColor: '#fbbf24',
+                  color: '#92400e',
+                  textAlign: 'left'
+                }}
               />
             </div>
 

@@ -47,6 +47,11 @@
   font-size: 3rem;
   font-weight: bold;
   animation: icon-bounce 0.5s ease-out;
+  color: white;
+}
+
+.alert-icon svg {
+  stroke-width: 2.5;
 }
 
 @keyframes icon-bounce {
@@ -76,6 +81,10 @@
   background: linear-gradient(135deg, #0070C0, #2a5298);
   color: white;
   box-shadow: 0 8px 20px rgba(0, 112, 192, 0.4);
+}
+
+.alert-icon svg {
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
 }
 
 .alert-header.centered {

@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './Sidebar.css';
+import { notificationAPI } from '../utils/api';
 import {
   LuGauge,
   LuUsers,
@@ -22,6 +23,29 @@ import {
 
 const Sidebar = ({ user, activeMenu, onMenuChange, onLogout }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [draftTNANotificationCount, setDraftTNANotificationCount] = useState(0);
+
+  // Fetch draft TNA notification count
+  useEffect(() => {
+    const fetchDraftTNANotificationCount = async () => {
+      if (user && (user.role?.toLowerCase() === 'admin' || user.role?.toLowerCase() === 'superadmin')) {
+        try {
+          const result = await notificationAPI.getDraftTNANotificationCount();
+          if (result.success) {
+            setDraftTNANotificationCount(result.count || 0);
+          }
+        } catch (error) {
+          console.error('Error fetching draft TNA notification count:', error);
+        }
+      }
+    };
+
+    fetchDraftTNANotificationCount();
+    // Refresh every 30 seconds
+    const interval = setInterval(fetchDraftTNANotificationCount, 30000);
+
+    return () => clearInterval(interval);
+  }, [user]);
 
   // Update body class when sidebar collapses/expands
   React.useEffect(() => {
@@ -223,6 +247,11 @@ const Sidebar = ({ user, activeMenu, onMenuChange, onLogout }) => {
             </li>
           );
         }
+        // Add notification badge for Draft TNA 2026
+        const showNotificationBadge = item.id === 'draft-tna-2026' && 
+          (user?.role?.toLowerCase() === 'admin' || user?.role?.toLowerCase() === 'superadmin') &&
+          draftTNANotificationCount > 0;
+
         return (
           <li key={item.id} className="nav-item">
             <button
@@ -231,7 +260,17 @@ const Sidebar = ({ user, activeMenu, onMenuChange, onLogout }) => {
               title={isCollapsed ? item.label : ''}
             >
               <span className="nav-icon">{item.icon}</span>
-              {!isCollapsed && <span className="nav-label">{item.label}</span>}
+              {!isCollapsed && (
+                <span className="nav-label">
+                  {item.label}
+                  {showNotificationBadge && (
+                    <span className="notification-badge">{draftTNANotificationCount}</span>
+                  )}
+                </span>
+              )}
+              {isCollapsed && showNotificationBadge && (
+                <span className="notification-badge notification-badge-collapsed">{draftTNANotificationCount}</span>
+              )}
             </button>
           </li>
         );

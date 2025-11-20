@@ -80,6 +80,27 @@ const TrainingProposal = (sequelize, Sequelize) => {
         allowNull: true,
         comment: 'Alasan penolakan dari admin atau superadmin'
       },
+      implementasiStatus: {
+        type: DataTypes.ENUM('BELUM_IMPLEMENTASI', 'SUDAH_IMPLEMENTASI'),
+        allowNull: true,
+        defaultValue: null,
+        comment: 'Status implementasi proposal (hanya untuk proposal yang sudah disetujui)'
+      },
+      isRevision: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+        comment: 'Flag untuk menandai proposal ini adalah revisi dari proposal yang ditolak sebelumnya'
+      },
+      originalProposalId: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        references: {
+          model: 'training_proposals',
+          key: 'id'
+        },
+        comment: 'ID proposal asli jika ini adalah revisi (untuk tracking)'
+      },
     },
     {
       tableName: "training_proposals",

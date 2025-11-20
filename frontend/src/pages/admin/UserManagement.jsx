@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { divisiAPI, branchAPI, anakPerusahaanAPI } from '../../utils/api';
+import AlertModal from '../../components/AlertModal';
+import ConfirmModal from '../../components/ConfirmModal';
 import './UserManagement.css';
 
 const UserManagement = ({ users, onAddUser, onEditUser, onDeleteUser, onToggleStatus, currentUserRole = 'admin', onNavigate }) => {
@@ -21,6 +23,17 @@ const UserManagement = ({ users, onAddUser, onEditUser, onDeleteUser, onToggleSt
   const [divisiList, setDivisiList] = useState([]);
   const [branchList, setBranchList] = useState([]);
   const [anakPerusahaanList, setAnakPerusahaanList] = useState([]);
+  const [alertModal, setAlertModal] = useState({
+    open: false,
+    title: '',
+    message: '',
+    type: 'success'
+  });
+  const [confirmDelete, setConfirmDelete] = useState({
+    open: false,
+    userId: null,
+    isBulk: false
+  });
   // UI state: search & filters & compact mode
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
@@ -158,13 +171,40 @@ const UserManagement = ({ users, onAddUser, onEditUser, onDeleteUser, onToggleSt
       if (data.success) {
         setShowAddModal(false);
         fetchUsers();
-        window.alert('User berhasil ditambahkan!');
+        const roleText = formData.role === 'admin' ? 'Admin' : 'User';
+        setAlertModal({
+          open: true,
+          title: 'Berhasil!',
+          message: `Akun ${roleText} "${formData.username}" berhasil ditambahkan ke sistem.`,
+          type: 'success'
+        });
+        // Reset form
+        setFormData({
+          username: '',
+          password: '',
+          role: 'user',
+          email: '',
+          unit: '',
+          divisiId: '',
+          branchId: '',
+          anakPerusahaanId: ''
+        });
       } else {
-        window.alert(data.message || 'Gagal menambahkan user');
+        setAlertModal({
+          open: true,
+          title: 'Gagal Menambahkan',
+          message: data.message || 'Gagal menambahkan user. Silakan coba lagi.',
+          type: 'error'
+        });
       }
     } catch (error) {
       console.error('Error adding user:', error);
-      window.alert('Terjadi kesalahan saat menambahkan user');
+      setAlertModal({
+        open: true,
+        title: 'Terjadi Kesalahan',
+        message: 'Terjadi kesalahan saat menambahkan user. Silakan coba lagi.',
+        type: 'error'
+      });
     } finally {
       setLoading(false);
     }
@@ -207,21 +247,46 @@ const UserManagement = ({ users, onAddUser, onEditUser, onDeleteUser, onToggleSt
       if (data.success) {
         setShowEditModal(false);
         fetchUsers();
-        window.alert('User berhasil diupdate!');
+        setAlertModal({
+          open: true,
+          title: 'Berhasil!',
+          message: `Data user "${formData.username}" berhasil diperbarui.`,
+          type: 'success'
+        });
       } else {
         console.log('Edit failed:', data.message);
-        window.alert(data.message || 'Gagal mengupdate user');
+        setAlertModal({
+          open: true,
+          title: 'Gagal Memperbarui',
+          message: data.message || 'Gagal mengupdate user. Silakan coba lagi.',
+          type: 'error'
+        });
       }
     } catch (error) {
       console.error('Error updating user:', error);
-      window.alert('Terjadi kesalahan saat mengupdate user');
+      setAlertModal({
+        open: true,
+        title: 'Terjadi Kesalahan',
+        message: 'Terjadi kesalahan saat mengupdate user. Silakan coba lagi.',
+        type: 'error'
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDeleteUser = async (userId) => {
-    if (!window.confirm('Apakah Anda yakin ingin menghapus user ini?')) return;
+  const handleDeleteUser = (userId) => {
+    const user = userList.find(u => u.id === userId);
+    setConfirmDelete({
+      open: true,
+      userId: userId,
+      isBulk: false
+    });
+  };
+
+  const confirmDeleteAction = async () => {
+    const userId = confirmDelete.userId;
+    if (!userId) return;
     
     try {
       setLoading(true);
@@ -237,15 +302,32 @@ const UserManagement = ({ users, onAddUser, onEditUser, onDeleteUser, onToggleSt
       const data = await response.json();
       if (data.success) {
         fetchUsers();
-        window.alert('User berhasil dihapus!');
+        const deletedUser = userList.find(u => u.id === userId);
+        setAlertModal({
+          open: true,
+          title: 'Berhasil!',
+          message: `User "${deletedUser?.username || 'yang dipilih'}" berhasil dihapus dari sistem.`,
+          type: 'success'
+        });
       } else {
-        window.alert(data.message || 'Gagal menghapus user');
+        setAlertModal({
+          open: true,
+          title: 'Gagal Menghapus',
+          message: data.message || 'Gagal menghapus user. Silakan coba lagi.',
+          type: 'error'
+        });
       }
     } catch (error) {
       console.error('Error deleting user:', error);
-      window.alert('Terjadi kesalahan saat menghapus user');
+      setAlertModal({
+        open: true,
+        title: 'Terjadi Kesalahan',
+        message: 'Terjadi kesalahan saat menghapus user. Silakan coba lagi.',
+        type: 'error'
+      });
     } finally {
       setLoading(false);
+      setConfirmDelete({ open: false, userId: null, isBulk: false });
     }
   };
 
@@ -299,18 +381,73 @@ const UserManagement = ({ users, onAddUser, onEditUser, onDeleteUser, onToggleSt
     }
   };
 
-  const handleBulkDelete = async () => {
+  const handleBulkDelete = () => {
     if (selectedIds.size === 0) return;
-    if (!window.confirm(`Hapus ${selectedIds.size} user terpilih?`)) return;
+    setConfirmDelete({
+      open: true,
+      userId: null,
+      isBulk: true
+    });
+  };
+
+  const confirmBulkDeleteAction = async () => {
     try {
       setLoading(true);
-      for (const id of selectedIds) {
-        await handleDeleteUser(id);
+      const idsToDelete = Array.from(selectedIds);
+      let successCount = 0;
+      let failCount = 0;
+
+      for (const id of idsToDelete) {
+        try {
+          const response = await fetch(`http://localhost:5000/api/users/role-based/${id}`, {
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify({ currentUserRole })
+          });
+          
+          const data = await response.json();
+          if (data.success) {
+            successCount++;
+          } else {
+            failCount++;
+          }
+        } catch (error) {
+          failCount++;
+        }
       }
-      setSelectedIds(new Set());
+
       fetchUsers();
+      setSelectedIds(new Set());
+      
+      if (failCount === 0) {
+        setAlertModal({
+          open: true,
+          title: 'Berhasil!',
+          message: `${successCount} user berhasil dihapus dari sistem.`,
+          type: 'success'
+        });
+      } else {
+        setAlertModal({
+          open: true,
+          title: 'Sebagian Gagal',
+          message: `${successCount} user berhasil dihapus, ${failCount} user gagal dihapus.`,
+          type: 'warning'
+        });
+      }
+    } catch (error) {
+      console.error('Error bulk deleting users:', error);
+      setAlertModal({
+        open: true,
+        title: 'Terjadi Kesalahan',
+        message: 'Terjadi kesalahan saat menghapus user. Silakan coba lagi.',
+        type: 'error'
+      });
     } finally {
       setLoading(false);
+      setConfirmDelete({ open: false, userId: null, isBulk: false });
     }
   };
 
@@ -437,6 +574,28 @@ const UserManagement = ({ users, onAddUser, onEditUser, onDeleteUser, onToggleSt
       </div>
 
       {/* Edit melalui halaman khusus, modal dihapus */}
+
+      <ConfirmModal
+        open={confirmDelete.open}
+        title="Konfirmasi Hapus"
+        message={
+          confirmDelete.isBulk
+            ? `Apakah Anda yakin ingin menghapus ${selectedIds.size} user terpilih?`
+            : `Apakah Anda yakin ingin menghapus user "${userList.find(u => u.id === confirmDelete.userId)?.username || 'ini'}"?`
+        }
+        confirmText="Hapus"
+        cancelText="Batal"
+        onConfirm={confirmDelete.isBulk ? confirmBulkDeleteAction : confirmDeleteAction}
+        onCancel={() => setConfirmDelete({ open: false, userId: null, isBulk: false })}
+      />
+
+      <AlertModal
+        open={alertModal.open}
+        title={alertModal.title}
+        message={alertModal.message}
+        type={alertModal.type}
+        onConfirm={() => setAlertModal({ ...alertModal, open: false })}
+      />
     </div>
   );
 };

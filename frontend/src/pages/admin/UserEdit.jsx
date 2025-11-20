@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { divisiAPI, branchAPI, anakPerusahaanAPI } from '../../utils/api';
+import AlertModal from '../../components/AlertModal';
 import './UserCreate.css';
 
 const UserEdit = ({ currentUserRole = 'superadmin', user, onNavigate }) => {
@@ -7,6 +8,12 @@ const UserEdit = ({ currentUserRole = 'superadmin', user, onNavigate }) => {
   const [divisiList, setDivisiList] = useState([]);
   const [branchList, setBranchList] = useState([]);
   const [anakPerusahaanList, setAnakPerusahaanList] = useState([]);
+  const [alertModal, setAlertModal] = useState({
+    open: false,
+    title: '',
+    message: '',
+    type: 'success'
+  });
   const [formData, setFormData] = useState({
     username: '',
     role: 'user',
@@ -78,14 +85,32 @@ const UserEdit = ({ currentUserRole = 'superadmin', user, onNavigate }) => {
       });
       const data = await res.json();
       if (data.success) {
-        alert('User berhasil diupdate');
-        if (onNavigate) onNavigate('user-management');
+        setAlertModal({
+          open: true,
+          title: 'Berhasil!',
+          message: `Data user "${formData.username}" berhasil diperbarui.`,
+          type: 'success'
+        });
+        // Navigate after modal is closed
+        setTimeout(() => {
+          if (onNavigate) onNavigate('user-management');
+        }, 1500);
       } else {
-        alert(data.message || 'Gagal mengupdate user');
+        setAlertModal({
+          open: true,
+          title: 'Gagal Memperbarui',
+          message: data.message || 'Gagal mengupdate user. Silakan coba lagi.',
+          type: 'error'
+        });
       }
     } catch (err) {
       console.error(err);
-      alert('Terjadi kesalahan saat menyimpan');
+      setAlertModal({
+        open: true,
+        title: 'Terjadi Kesalahan',
+        message: 'Terjadi kesalahan saat menyimpan. Silakan coba lagi.',
+        type: 'error'
+      });
     } finally {
       setLoading(false);
     }
@@ -153,6 +178,14 @@ const UserEdit = ({ currentUserRole = 'superadmin', user, onNavigate }) => {
           </div>
         </form>
       </div>
+
+      <AlertModal
+        open={alertModal.open}
+        title={alertModal.title}
+        message={alertModal.message}
+        type={alertModal.type}
+        onConfirm={() => setAlertModal({ ...alertModal, open: false })}
+      />
     </div>
   );
 };

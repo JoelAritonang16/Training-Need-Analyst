@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { tempatDiklatRealisasiAPI, branchAPI } from '../../utils/api';
 import { LuMapPin, LuPlus, LuPencil, LuTrash2 } from 'react-icons/lu';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import AlertModal from '../../components/AlertModal';
+import ConfirmModal from '../../components/ConfirmModal';
 import './TempatDiklatRealisasi.css';
 
 const TempatDiklatRealisasi = ({ user, currentUserRole, onNavigate }) => {
@@ -15,6 +17,16 @@ const TempatDiklatRealisasi = ({ user, currentUserRole, onNavigate }) => {
   const [branches, setBranches] = useState([]);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedMonth, setSelectedMonth] = useState('all');
+  const [alertModal, setAlertModal] = useState({
+    open: false,
+    title: '',
+    message: '',
+    type: 'success'
+  });
+  const [confirmDelete, setConfirmDelete] = useState({
+    open: false,
+    itemId: null
+  });
 
   useEffect(() => {
     fetchData();
@@ -79,23 +91,46 @@ const TempatDiklatRealisasi = ({ user, currentUserRole, onNavigate }) => {
     setIsModalOpen(true);
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Apakah Anda yakin ingin menghapus data ini?')) {
-      return;
-    }
+  const handleDelete = (id) => {
+    setConfirmDelete({
+      open: true,
+      itemId: id
+    });
+  };
+
+  const confirmDeleteAction = async () => {
+    const id = confirmDelete.itemId;
+    if (!id) return;
 
     try {
       const result = await tempatDiklatRealisasiAPI.delete(id);
       if (result.success) {
-        alert('Data berhasil dihapus');
         fetchData();
         fetchRekapPerBulan();
+        setAlertModal({
+          open: true,
+          title: 'Berhasil!',
+          message: 'Data realisasi berhasil dihapus dari sistem.',
+          type: 'success'
+        });
       } else {
-        alert('Error: ' + result.message);
+        setAlertModal({
+          open: true,
+          title: 'Gagal Menghapus',
+          message: result.message || 'Gagal menghapus data. Silakan coba lagi.',
+          type: 'error'
+        });
       }
     } catch (error) {
       console.error('Error deleting data:', error);
-      alert('Terjadi kesalahan saat menghapus data');
+      setAlertModal({
+        open: true,
+        title: 'Terjadi Kesalahan',
+        message: 'Terjadi kesalahan saat menghapus data. Silakan coba lagi.',
+        type: 'error'
+      });
+    } finally {
+      setConfirmDelete({ open: false, itemId: null });
     }
   };
 
@@ -109,17 +144,32 @@ const TempatDiklatRealisasi = ({ user, currentUserRole, onNavigate }) => {
       }
 
       if (result.success) {
-        alert(isEditMode ? 'Data berhasil diupdate' : 'Data berhasil dibuat');
+        setAlertModal({
+          open: true,
+          title: 'Berhasil!',
+          message: isEditMode ? 'Data realisasi berhasil diperbarui.' : 'Data realisasi berhasil ditambahkan.',
+          type: 'success'
+        });
         setIsModalOpen(false);
         setSelectedItem(null);
         fetchData();
         fetchRekapPerBulan();
       } else {
-        alert('Error: ' + result.message);
+        setAlertModal({
+          open: true,
+          title: 'Gagal Menyimpan',
+          message: result.message || 'Gagal menyimpan data. Silakan coba lagi.',
+          type: 'error'
+        });
       }
     } catch (error) {
       console.error('Error saving data:', error);
-      alert('Terjadi kesalahan saat menyimpan data');
+      setAlertModal({
+        open: true,
+        title: 'Terjadi Kesalahan',
+        message: 'Terjadi kesalahan saat menyimpan data. Silakan coba lagi.',
+        type: 'error'
+      });
     }
   };
 
@@ -298,6 +348,24 @@ const TempatDiklatRealisasi = ({ user, currentUserRole, onNavigate }) => {
           }}
         />
       )}
+
+      <ConfirmModal
+        open={confirmDelete.open}
+        title="Konfirmasi Hapus"
+        message="Apakah Anda yakin ingin menghapus data realisasi ini? Tindakan ini tidak dapat dibatalkan."
+        confirmText="Hapus"
+        cancelText="Batal"
+        onConfirm={confirmDeleteAction}
+        onCancel={() => setConfirmDelete({ open: false, itemId: null })}
+      />
+
+      <AlertModal
+        open={alertModal.open}
+        title={alertModal.title}
+        message={alertModal.message}
+        type={alertModal.type}
+        onConfirm={() => setAlertModal({ ...alertModal, open: false })}
+      />
     </div>
   );
 };

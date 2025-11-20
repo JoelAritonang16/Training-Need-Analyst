@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { trainingProposalAPI } from '../../utils/api';
+import AlertModal from '../../components/AlertModal';
 import './TrainingProposalForm.css';
 import TrainingProposalItemsTable, { makeEmptyItem } from './TrainingProposalItemsTable.jsx';
 
@@ -20,6 +21,7 @@ const TrainingProposalForm = ({ user, proposal = null, onSuccess }) => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [alertModal, setAlertModal] = useState(null);
 
   // Items state: inisialisasi dari proposal.items jika tersedia, jika tidak fallback dari header
   const initialItems = (() => {
@@ -172,30 +174,39 @@ const TrainingProposalForm = ({ user, proposal = null, onSuccess }) => {
       
       if (result && result.success) {
         console.log('Success! Proposal created/updated:', result.proposal);
-        alert(proposal ? 'Usulan pelatihan berhasil diupdate!' : 'Usulan pelatihan berhasil diajukan!');
+        setAlertModal({
+          type: 'success',
+          title: 'Berhasil',
+          message: proposal ? 'Usulan pelatihan berhasil diupdate!' : 'Usulan pelatihan berhasil diajukan!',
+          onClose: () => {
+            setAlertModal(null);
+            if (onSuccess) {
+              onSuccess(result.proposal);
+            }
+          }
+        });
         
-        if (onSuccess) {
-          onSuccess(result.proposal);
+        if (!onSuccess) {
+          // Jika tidak ada onSuccess callback, langsung reset form
+          if (!proposal) {
+            console.log('Resetting form for new submission...');
+            setFormData({
+              Uraian: '',
+              WaktuPelaksanan: '',
+              JumlahPeserta: '',
+              JumlahHariPesertaPelatihan: '',
+              LevelTingkatan: 'NON STRUKTURAL',
+              Beban: '',
+              BebanTransportasi: '',
+              BebanAkomodasi: '',
+              BebanUangSaku: '',
+              TotalUsulan: ''
+            });
+            setItems([makeEmptyItem()]);
+            setError('');
+          }
         }
         
-        // Reset form jika membuat proposal baru
-        if (!proposal) {
-          console.log('Resetting form for new submission...');
-          setFormData({
-            Uraian: '',
-            WaktuPelaksanan: '',
-            JumlahPeserta: '',
-            JumlahHariPesertaPelatihan: '',
-            LevelTingkatan: 'NON STRUKTURAL',
-            Beban: '',
-            BebanTransportasi: '',
-            BebanAkomodasi: '',
-            BebanUangSaku: '',
-            TotalUsulan: ''
-          });
-          setItems([makeEmptyItem()]);
-          setError('');
-        }
       } else {
         throw new Error(result?.message || 'Gagal menyimpan usulan pelatihan');
       }
@@ -203,7 +214,12 @@ const TrainingProposalForm = ({ user, proposal = null, onSuccess }) => {
     } catch (error) {
       console.error('Form submission error:', error);
       setError(error.message || 'Terjadi kesalahan saat menyimpan usulan pelatihan');
-      alert('Error: ' + error.message);
+      setAlertModal({
+        type: 'error',
+        title: 'Error',
+        message: error.message || 'Terjadi kesalahan saat menyimpan usulan pelatihan',
+        onClose: () => setAlertModal(null)
+      });
     } finally {
       setIsSubmitting(false);
       console.log('=== FORM SUBMISSION END ===');
@@ -318,6 +334,21 @@ const TrainingProposalForm = ({ user, proposal = null, onSuccess }) => {
           </button>
         </div>
       </form>
+
+      {/* Alert Modal */}
+      <AlertModal
+        open={alertModal !== null}
+        type={alertModal?.type || 'info'}
+        title={alertModal?.title || ''}
+        message={alertModal?.message || ''}
+        onConfirm={() => {
+          if (alertModal?.onClose) {
+            alertModal.onClose();
+          } else {
+            setAlertModal(null);
+          }
+        }}
+      />
     </div>
   );
 };

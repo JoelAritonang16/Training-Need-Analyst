@@ -1,10 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { divisiAPI } from '../../utils/api';
+import AlertModal from '../../components/AlertModal';
 import './UserCreate.css';
 
 const UserCreateForAdmin = ({ currentUser, onNavigate }) => {
   const [loading, setLoading] = useState(false);
   const [divisiList, setDivisiList] = useState([]);
+  const [alertModal, setAlertModal] = useState({
+    open: false,
+    title: '',
+    message: '',
+    type: 'success'
+  });
   const [formData, setFormData] = useState({
     username: '',
     password: '',
@@ -34,13 +41,23 @@ const UserCreateForAdmin = ({ currentUser, onNavigate }) => {
       
       // Validation
       if (!formData.username || !formData.password) {
-        alert('Username dan password harus diisi');
+        setAlertModal({
+          open: true,
+          title: 'Validasi Gagal',
+          message: 'Username dan password harus diisi',
+          type: 'warning'
+        });
         setLoading(false);
         return;
       }
       
       if (!formData.divisiId) {
-        alert('Pilih Divisi untuk user');
+        setAlertModal({
+          open: true,
+          title: 'Validasi Gagal',
+          message: 'Pilih Divisi untuk user',
+          type: 'warning'
+        });
         setLoading(false);
         return;
       }
@@ -68,14 +85,42 @@ const UserCreateForAdmin = ({ currentUser, onNavigate }) => {
       
       const data = await res.json();
       if (data.success) {
-        alert('User berhasil ditambahkan ke divisi dan branch Anda');
-        if (onNavigate) onNavigate('user-management');
+        const divisiName = divisiList.find(d => d.id === Number(formData.divisiId))?.nama || 'Divisi yang dipilih';
+        const branchName = currentUser?.branch?.nama || 'Branch Anda';
+        setAlertModal({
+          open: true,
+          title: 'Berhasil!',
+          message: `Akun User "${formData.username}" berhasil ditambahkan ke ${divisiName} dan ${branchName}.`,
+          type: 'success'
+        });
+        // Reset form
+        setFormData({
+          username: '',
+          password: '',
+          role: 'user',
+          email: '',
+          divisiId: ''
+        });
+        // Navigate after modal is closed
+        setTimeout(() => {
+          if (onNavigate) onNavigate('user-management');
+        }, 1500);
       } else {
-        alert(data.message || 'Gagal menambahkan user');
+        setAlertModal({
+          open: true,
+          title: 'Gagal Menambahkan',
+          message: data.message || 'Gagal menambahkan user. Silakan coba lagi.',
+          type: 'error'
+        });
       }
     } catch (err) {
       console.error(err);
-      alert('Terjadi kesalahan saat menyimpan');
+      setAlertModal({
+        open: true,
+        title: 'Terjadi Kesalahan',
+        message: 'Terjadi kesalahan saat menyimpan. Silakan coba lagi.',
+        type: 'error'
+      });
     } finally {
       setLoading(false);
     }
@@ -181,6 +226,14 @@ const UserCreateForAdmin = ({ currentUser, onNavigate }) => {
           </div>
         </form>
       </div>
+
+      <AlertModal
+        open={alertModal.open}
+        title={alertModal.title}
+        message={alertModal.message}
+        type={alertModal.type}
+        onConfirm={() => setAlertModal({ ...alertModal, open: false })}
+      />
     </div>
   );
 };

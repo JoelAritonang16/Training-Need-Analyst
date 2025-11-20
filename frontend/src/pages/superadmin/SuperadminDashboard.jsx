@@ -4,6 +4,7 @@ import TrainingProposalForm from '../user/TrainingProposalForm.jsx';
 import SuperAdminDashboardOverview from './SuperAdminDashboardOverview.jsx';
 import FinalApproval from './FinalApproval.jsx';
 import AllProposals from './AllProposals.jsx';
+import ProposalApproval from './ProposalApproval.jsx';
 import SystemConfig from './SystemConfig.jsx';
 import AuditLogs from './AuditLogs.jsx';
 import UserManagement from '../admin/UserManagement.jsx';
@@ -15,7 +16,8 @@ import AnakPerusahaanManagement from './AnakPerusahaanManagement.jsx';
 import DraftTNA2026 from '../admin/DraftTNA2026.jsx';
 import TempatDiklatRealisasi from '../admin/TempatDiklatRealisasi.jsx';
 import RekapGabungan from './RekapGabungan.jsx';
-import { trainingProposalAPI, userProfileAPI } from '../../utils/api';
+import AlertModal from '../../components/AlertModal.jsx';
+import { trainingProposalAPI, userProfileAPI, updateProposalStatusAPI } from '../../utils/api';
 import SuperAdminProfile from './SuperAdminProfile';
 import danantaraLogo from '../../assets/Danantara2.png';
 import pelindoLogo from '../../assets/LogoFixx.png';
@@ -59,6 +61,14 @@ const SuperadminDashboard = ({ user, onLogout, onUserUpdate }) => {
   const [error, setError] = useState(null);
   const [selectedProposal, setSelectedProposal] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  
+  // Alert Modal State
+  const [alertModal, setAlertModal] = useState({
+    open: false,
+    title: '',
+    message: '',
+    type: 'info' // 'success', 'error', 'warning', 'info'
+  });
 
   // Fetch proposals from database
   useEffect(() => {
@@ -109,22 +119,15 @@ const SuperadminDashboard = ({ user, onLogout, onUserUpdate }) => {
     try {
       console.log('SuperadminDashboard: Final approving proposal:', proposalId);
       
-      // Call API to update status
-      const response = await fetch(`http://localhost:5000/api/training-proposals/${proposalId}/status`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({
-          status: 'APPROVE_SUPERADMIN'
-        })
-      });
-      
-      const data = await response.json();
+      const data = await updateProposalStatusAPI(proposalId, 'APPROVE_SUPERADMIN');
       
       if (data.success) {
-        alert('Proposal berhasil disetujui final!');
+        setAlertModal({
+          open: true,
+          title: 'Berhasil',
+          message: 'Proposal berhasil disetujui! Notifikasi telah dikirim ke admin untuk konfirmasi ke user.',
+          type: 'success'
+        });
         // Refresh data from database
         fetchProposals();
         
@@ -138,51 +141,71 @@ const SuperadminDashboard = ({ user, onLogout, onUserUpdate }) => {
           timestamp: new Date().toISOString()
         }, ...prev]);
       } else {
-        alert('Error: ' + data.message);
+        setAlertModal({
+          open: true,
+          title: 'Error',
+          message: data.message || 'Gagal menyetujui proposal',
+          type: 'error'
+        });
       }
     } catch (error) {
       console.error('SuperadminDashboard: Error final approving proposal:', error);
-      alert('Terjadi kesalahan saat menyetujui proposal final');
+      setAlertModal({
+        open: true,
+        title: 'Terjadi Kesalahan',
+        message: error.message || 'Terjadi kesalahan saat menyetujui proposal',
+        type: 'error'
+      });
     }
   };
 
-  const handleFinalReject = async (proposalId) => {
-    const reason = prompt('Masukkan alasan penolakan final:');
-    if (!reason || reason.trim() === '') {
-      alert('Alasan penolakan harus diisi');
+  const handleApproveProposal = handleFinalApprove;
+
+  const handleFinalReject = async (proposalId, alasan) => {
+    if (!alasan || alasan.trim() === '') {
+      setAlertModal({
+        open: true,
+        title: 'Peringatan',
+        message: 'Alasan penolakan harus diisi',
+        type: 'warning'
+      });
       return;
     }
     
     try {
-      console.log('SuperadminDashboard: Final rejecting proposal:', proposalId, 'Reason:', reason);
+      console.log('SuperadminDashboard: Final rejecting proposal:', proposalId, 'Reason:', alasan);
       
-      // Call API to update status
-      const response = await fetch(`http://localhost:5000/api/training-proposals/${proposalId}/status`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({
-          status: 'DITOLAK',
-          alasan: reason.trim()
-        })
-      });
-      
-      const data = await response.json();
+      const data = await updateProposalStatusAPI(proposalId, 'DITOLAK', alasan);
       
       if (data.success) {
-        alert('Proposal berhasil ditolak final!');
+        setAlertModal({
+          open: true,
+          title: 'Berhasil',
+          message: 'Proposal berhasil ditolak. Notifikasi dengan alasan telah dikirim langsung ke user untuk revisi.',
+          type: 'success'
+        });
         // Refresh data from database
         fetchProposals();
       } else {
-        alert('Error: ' + data.message);
+        setAlertModal({
+          open: true,
+          title: 'Error',
+          message: data.message || 'Gagal menolak proposal',
+          type: 'error'
+        });
       }
     } catch (error) {
       console.error('SuperadminDashboard: Error final rejecting proposal:', error);
-      alert('Terjadi kesalahan saat menolak proposal final');
+      setAlertModal({
+        open: true,
+        title: 'Terjadi Kesalahan',
+        message: error.message || 'Terjadi kesalahan saat menolak proposal',
+        type: 'error'
+      });
     }
   };
+
+  const handleRejectProposal = handleFinalReject;
 
   const handleDeleteUser = (userId) => {
     setUsers(prev => prev.filter(u => u.id !== userId));
@@ -286,16 +309,11 @@ const SuperadminDashboard = ({ user, onLogout, onUserUpdate }) => {
       
       case 'proposal-approval':
         return (
-          <AllProposals
+          <ProposalApproval
             proposals={proposals}
-            onFinalApprove={handleFinalApprove}
-            onFinalReject={handleFinalReject}
+            onApprove={handleApproveProposal}
+            onReject={handleRejectProposal}
             onViewDetail={handleViewDetail}
-            onEditProposal={handleEditProposal}
-            onNavigate={handleNavigate}
-            onFilterChange={handleProposalFilterChange}
-            initialStatusFilter="waiting"
-            headerTitle="Persetujuan Usulan"
           />
         );
 
@@ -575,6 +593,15 @@ const SuperadminDashboard = ({ user, onLogout, onUserUpdate }) => {
           </div>
         </div>
       )}
+
+      {/* Alert Modal */}
+      <AlertModal
+        open={alertModal.open}
+        title={alertModal.title}
+        message={alertModal.message}
+        type={alertModal.type}
+        onConfirm={() => setAlertModal({ ...alertModal, open: false })}
+      />
     </div>
   );
 };

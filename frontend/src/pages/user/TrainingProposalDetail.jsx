@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { trainingProposalAPI } from '../../utils/api';
+import { trainingProposalAPI, updateImplementationStatusAPI } from '../../utils/api';
+import AlertModal from '../../components/AlertModal';
+import ConfirmModal from '../../components/ConfirmModal';
 import './TrainingProposalDetail.css';
 
 const TrainingProposalDetail = ({ proposalId, onEdit, onBack }) => {
@@ -7,6 +9,14 @@ const TrainingProposalDetail = ({ proposalId, onEdit, onBack }) => {
   const [proposal, setProposal] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [alertModal, setAlertModal] = useState({
+    open: false,
+    title: '',
+    message: '',
+    type: 'info'
+  });
+  const [confirmModal, setConfirmModal] = useState(null);
+  const [isUpdatingImplementation, setIsUpdatingImplementation] = useState(false);
 
   useEffect(() => {
     fetchProposal();
@@ -33,19 +43,40 @@ const TrainingProposalDetail = ({ proposalId, onEdit, onBack }) => {
     }
   };
 
-  const handleDelete = async () => {
-    if (window.confirm('Apakah Anda yakin ingin menghapus usulan pelatihan ini?')) {
-      try {
-        await trainingProposalAPI.delete(id);
-        alert('Usulan pelatihan berhasil dihapus');
-        if (onBack) {
-          onBack();
+  const handleDelete = () => {
+    setConfirmModal({
+      open: true,
+      title: 'Konfirmasi Hapus',
+      message: 'Apakah Anda yakin ingin menghapus usulan pelatihan ini?',
+      onConfirm: async () => {
+        try {
+          await trainingProposalAPI.delete(id);
+          setConfirmModal(null);
+          setAlertModal({
+            open: true,
+            type: 'success',
+            title: 'Berhasil',
+            message: 'Usulan pelatihan berhasil dihapus'
+          });
+          setTimeout(() => {
+            setAlertModal(prev => ({ ...prev, open: false }));
+            if (onBack) {
+              onBack();
+            }
+          }, 2000);
+        } catch (err) {
+          console.error('Error deleting proposal:', err);
+          setConfirmModal(null);
+          setAlertModal({
+            open: true,
+            type: 'error',
+            title: 'Error',
+            message: err.message || 'Gagal menghapus usulan pelatihan'
+          });
         }
-      } catch (err) {
-        console.error('Error deleting proposal:', err);
-        alert('Error: ' + err.message);
-      }
-    }
+      },
+      onCancel: () => setConfirmModal(null)
+    });
   };
 
   const formatDate = (dateString) => {
@@ -73,11 +104,83 @@ const TrainingProposalDetail = ({ proposalId, onEdit, onBack }) => {
 
   const getStatusText = (status) => {
     const statusTexts = {
-      'PENDING': 'Menunggu',
-      'APPROVED': 'Disetujui',
-      'REJECTED': 'Ditolak'
+      'MENUNGGU': 'Menunggu',
+      'APPROVE_ADMIN': 'Disetujui Admin',
+      'APPROVE_SUPERADMIN': 'Disetujui Superadmin',
+      'DITOLAK': 'Ditolak'
     };
     return statusTexts[status] || 'Menunggu';
+  };
+
+  const getImplementationStatusText = (status) => {
+    const statusTexts = {
+      'BELUM_IMPLEMENTASI': 'Belum Diimplementasikan',
+      'SUDAH_IMPLEMENTASI': 'Sudah Diimplementasikan'
+    };
+    return statusTexts[status] || '-';
+  };
+
+  const handleUpdateImplementationStatus = async (newStatus) => {
+    if (!proposal) return;
+    
+    // Konfirmasi jika mengubah ke SUDAH_IMPLEMENTASI
+    if (newStatus === 'SUDAH_IMPLEMENTASI' && proposal.implementasiStatus !== 'SUDAH_IMPLEMENTASI') {
+      setConfirmModal({
+        open: true,
+        title: 'Konfirmasi Realisasi',
+        message: 'Apakah Anda yakin proposal ini sudah direalisasikan? Setelah dikonfirmasi, draft TNA akan otomatis dibuat dan dapat dilihat oleh admin dan superadmin.',
+        onConfirm: async () => {
+          await updateImplementationStatus(newStatus);
+          setConfirmModal(null);
+        },
+        onCancel: () => setConfirmModal(null)
+      });
+      return;
+    }
+    
+    await updateImplementationStatus(newStatus);
+  };
+
+  const updateImplementationStatus = async (newStatus) => {
+    if (!proposal) return;
+    
+    setIsUpdatingImplementation(true);
+    try {
+      const result = await updateImplementationStatusAPI(proposal.id, newStatus);
+      if (result.success) {
+        // Refresh proposal data untuk mendapatkan data terbaru
+        await fetchProposal();
+        
+        // Pesan khusus untuk SUDAH_IMPLEMENTASI
+        if (newStatus === 'SUDAH_IMPLEMENTASI') {
+          setAlertModal({
+            open: true,
+            type: 'success',
+            title: 'Berhasil Dikonfirmasi!',
+            message: `Proposal telah dikonfirmasi sebagai sudah direalisasikan. Draft TNA telah otomatis dibuat dan dapat dilihat oleh admin dan superadmin di halaman Draft TNA 2026.`
+          });
+        } else {
+          setAlertModal({
+            open: true,
+            type: 'success',
+            title: 'Berhasil',
+            message: `Status implementasi berhasil diupdate menjadi ${getImplementationStatusText(newStatus)}`
+          });
+        }
+      } else {
+        throw new Error(result.message || 'Gagal mengupdate status implementasi');
+      }
+    } catch (err) {
+      console.error('Error updating implementation status:', err);
+      setAlertModal({
+        open: true,
+        type: 'error',
+        title: 'Error',
+        message: err.message || 'Gagal mengupdate status implementasi'
+      });
+    } finally {
+      setIsUpdatingImplementation(false);
+    }
   };
 
   if (isLoading) {
@@ -142,6 +245,17 @@ const TrainingProposalDetail = ({ proposalId, onEdit, onBack }) => {
               <span className={`status-badge ${getStatusBadgeClass(proposal.status || 'PENDING')}`}>
                 {getStatusText(proposal.status || 'PENDING')}
               </span>
+              {proposal.isRevision && (
+                <span className="status-badge revision-badge" style={{ 
+                  backgroundColor: '#ff9800', 
+                  color: 'white',
+                  marginLeft: '8px',
+                  fontSize: '0.85em',
+                  padding: '4px 12px'
+                }}>
+                  ⚠️ REVISI
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -182,6 +296,73 @@ const TrainingProposalDetail = ({ proposalId, onEdit, onBack }) => {
           </div>
         </div>
 
+        {/* Status Implementasi Section - hanya untuk proposal yang sudah disetujui */}
+        {(proposal.status === 'APPROVE_ADMIN' || proposal.status === 'APPROVE_SUPERADMIN') && (
+          <div className="detail-section implementation-section">
+            <div className="section-header">
+              <h3>Konfirmasi Realisasi Proposal</h3>
+              <div className="section-badge">
+                {proposal.implementasiStatus === 'SUDAH_IMPLEMENTASI' ? '✓ Sudah Direalisasikan' : '⏳ Belum Dikonfirmasi'}
+              </div>
+            </div>
+            
+            <div className="implementation-status-section">
+              <div className="implementation-status-info">
+                <div className="status-display">
+                  <label>Status Realisasi Saat Ini:</label>
+                  <span className={`implementation-status-badge ${proposal.implementasiStatus === 'SUDAH_IMPLEMENTASI' ? 'implemented' : 'not-implemented'}`}>
+                    {getImplementationStatusText(proposal.implementasiStatus) || 'Belum Dikonfirmasi'}
+                  </span>
+                </div>
+                {proposal.implementasiStatus === 'SUDAH_IMPLEMENTASI' && (
+                  <div className="implementation-success-message">
+                    <p>✓ Proposal ini telah dikonfirmasi sebagai sudah direalisasikan</p>
+                    <p>✓ Draft TNA telah otomatis dibuat dan dapat dilihat oleh admin dan superadmin</p>
+                  </div>
+                )}
+              </div>
+              
+              {proposal.implementasiStatus !== 'SUDAH_IMPLEMENTASI' && (
+                <div className="implementation-actions">
+                  <div className="implementation-info-box">
+                    <h4>Konfirmasi Realisasi</h4>
+                    <p>Silakan konfirmasi apakah proposal pelatihan ini sudah direalisasikan atau belum. Setelah dikonfirmasi sebagai <strong>"Sudah Direalisasikan"</strong>, draft TNA akan otomatis dibuat dan dapat dilihat oleh admin dan superadmin.</p>
+                  </div>
+                  <div className="implementation-buttons">
+                    <button
+                      className={`btn-implementation btn-not-implemented ${proposal.implementasiStatus === 'BELUM_IMPLEMENTASI' ? 'active' : ''}`}
+                      onClick={() => handleUpdateImplementationStatus('BELUM_IMPLEMENTASI')}
+                      disabled={isUpdatingImplementation || proposal.implementasiStatus === 'BELUM_IMPLEMENTASI'}
+                    >
+                      {isUpdatingImplementation ? 'Memproses...' : 'Belum Direalisasikan'}
+                    </button>
+                    <button
+                      className={`btn-implementation btn-implemented ${proposal.implementasiStatus === 'SUDAH_IMPLEMENTASI' ? 'active' : ''}`}
+                      onClick={() => handleUpdateImplementationStatus('SUDAH_IMPLEMENTASI')}
+                      disabled={isUpdatingImplementation || proposal.implementasiStatus === 'SUDAH_IMPLEMENTASI'}
+                    >
+                      {isUpdatingImplementation ? 'Memproses...' : '✓ Sudah Direalisasikan'}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Alasan Penolakan - jika proposal ditolak */}
+        {proposal.status === 'DITOLAK' && proposal.alasan && (
+          <div className="detail-section">
+            <h3>Alasan Penolakan</h3>
+            <div className="rejection-reason">
+              <p>{proposal.alasan}</p>
+              <p style={{ marginTop: '12px', color: '#666', fontSize: '0.9em' }}>
+                <strong>Catatan:</strong> Anda dapat melakukan revisi pada proposal ini dengan mengklik tombol "Edit Usulan" di bawah.
+              </p>
+            </div>
+          </div>
+        )}
+
         <div className="detail-section">
           <h3>Rincian Biaya</h3>
           <div className="cost-details">
@@ -216,7 +397,7 @@ const TrainingProposalDetail = ({ proposalId, onEdit, onBack }) => {
             ← Kembali ke Daftar
           </button>
           
-          {(!proposal.status || proposal.status === 'PENDING' || proposal.status === 'REJECTED') && (
+          {(proposal.status === 'MENUNGGU' || proposal.status === 'DITOLAK') && (
             <>
               <button 
                 className="btn-primary"
@@ -234,6 +415,28 @@ const TrainingProposalDetail = ({ proposalId, onEdit, onBack }) => {
           )}
         </div>
       </div>
+
+      {/* Alert Modal */}
+      <AlertModal
+        open={alertModal.open}
+        type={alertModal.type}
+        title={alertModal.title}
+        message={alertModal.message}
+        onConfirm={() => setAlertModal({ ...alertModal, open: false })}
+      />
+
+      {/* Confirm Modal */}
+      {confirmModal && confirmModal.open && (
+        <ConfirmModal
+          open={confirmModal.open}
+          title={confirmModal.title}
+          message={confirmModal.message}
+          confirmText="Ya"
+          cancelText="Batal"
+          onConfirm={confirmModal.onConfirm}
+          onCancel={confirmModal.onCancel}
+        />
+      )}
     </div>
   );
 };

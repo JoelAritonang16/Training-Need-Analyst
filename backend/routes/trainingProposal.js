@@ -54,4 +54,9 @@ router.patch(
   auth.isAuthenticated,
   trainingProposalController.updateProposalStatus
 );
+router.patch(
+  "/:id/implementation-status",
+  auth.isAuthenticated,
+  trainingProposalController.updateImplementationStatus
+);
 export default router;

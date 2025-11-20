@@ -9,7 +9,8 @@ import UserCreate from './UserCreate.jsx';
 import UserCreateForAdmin from './UserCreateForAdmin.jsx';
 import DraftTNA2026 from './DraftTNA2026.jsx';
 import TempatDiklatRealisasi from './TempatDiklatRealisasi.jsx';
-import { trainingProposalAPI, userProfileAPI } from '../../utils/api';
+import AlertModal from '../../components/AlertModal.jsx';
+import { trainingProposalAPI, userProfileAPI, updateProposalStatusAPI } from '../../utils/api';
 import AdminProfile from './AdminProfile';
 import danantaraLogo from '../../assets/Danantara2.png';
 import pelindoLogo from '../../assets/LogoFixx.png';
@@ -29,6 +30,14 @@ const AdminDashboard = ({ user, onLogout }) => {
   const [error, setError] = useState(null);
   const [selectedProposal, setSelectedProposal] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  
+  // Alert Modal State
+  const [alertModal, setAlertModal] = useState({
+    open: false,
+    title: '',
+    message: '',
+    type: 'info' // 'success', 'error', 'warning', 'info'
+  });
 
   // Fetch proposals from database
   useEffect(() => {
@@ -71,99 +80,80 @@ const AdminDashboard = ({ user, onLogout }) => {
     try {
       console.log('AdminDashboard: Approving proposal:', proposalId);
       
-      // Call API to update status
-      const response = await fetch(`http://localhost:5000/api/training-proposals/${proposalId}/status`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({
-          status: 'APPROVE_ADMIN'
-        })
-      });
-      
-      const data = await response.json();
+      // Call API to update status to APPROVE_ADMIN
+      const data = await updateProposalStatusAPI(proposalId, 'APPROVE_ADMIN');
       
       if (data.success) {
-        alert('Proposal berhasil disetujui!');
+        setAlertModal({
+          open: true,
+          title: 'Berhasil',
+          message: 'Proposal berhasil disetujui! Notifikasi telah dikirim ke superadmin untuk approval final.',
+          type: 'success'
+        });
         // Refresh data from database
         fetchProposals();
       } else {
-        alert('Error: ' + data.message);
+        setAlertModal({
+          open: true,
+          title: 'Error',
+          message: data.message || 'Gagal menyetujui proposal',
+          type: 'error'
+        });
       }
     } catch (error) {
       console.error('AdminDashboard: Error approving proposal:', error);
-      alert('Terjadi kesalahan saat menyetujui proposal');
+      setAlertModal({
+        open: true,
+        title: 'Terjadi Kesalahan',
+        message: error.message || 'Terjadi kesalahan saat menyetujui proposal',
+        type: 'error'
+      });
     }
   };
 
   const handleRejectProposal = async (proposalId) => {
-    const reason = prompt('Masukkan alasan penolakan:');
-    if (!reason || reason.trim() === '') {
-      alert('Alasan penolakan harus diisi');
-      return;
-    }
-    
-    try {
-      console.log('AdminDashboard: Rejecting proposal:', proposalId, 'Reason:', reason);
-      
-      // Call API to update status
-      const response = await fetch(`http://localhost:5000/api/training-proposals/${proposalId}/status`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({
-          status: 'DITOLAK',
-          alasan: reason.trim()
-        })
-      });
-      
-      const data = await response.json();
-      
-      if (data.success) {
-        alert('Proposal berhasil ditolak!');
-        // Refresh data from database
-        fetchProposals();
-      } else {
-        alert('Error: ' + data.message);
-      }
-    } catch (error) {
-      console.error('AdminDashboard: Error rejecting proposal:', error);
-      alert('Terjadi kesalahan saat menolak proposal');
-    }
+    // Admin tidak bisa reject proposal, hanya superadmin yang bisa
+    setAlertModal({
+      open: true,
+      title: 'Akses Ditolak',
+      message: 'Admin tidak dapat menolak proposal. Hanya superadmin yang dapat menolak proposal.',
+      type: 'warning'
+    });
+    return;
   };
 
-  const handleConfirmToSuperAdmin = async (proposalId) => {
+  const handleConfirmToUser = async (proposalId) => {
+    // Admin konfirmasi ke user bahwa proposal sudah disetujui
     try {
-      console.log('AdminDashboard: Confirming to SuperAdmin:', proposalId);
+      console.log('AdminDashboard: Confirming to User:', proposalId);
       
-      // Call API to update status
-      const response = await fetch(`http://localhost:5000/api/training-proposals/${proposalId}/status`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({
-          status: 'APPROVE_SUPERADMIN'
-        })
-      });
-      
-      const data = await response.json();
+      // Update status ke APPROVE_ADMIN untuk menandai sudah dikonfirmasi ke user
+      const data = await updateProposalStatusAPI(proposalId, 'APPROVE_ADMIN');
       
       if (data.success) {
-        alert('Proposal berhasil dikonfirmasi ke Super Admin!');
-        // Refresh data from database
+        setAlertModal({
+          open: true,
+          title: 'Berhasil',
+          message: 'User telah dikonfirmasi bahwa request mereka diterima!',
+          type: 'success'
+        });
         fetchProposals();
       } else {
-        alert('Error: ' + data.message);
+        setAlertModal({
+          open: true,
+          title: 'Error',
+          message: data.message || 'Gagal mengkonfirmasi ke user',
+          type: 'error'
+        });
       }
     } catch (error) {
-      console.error('AdminDashboard: Error confirming to SuperAdmin:', error);
-      alert('Terjadi kesalahan saat mengonfirmasi ke Super Admin');
+      console.error('AdminDashboard: Error confirming to user:', error);
+      setAlertModal({
+        open: true,
+        title: 'Terjadi Kesalahan',
+        message: error.message || 'Terjadi kesalahan saat mengkonfirmasi ke user',
+        type: 'error'
+      });
     }
   };
 
@@ -259,7 +249,7 @@ const AdminDashboard = ({ user, onLogout }) => {
         return (
           <ApprovedProposals 
             proposals={proposals}
-            onConfirmToSuperAdmin={handleConfirmToSuperAdmin}
+            onConfirmToUser={handleConfirmToUser}
             onViewDetail={handleViewDetail}
           />
         );
@@ -415,6 +405,15 @@ const AdminDashboard = ({ user, onLogout }) => {
           </div>
         </div>
       )}
+
+      {/* Alert Modal */}
+      <AlertModal
+        open={alertModal.open}
+        title={alertModal.title}
+        message={alertModal.message}
+        type={alertModal.type}
+        onConfirm={() => setAlertModal({ ...alertModal, open: false })}
+      />
     </div>
   );
 };

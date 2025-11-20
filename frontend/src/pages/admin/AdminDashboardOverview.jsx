@@ -29,11 +29,20 @@ const AdminDashboardOverview = ({ users, proposals, user, onNavigate }) => {
   const totalDrafts = drafts.length;
   const totalRealisasi = realisasiData.length;
   
-  // Calculate total budget from proposals
+  // Budget calculations - based on status
+  const totalBudgetRequested = proposals ? proposals.filter(p => p.status === 'MENUNGGU').reduce((sum, p) => sum + (parseFloat(p.TotalUsulan) || 0), 0) : 0;
+  const totalBudgetApproved = proposals ? proposals.filter(p => p.status === 'APPROVE_ADMIN').reduce((sum, p) => sum + (parseFloat(p.TotalUsulan) || 0), 0) : 0;
   const totalBudget = proposals ? proposals.reduce((sum, p) => sum + (parseFloat(p.TotalUsulan) || 0), 0) : 0;
   
-  // Calculate total participants
+  // Participant calculations
+  const totalParticipantsRequested = proposals ? proposals.filter(p => p.status === 'MENUNGGU').reduce((sum, p) => sum + (parseInt(p.JumlahPeserta) || 0), 0) : 0;
+  const totalParticipantsApproved = proposals ? proposals.filter(p => p.status === 'APPROVE_ADMIN').reduce((sum, p) => sum + (parseInt(p.JumlahPeserta) || 0), 0) : 0;
   const totalParticipants = proposals ? proposals.reduce((sum, p) => sum + (parseInt(p.JumlahPeserta) || 0), 0) : 0;
+  
+  // Realisasi data calculations
+  const totalKegiatanRealisasi = realisasiData.reduce((sum, r) => sum + (parseInt(r.jumlahKegiatan) || 0), 0);
+  const totalPesertaRealisasi = realisasiData.reduce((sum, r) => sum + (parseInt(r.totalPeserta) || 0), 0);
+  const totalBiayaRealisasi = realisasiData.reduce((sum, r) => sum + (parseFloat(r.totalBiaya) || 0), 0);
 
   useEffect(() => {
     fetchDashboardData();
@@ -98,7 +107,7 @@ const AdminDashboardOverview = ({ users, proposals, user, onNavigate }) => {
 
       <div className="stats-grid">
         <div className="stat-card">
-          <div className="stat-icon"><LuUsers size={24} /></div>
+          <div className="stat-icon"><LuUsers size={18} /></div>
           <div className="stat-content">
             <h3>{totalUsers}</h3>
             <p>Total Pengguna</p>
@@ -107,7 +116,7 @@ const AdminDashboardOverview = ({ users, proposals, user, onNavigate }) => {
         </div>
 
         <div className="stat-card">
-          <div className="stat-icon"><LuClipboardList size={24} /></div>
+          <div className="stat-icon"><LuClipboardList size={18} /></div>
           <div className="stat-content">
             <h3>{totalProposals}</h3>
             <p>Total Usulan</p>
@@ -116,46 +125,46 @@ const AdminDashboardOverview = ({ users, proposals, user, onNavigate }) => {
         </div>
 
         <div className="stat-card">
-          <div className="stat-icon"><LuCheckCircle2 size={24} /></div>
+          <div className="stat-icon"><LuCheckCircle2 size={18} /></div>
           <div className="stat-content">
             <h3>{approvedCount}</h3>
             <p>Disetujui Admin</p>
-            <small>Siap </small>
+            <small>Siap konfirmasi</small>
           </div>
         </div>
 
         <div className="stat-card">
-          <div className="stat-icon"><LuWallet size={24} /></div>
+          <div className="stat-icon"><LuWallet size={18} /></div>
           <div className="stat-content">
             <h3>
               Rp{" "}
-              {totalBudget.toLocaleString("id-ID", { maximumFractionDigits: 0 })}
+              {(totalBudgetApproved / 1000000000).toFixed(2)}M
             </h3>
-            <p>Total Anggaran</p>
-            <small>Semua usulan</small>
+            <p>Anggaran Disetujui</p>
+            <small>Usulan yang disetujui</small>
           </div>
         </div>
 
         <div className="stat-card">
-          <div className="stat-icon"><LuUsers size={24} /></div>
+          <div className="stat-icon"><LuUsers size={18} /></div>
           <div className="stat-content">
-            <h3>{totalParticipants}</h3>
-            <p>Total Peserta</p>
-            <small>Semua usulan</small>
+            <h3>{totalParticipantsApproved}</h3>
+            <p>Peserta Disetujui</p>
+            <small>Usulan yang disetujui</small>
           </div>
         </div>
 
         <div className="stat-card">
-          <div className="stat-icon"><LuFileText size={24} /></div>
+          <div className="stat-icon"><LuFileText size={18} /></div>
           <div className="stat-content">
             <h3>{totalDrafts}</h3>
             <p>Draft TNA 2026</p>
-            <small>Branch: {user?.branch?.nama || 'N/A'}</small>
+            <small>{user?.branch?.nama || 'N/A'}</small>
           </div>
         </div>
 
         <div className="stat-card">
-          <div className="stat-icon"><LuMapPin size={24} /></div>
+          <div className="stat-icon"><LuMapPin size={18} /></div>
           <div className="stat-content">
             <h3>{totalRealisasi}</h3>
             <p>Tempat Diklat Realisasi</p>
@@ -172,7 +181,7 @@ const AdminDashboardOverview = ({ users, proposals, user, onNavigate }) => {
           {/* Proposal Status Pie Chart */}
           <div className="chart-card">
             <h4>Status Usulan Pelatihan</h4>
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={200}>
               <PieChart>
                 <Pie
                   data={proposalStatusData}
@@ -197,7 +206,7 @@ const AdminDashboardOverview = ({ users, proposals, user, onNavigate }) => {
           {/* Draft Status Pie Chart */}
           <div className="chart-card">
             <h4>Status Draft TNA 2026</h4>
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={200}>
               <PieChart>
                 <Pie
                   data={draftStatusData}
@@ -222,7 +231,7 @@ const AdminDashboardOverview = ({ users, proposals, user, onNavigate }) => {
           {/* Rekap Per Bulan Line Chart */}
           <div className="chart-card chart-full-width">
             <h4>Rekap Tempat Diklat Realisasi Per Bulan ({new Date().getFullYear()})</h4>
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={200}>
               <LineChart data={chartDataPerBulan}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
@@ -238,7 +247,7 @@ const AdminDashboardOverview = ({ users, proposals, user, onNavigate }) => {
           {/* Rekap Per Bulan Bar Chart - Biaya */}
           <div className="chart-card chart-full-width">
             <h4>Total Biaya Realisasi Per Bulan ({new Date().getFullYear()}) - Juta Rupiah</h4>
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={200}>
               <BarChart data={chartDataPerBulan}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />

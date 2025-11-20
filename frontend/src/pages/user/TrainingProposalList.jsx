@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useDatabaseData } from '../../components/DatabaseDataProvider';
-import { trainingProposalAPI } from '../../utils/api';
+import { trainingProposalAPI, updateImplementationStatusAPI } from '../../utils/api';
+import AlertModal from '../../components/AlertModal';
+import ConfirmModal from '../../components/ConfirmModal';
 import './TrainingProposalList.css';
 
 const TrainingProposalList = ({ onCreateNew, onEdit, onViewDetail }) => {
@@ -16,6 +18,14 @@ const TrainingProposalList = ({ onCreateNew, onEdit, onViewDetail }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedProposal, setSelectedProposal] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [alertModal, setAlertModal] = useState({
+    open: false,
+    title: '',
+    message: '',
+    type: 'info'
+  });
+  const [confirmModal, setConfirmModal] = useState(null);
+  const [isUpdatingImplementation, setIsUpdatingImplementation] = useState(false);
   const itemsPerPage = 6;
 
 
@@ -51,16 +61,72 @@ const TrainingProposalList = ({ onCreateNew, onEdit, onViewDetail }) => {
     setSelectedProposal(null);
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm('Apakah Anda yakin ingin menghapus usulan pelatihan ini?')) {
-      try {
-        await trainingProposalAPI.delete(id);
-        refreshData(); // Refresh data dari context
-        alert('Usulan pelatihan berhasil dihapus');
-      } catch (err) {
-        alert('Error: ' + err.message);
-      }
-    }
+  const handleDelete = (id) => {
+    setConfirmModal({
+      open: true,
+      title: 'Konfirmasi Hapus',
+      message: 'Apakah Anda yakin ingin menghapus usulan pelatihan ini?',
+      onConfirm: async () => {
+        try {
+          await trainingProposalAPI.delete(id);
+          refreshData(); // Refresh data dari context
+          setConfirmModal(null);
+          setAlertModal({
+            open: true,
+            type: 'success',
+            title: 'Berhasil',
+            message: 'Usulan pelatihan berhasil dihapus'
+          });
+        } catch (err) {
+          setConfirmModal(null);
+          setAlertModal({
+            open: true,
+            type: 'error',
+            title: 'Error',
+            message: err.message || 'Gagal menghapus usulan pelatihan'
+          });
+        }
+      },
+      onCancel: () => setConfirmModal(null)
+    });
+  };
+
+  const handleConfirmRealisasi = (proposal) => {
+    setConfirmModal({
+      open: true,
+      title: 'Konfirmasi Realisasi',
+      message: 'Apakah Anda yakin proposal ini sudah direalisasikan? Setelah dikonfirmasi, draft TNA akan otomatis dibuat dan dapat dilihat oleh admin dan superadmin.',
+      onConfirm: async () => {
+        setIsUpdatingImplementation(true);
+        try {
+          const result = await updateImplementationStatusAPI(proposal.id, 'SUDAH_IMPLEMENTASI');
+          if (result.success) {
+            refreshData(); // Refresh data untuk update status
+            setConfirmModal(null);
+            setAlertModal({
+              open: true,
+              type: 'success',
+              title: 'Berhasil Dikonfirmasi!',
+              message: 'Proposal telah dikonfirmasi sebagai sudah direalisasikan. Draft TNA telah otomatis dibuat dan dapat dilihat oleh admin dan superadmin di halaman Draft TNA 2026.'
+            });
+          } else {
+            throw new Error(result.message || 'Gagal mengupdate status implementasi');
+          }
+        } catch (err) {
+          console.error('Error updating implementation status:', err);
+          setConfirmModal(null);
+          setAlertModal({
+            open: true,
+            type: 'error',
+            title: 'Error',
+            message: err.message || 'Gagal mengupdate status implementasi'
+          });
+        } finally {
+          setIsUpdatingImplementation(false);
+        }
+      },
+      onCancel: () => setConfirmModal(null)
+    });
   };
 
   const getStatusBadgeClass = (status) => {
@@ -197,9 +263,21 @@ const TrainingProposalList = ({ onCreateNew, onEdit, onViewDetail }) => {
               <div key={proposal.id} className="proposal-card">
                 <div className="proposal-header">
                   <h3>{proposal.Uraian || 'Uraian Tidak Tersedia'}</h3>
-                  <span className={`status-badge ${getStatusBadgeClass(proposal.status || 'PENDING')}`}>
-                    {getStatusText(proposal.status || 'PENDING')}
-                  </span>
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                    <span className={`status-badge ${getStatusBadgeClass(proposal.status || 'PENDING')}`}>
+                      {getStatusText(proposal.status || 'PENDING')}
+                    </span>
+                    {proposal.isRevision && (
+                      <span className="status-badge" style={{ 
+                        backgroundColor: '#ff9800', 
+                        color: 'white',
+                        fontSize: '0.75em',
+                        padding: '2px 8px'
+                      }}>
+                        ⚠️ REVISI
+                      </span>
+                    )}
+                  </div>
                 </div>
                 
                 <div className="proposal-details">
@@ -209,6 +287,20 @@ const TrainingProposalList = ({ onCreateNew, onEdit, onViewDetail }) => {
                   <p><strong>Level Tingkatan:</strong> {proposal.LevelTingkatan || '-'}</p>
                   <p><strong>Total Usulan:</strong> {proposal.TotalUsulan ? `Rp ${parseFloat(proposal.TotalUsulan).toLocaleString('id-ID')}` : '-'}</p>
                   <p><strong>Tanggal Dibuat:</strong> {formatDate(proposal.created_at)}</p>
+                  
+                  {/* Status Realisasi - untuk proposal yang sudah disetujui */}
+                  {(proposal.status === 'APPROVE_ADMIN' || proposal.status === 'APPROVE_SUPERADMIN') && (
+                    <div className="realisasi-status-indicator">
+                      <strong>Status Realisasi:</strong>
+                      <span className={`realisasi-badge ${proposal.implementasiStatus === 'SUDAH_IMPLEMENTASI' ? 'implemented' : proposal.implementasiStatus === 'BELUM_IMPLEMENTASI' ? 'not-implemented' : 'pending'}`}>
+                        {proposal.implementasiStatus === 'SUDAH_IMPLEMENTASI' 
+                          ? '✓ Sudah Direalisasikan' 
+                          : proposal.implementasiStatus === 'BELUM_IMPLEMENTASI'
+                          ? '⏳ Belum Direalisasikan'
+                          : '❓ Belum Dikonfirmasi'}
+                      </span>
+                    </div>
+                  )}
                 </div>
                 
                 <div className="proposal-actions">
@@ -218,7 +310,7 @@ const TrainingProposalList = ({ onCreateNew, onEdit, onViewDetail }) => {
                   >
                     Lihat Detail
                   </button>
-                  {(!proposal.status || proposal.status === 'PENDING' || proposal.status === 'REJECTED') && (
+                  {(proposal.status === 'MENUNGGU' || proposal.status === 'DITOLAK') && (
                     <>
                       <button 
                         className="btn-edit"
@@ -233,6 +325,18 @@ const TrainingProposalList = ({ onCreateNew, onEdit, onViewDetail }) => {
                         Hapus
                       </button>
                     </>
+                  )}
+                  {/* Quick action untuk konfirmasi realisasi */}
+                  {(proposal.status === 'APPROVE_ADMIN' || proposal.status === 'APPROVE_SUPERADMIN') && 
+                   proposal.implementasiStatus !== 'SUDAH_IMPLEMENTASI' && (
+                    <button 
+                      className="btn-confirm-realisasi"
+                      onClick={() => handleConfirmRealisasi(proposal)}
+                      disabled={isUpdatingImplementation}
+                      title="Konfirmasi Realisasi"
+                    >
+                      {isUpdatingImplementation ? 'Memproses...' : '✓ Konfirmasi Realisasi'}
+                    </button>
                   )}
                 </div>
               </div>
@@ -345,6 +449,28 @@ const TrainingProposalList = ({ onCreateNew, onEdit, onViewDetail }) => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Alert Modal */}
+      <AlertModal
+        open={alertModal.open}
+        type={alertModal.type}
+        title={alertModal.title}
+        message={alertModal.message}
+        onConfirm={() => setAlertModal({ ...alertModal, open: false })}
+      />
+
+      {/* Confirm Modal */}
+      {confirmModal && confirmModal.open && (
+        <ConfirmModal
+          open={confirmModal.open}
+          title={confirmModal.title}
+          message={confirmModal.message}
+          confirmText="Ya"
+          cancelText="Batal"
+          onConfirm={confirmModal.onConfirm}
+          onCancel={confirmModal.onCancel}
+        />
       )}
     </div>
   );

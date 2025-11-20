@@ -9,6 +9,7 @@ import AnakPerusahaanModel from "./AnakPerusahaan.js";
 import AnakPerusahaanBranchModel from "./AnakPerusahaanBranch.js";
 import DraftTNA2026Model from "./DraftTNA2026.js";
 import TempatDiklatRealisasiModel from "./TempatDiklatRealisasi.js";
+import NotificationModel from "./Notification.js";
 
 const db = {};
 
@@ -22,6 +23,7 @@ db.AnakPerusahaan = AnakPerusahaanModel(sequelize, Sequelize);
 db.AnakPerusahaanBranch = AnakPerusahaanBranchModel(sequelize, Sequelize);
 db.DraftTNA2026 = DraftTNA2026Model(sequelize, Sequelize);
 db.TempatDiklatRealisasi = TempatDiklatRealisasiModel(sequelize, Sequelize);
+db.Notification = NotificationModel(sequelize, Sequelize);
 
 // Define associations
 db.User.belongsTo(db.Divisi, { foreignKey: 'divisiId', as: 'divisi' });
@@ -62,6 +64,12 @@ db.DraftTNA2026.belongsTo(db.User, { foreignKey: 'updatedBy', as: 'updater' });
 db.TempatDiklatRealisasi.belongsTo(db.Branch, { foreignKey: 'branchId', as: 'branch' });
 db.Branch.hasMany(db.TempatDiklatRealisasi, { foreignKey: 'branchId', as: 'tempatDiklatRealisasi' });
 db.TempatDiklatRealisasi.belongsTo(db.User, { foreignKey: 'createdBy', as: 'creator' });
+
+// Notification associations
+db.Notification.belongsTo(db.User, { foreignKey: 'userId', as: 'user' });
+db.User.hasMany(db.Notification, { foreignKey: 'userId', as: 'notifications' });
+db.Notification.belongsTo(db.TrainingProposal, { foreignKey: 'proposalId', as: 'proposal' });
+db.TrainingProposal.hasMany(db.Notification, { foreignKey: 'proposalId', as: 'notifications' });
 
 // Many-to-many associations for AnakPerusahaan and Branch
 db.AnakPerusahaan.belongsToMany(db.Branch, { 
@@ -114,5 +122,6 @@ export const AnakPerusahaan = db.AnakPerusahaan;
 export const AnakPerusahaanBranch = db.AnakPerusahaanBranch;
 export const DraftTNA2026 = db.DraftTNA2026;
 export const TempatDiklatRealisasi = db.TempatDiklatRealisasi;
+export const Notification = db.Notification;
 
 export default db;

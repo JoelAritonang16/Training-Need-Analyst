@@ -329,6 +329,12 @@ export const draftTNA2026API = {
     });
   },
   
+  submit: async (id) => {
+    return apiCall(`/api/draft-tna-2026/${id}/submit`, {
+      method: 'PATCH'
+    });
+  },
+  
   getRekapGabungan: async () => {
     return apiCall('/api/draft-tna-2026/rekap/gabungan');
   }
@@ -376,4 +382,53 @@ export const tempatDiklatRealisasiAPI = {
       method: 'DELETE'
     });
   }
+};
+
+// Notification API
+export const notificationAPI = {
+  getAll: async () => {
+    return apiCall('/api/notifications');
+  },
+  
+  getUnreadCount: async () => {
+    return apiCall('/api/notifications/unread/count');
+  },
+  
+  getDraftTNANotificationCount: async () => {
+    return apiCall('/api/notifications/draft-tna/count');
+  },
+  
+  markAsRead: async (id) => {
+    return apiCall(`/api/notifications/${id}/read`, {
+      method: 'PATCH'
+    });
+  },
+  
+  markAllAsRead: async () => {
+    return apiCall('/api/notifications/read/all', {
+      method: 'PATCH'
+    });
+  },
+  
+  delete: async (id) => {
+    return apiCall(`/api/notifications/${id}`, {
+      method: 'DELETE'
+    });
+  }
+};
+
+// Training Proposal Status Update API
+export const updateImplementationStatusAPI = async (proposalId, implementasiStatus) => {
+  console.log('Updating implementation status:', proposalId, implementasiStatus);
+  return apiCall(`/api/training-proposals/${proposalId}/implementation-status`, {
+    method: 'PATCH',
+    body: JSON.stringify({ implementasiStatus })
+  });
+};
+
+export const updateProposalStatusAPI = async (proposalId, status, alasan = '') => {
+  return apiCall(`/api/training-proposals/${proposalId}/status`, {
+    method: 'PATCH',
+    body: JSON.stringify({ status, alasan })
+  });
 };

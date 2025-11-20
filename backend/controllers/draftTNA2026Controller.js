@@ -1,4 +1,4 @@
-import { DraftTNA2026, Branch, Divisi, User } from "../models/index.js";
+import { DraftTNA2026, Branch, Divisi, User, Notification } from "../models/index.js";
 import { Sequelize } from "sequelize";
 import sequelize from "../db/db.js";
 
@@ -152,15 +152,16 @@ const draftTNA2026Controller = {
     }
   },
 
-  // Create draft (only superadmin can create)
+  // Create draft (only superadmin can create manually, draft biasanya auto-generated dari proposal)
   async createDraft(req, res) {
     try {
-      const { role: currentUserRole } = req.user;
+      const { role: currentUserRole, id: currentUserId } = req.user;
       
+      // Hanya superadmin yang bisa create draft secara manual
       if (currentUserRole !== "superadmin") {
         return res.status(403).json({
           success: false,
-          message: "Hanya superadmin yang dapat membuat draft",
+          message: "Hanya superadmin yang dapat membuat draft secara manual. Draft biasanya dibuat otomatis dari proposal yang sudah direalisasi.",
         });
       }
 
@@ -177,57 +178,69 @@ const draftTNA2026Controller = {
         bebanAkomodasi,
         bebanUangSaku,
         totalUsulan,
+        tahun = 2026,
       } = req.body;
 
+      // Validasi required fields
+      if (!branchId || !uraian || !waktuPelaksanaan || !jumlahPeserta || !jumlahHari || !levelTingkatan) {
+        return res.status(400).json({
+          success: false,
+          message: "Field yang wajib diisi: branchId, uraian, waktuPelaksanaan, jumlahPeserta, jumlahHari, levelTingkatan",
+        });
+      }
+
       const newDraft = await DraftTNA2026.create({
-        tahun: 2026,
-        branchId,
-        divisiId,
+        tahun: tahun,
+        branchId: branchId,
+        divisiId: divisiId,
         uraian,
         waktuPelaksanaan,
         jumlahPeserta,
         jumlahHari,
         levelTingkatan,
-        beban,
-        bebanTransportasi,
-        bebanAkomodasi,
-        bebanUangSaku,
-        totalUsulan,
-        createdBy: req.user.id,
+        beban: beban || 0,
+        bebanTransportasi: bebanTransportasi || 0,
+        bebanAkomodasi: bebanAkomodasi || 0,
+        bebanUangSaku: bebanUangSaku || 0,
+        totalUsulan: totalUsulan || 0,
+        status: 'DRAFT',
+        createdBy: currentUserId,
       });
 
       res.status(201).json({
         success: true,
-        message: "Draft TNA 2026 berhasil dibuat",
+        message: "Draft TNA berhasil dibuat",
         draft: newDraft,
       });
     } catch (error) {
       console.error("Create draft error:", error);
       res.status(500).json({
         success: false,
-        message: "Gagal membuat draft TNA 2026",
+        message: "Gagal membuat draft TNA",
+        error: error.message,
       });
     }
   },
 
-  // Update draft (only superadmin can update)
+  // Update draft (only superadmin can update, admin is view only)
   async updateDraft(req, res) {
     try {
       const { role: currentUserRole } = req.user;
       const { id } = req.params;
-
-      if (currentUserRole !== "superadmin") {
-        return res.status(403).json({
-          success: false,
-          message: "Hanya superadmin yang dapat mengedit draft",
-        });
-      }
 
       const draft = await DraftTNA2026.findByPk(id);
       if (!draft) {
         return res.status(404).json({
           success: false,
           message: "Draft tidak ditemukan",
+        });
+      }
+
+      // Hanya superadmin yang bisa update draft
+      if (currentUserRole !== "superadmin") {
+        return res.status(403).json({
+          success: false,
+          message: "Hanya superadmin yang dapat mengedit draft. Admin hanya dapat melihat draft (view only).",
         });
       }
 
@@ -247,6 +260,8 @@ const draftTNA2026Controller = {
         status,
       } = req.body;
 
+      const oldStatus = draft.status;
+      
       await draft.update({
         branchId,
         divisiId,
@@ -264,6 +279,46 @@ const draftTNA2026Controller = {
         updatedBy: req.user.id,
       });
 
+      // Send notification when status changes to SUBMITTED
+      if (status === 'SUBMITTED' && oldStatus !== 'SUBMITTED') {
+        // Get all admins and superadmins
+        const adminsAndSuperadmins = await User.findAll({
+          where: {
+            role: {
+              [Sequelize.Op.in]: ['admin', 'superadmin']
+            }
+          },
+          attributes: ['id', 'username', 'fullName', 'role']
+        });
+
+        // Get draft details for notification message
+        const updatedDraft = await DraftTNA2026.findByPk(id, {
+          include: [
+            { model: Branch, as: 'branch', attributes: ['nama'] },
+            { model: Divisi, as: 'divisi', attributes: ['nama'] },
+            { model: User, as: 'creator', attributes: ['username', 'fullName'] }
+          ]
+        });
+
+        const branchName = updatedDraft.branch?.nama || 'Unknown';
+        const divisiName = updatedDraft.divisi?.nama || '';
+        const creatorName = updatedDraft.creator?.fullName || updatedDraft.creator?.username || 'User';
+        const tahun = updatedDraft.tahun || 2026;
+
+        // Send notification to all admins and superadmins
+        for (const admin of adminsAndSuperadmins) {
+          await Notification.create({
+            userId: admin.id,
+            draftTNAId: id,
+            type: 'DRAFT_TNA_SUBMITTED',
+            title: `Draft TNA ${tahun} Telah Diselesaikan`,
+            message: `Draft TNA ${tahun} dari ${branchName}${divisiName ? ` - ${divisiName}` : ''} telah diselesaikan oleh ${creatorName}. Draft telah siap untuk direalisasikan.`
+          });
+        }
+
+        console.log(`Notifikasi Draft TNA ${tahun} dikirim ke ${adminsAndSuperadmins.length} admin/superadmin`);
+      }
+
       res.json({
         success: true,
         message: "Draft TNA 2026 berhasil diupdate",
@@ -274,6 +329,97 @@ const draftTNA2026Controller = {
       res.status(500).json({
         success: false,
         message: "Gagal mengupdate draft TNA 2026",
+      });
+    }
+  },
+
+  // Submit draft (change status to SUBMITTED) - user can submit their own draft
+  async submitDraft(req, res) {
+    try {
+      const { role: currentUserRole, id: currentUserId } = req.user;
+      const { id } = req.params;
+
+      const draft = await DraftTNA2026.findByPk(id, {
+        include: [
+          { model: Branch, as: 'branch', attributes: ['nama'] },
+          { model: Divisi, as: 'divisi', attributes: ['nama'] },
+          { model: User, as: 'creator', attributes: ['username', 'fullName'] }
+        ]
+      });
+
+      if (!draft) {
+        return res.status(404).json({
+          success: false,
+          message: "Draft tidak ditemukan",
+        });
+      }
+
+      // User hanya bisa submit draft mereka sendiri
+      if (currentUserRole === "user") {
+        if (draft.createdBy !== currentUserId) {
+          return res.status(403).json({
+            success: false,
+            message: "Anda hanya dapat submit draft yang Anda buat sendiri",
+          });
+        }
+        if (draft.status !== 'DRAFT') {
+          return res.status(400).json({
+            success: false,
+            message: "Draft ini sudah disubmit atau tidak dalam status DRAFT",
+          });
+        }
+      } else if (currentUserRole !== "superadmin") {
+        return res.status(403).json({
+          success: false,
+          message: "Anda tidak memiliki akses untuk submit draft",
+        });
+      }
+
+      // Update status to SUBMITTED
+      await draft.update({
+        status: 'SUBMITTED',
+        updatedBy: currentUserId,
+      });
+
+      // Send notification to all admins and superadmins
+      const adminsAndSuperadmins = await User.findAll({
+        where: {
+          role: {
+            [Sequelize.Op.in]: ['admin', 'superadmin']
+          }
+        },
+        attributes: ['id', 'username', 'fullName', 'role']
+      });
+
+      const branchName = draft.branch?.nama || 'Unknown';
+      const divisiName = draft.divisi?.nama || '';
+      const creatorName = draft.creator?.fullName || draft.creator?.username || 'User';
+      const tahun = draft.tahun || 2026;
+
+      // Send notification to all admins and superadmins
+      for (const admin of adminsAndSuperadmins) {
+        await Notification.create({
+          userId: admin.id,
+          draftTNAId: id,
+          type: 'DRAFT_TNA_SUBMITTED',
+          title: `Draft TNA ${tahun} Telah Diselesaikan`,
+          message: `Draft TNA ${tahun} dari ${branchName}${divisiName ? ` - ${divisiName}` : ''} telah diselesaikan oleh ${creatorName}. Draft telah siap untuk direalisasikan.`
+        });
+      }
+
+      console.log(`Notifikasi Draft TNA ${tahun} dikirim ke ${adminsAndSuperadmins.length} admin/superadmin`);
+
+      res.json({
+        success: true,
+        message: "Draft TNA berhasil disubmit",
+        draft: draft,
+      });
+    } catch (error) {
+      console.error("Submit draft error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Gagal submit draft TNA",
+        error: error.message,
       });
     }
   },

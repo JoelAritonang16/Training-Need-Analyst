@@ -13,8 +13,11 @@ router.get('/:id', auth.isAuthenticated, draftTNA2026Controller.getDraftById);
 // Create draft (only superadmin)
 router.post('/', auth.isAuthenticated, draftTNA2026Controller.createDraft);
 
-// Update draft (only superadmin)
+// Update draft (superadmin can update any, user can update their own)
 router.put('/:id', auth.isAuthenticated, draftTNA2026Controller.updateDraft);
+
+// Submit draft (change status to SUBMITTED)
+router.patch('/:id/submit', auth.isAuthenticated, draftTNA2026Controller.submitDraft);
 
 // Delete draft (only superadmin)
 router.delete('/:id', auth.isAuthenticated, draftTNA2026Controller.deleteDraft);
