@@ -16,6 +16,7 @@ import AnakPerusahaanManagement from './AnakPerusahaanManagement.jsx';
 import DraftTNA2026 from '../admin/DraftTNA2026.jsx';
 import TempatDiklatRealisasi from '../admin/TempatDiklatRealisasi.jsx';
 import RekapGabungan from './RekapGabungan.jsx';
+import SuperadminReports from './SuperadminReports.jsx';
 import AlertModal from '../../components/AlertModal.jsx';
 import { trainingProposalAPI, userProfileAPI, updateProposalStatusAPI } from '../../utils/api';
 import SuperAdminProfile from './SuperAdminProfile';
@@ -433,6 +434,11 @@ const SuperadminDashboard = ({ user, onLogout, onUserUpdate }) => {
           <RekapGabungan 
             onNavigate={handleNavigate}
           />
+        );
+      
+      case 'reports':
+        return (
+          <SuperadminReports />
         );
       
       case 'profile':

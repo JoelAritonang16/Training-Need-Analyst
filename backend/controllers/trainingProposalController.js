@@ -1,4 +1,5 @@
 import { TrainingProposal, TrainingProposalItem, User, Branch, Divisi, Notification, DraftTNA2026, TempatDiklatRealisasi } from "../models/index.js";
+import { Sequelize, Op } from "sequelize";
 import ExcelJS from "exceljs";
 
 const createDraftAndRealisasiFromProposal = async (proposalInstance) => {
@@ -1251,6 +1252,258 @@ const trainingProposalController = {
       res.status(500).json({
         success: false,
         message: "Gagal mengupdate status implementasi",
+      });
+    }
+  },
+
+  // Get reports data (approved and implemented proposals)
+  async getReportsData(req, res) {
+    try {
+      console.log('[Reports] getReportsData called');
+      const { role: currentUserRole } = req.user;
+      const { branchId, divisiId } = req.query;
+
+      console.log('[Reports] User role:', currentUserRole);
+      console.log('[Reports] Filters:', { branchId, divisiId });
+
+      // Hanya superadmin yang bisa akses laporan
+      if (currentUserRole !== "superadmin") {
+        console.log('[Reports] Access denied - not superadmin');
+        return res.status(403).json({
+          success: false,
+          message: "Akses ditolak: Hanya superadmin yang dapat mengakses laporan",
+        });
+      }
+
+      // Build where clause
+      const whereClause = {
+        status: {
+          [Op.in]: ['APPROVE_ADMIN', 'APPROVE_SUPERADMIN']
+        },
+        implementasiStatus: 'SUDAH_IMPLEMENTASI'
+      };
+
+      // Add branch filter if provided
+      if (branchId) {
+        whereClause.branchId = Number(branchId);
+      }
+
+      // Ambil data proposal yang sudah approved dan sudah implementasi
+      let reports = await TrainingProposal.findAll({
+        where: whereClause,
+        include: [
+          {
+            model: User,
+            as: 'user',
+            attributes: ['id', 'username', 'fullName', 'email', 'branchId', 'divisiId'],
+            include: [
+              {
+                model: Branch,
+                as: 'branch',
+                attributes: ['id', 'nama']
+              },
+              {
+                model: Divisi,
+                as: 'divisi',
+                attributes: ['id', 'nama']
+              }
+            ]
+          },
+          {
+            model: Branch,
+            as: 'branch',
+            attributes: ['id', 'nama']
+          }
+        ],
+        order: [['WaktuPelaksanan', 'DESC']]
+      });
+
+      // Filter by divisiId if provided (divisiId is nested in user)
+      if (divisiId) {
+        const divisiIdNum = Number(divisiId);
+        reports = reports.filter(r => {
+          const userDivisiId = r.user?.divisiId ? Number(r.user.divisiId) : null;
+          return userDivisiId === divisiIdNum;
+        });
+      }
+
+      console.log(`[Reports] Found ${reports.length} reports${branchId ? ` (filtered by branchId: ${branchId})` : ''}${divisiId ? ` (filtered by divisiId: ${divisiId})` : ''}`);
+      
+      // Convert to plain objects for JSON response
+      const reportsData = reports.map(r => {
+        const plain = r.toJSON ? r.toJSON() : r;
+        return plain;
+      });
+      
+      res.json({
+        success: true,
+        reports: reportsData,
+        total: reportsData.length,
+        message: reportsData.length > 0 ? `${reportsData.length} data ditemukan` : 'Tidak ada data yang ditemukan'
+      });
+    } catch (error) {
+      console.error("[Reports] Get reports data error:", error);
+      console.error("[Reports] Error stack:", error.stack);
+      res.status(500).json({
+        success: false,
+        message: "Gagal mengambil data laporan",
+        error: error.message
+      });
+    }
+  },
+
+  // Export reports to Excel
+  async exportReportsXlsx(req, res) {
+    try {
+      const { role: currentUserRole } = req.user;
+      const { branchId, divisiId } = req.query;
+
+      // Hanya superadmin yang bisa export laporan
+      if (currentUserRole !== "superadmin") {
+        return res.status(403).json({
+          success: false,
+          message: "Akses ditolak: Hanya superadmin yang dapat mengexport laporan",
+        });
+      }
+
+      // Build where clause
+      const whereClause = {
+        status: {
+          [Op.in]: ['APPROVE_ADMIN', 'APPROVE_SUPERADMIN']
+        },
+        implementasiStatus: 'SUDAH_IMPLEMENTASI'
+      };
+
+      // Add branch filter if provided
+      if (branchId) {
+        whereClause.branchId = Number(branchId);
+      }
+
+      // Ambil data proposal yang sudah approved dan sudah implementasi
+      let reports = await TrainingProposal.findAll({
+        where: whereClause,
+        include: [
+          {
+            model: User,
+            as: 'user',
+            attributes: ['id', 'username', 'fullName', 'email', 'branchId', 'divisiId'],
+            include: [
+              {
+                model: Branch,
+                as: 'branch',
+                attributes: ['id', 'nama']
+              },
+              {
+                model: Divisi,
+                as: 'divisi',
+                attributes: ['id', 'nama']
+              }
+            ]
+          },
+          {
+            model: Branch,
+            as: 'branch',
+            attributes: ['id', 'nama']
+          }
+        ],
+        order: [['WaktuPelaksanan', 'DESC']]
+      });
+
+      // Filter by divisiId if provided (divisiId is nested in user)
+      if (divisiId) {
+        const divisiIdNum = Number(divisiId);
+        reports = reports.filter(r => {
+          const userDivisiId = r.user?.divisiId ? Number(r.user.divisiId) : null;
+          return userDivisiId === divisiIdNum;
+        });
+      }
+
+      // Create workbook
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('Laporan Pelatihan Terlaksana');
+
+      // Define columns
+      worksheet.columns = [
+        { header: 'No', key: 'no', width: 5 },
+        { header: 'Uraian', key: 'uraian', width: 40 },
+        { header: 'Waktu Pelaksanaan', key: 'waktuPelaksanaan', width: 20 },
+        { header: 'Jumlah Peserta', key: 'jumlahPeserta', width: 15 },
+        { header: 'Jumlah Hari', key: 'jumlahHari', width: 15 },
+        { header: 'Level Tingkatan', key: 'levelTingkatan', width: 18 },
+        { header: 'Beban (Rp)', key: 'beban', width: 18 },
+        { header: 'Transportasi (Rp)', key: 'transportasi', width: 18 },
+        { header: 'Akomodasi (Rp)', key: 'akomodasi', width: 18 },
+        { header: 'Uang Saku (Rp)', key: 'uangSaku', width: 18 },
+        { header: 'Total Usulan (Rp)', key: 'totalUsulan', width: 20 },
+        { header: 'Branch', key: 'branch', width: 20 },
+        { header: 'Divisi', key: 'divisi', width: 20 },
+        { header: 'Pembuat', key: 'pembuat', width: 20 },
+        { header: 'Status', key: 'status', width: 20 },
+        { header: 'Tanggal Dibuat', key: 'tanggalDibuat', width: 20 }
+      ];
+
+      // Style header
+      worksheet.getRow(1).font = { bold: true };
+      worksheet.getRow(1).fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FF0271B6' }
+      };
+      worksheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+      worksheet.getRow(1).alignment = { vertical: 'middle', horizontal: 'center' };
+
+      // Add data
+      reports.forEach((report, index) => {
+        const row = worksheet.addRow({
+          no: index + 1,
+          uraian: report.Uraian || '-',
+          waktuPelaksanaan: report.WaktuPelaksanan ? new Date(report.WaktuPelaksanan).toLocaleDateString('id-ID') : '-',
+          jumlahPeserta: report.JumlahPeserta || 0,
+          jumlahHari: report.JumlahHariPesertaPelatihan || 0,
+          levelTingkatan: report.LevelTingkatan || '-',
+          beban: report.Beban || 0,
+          transportasi: report.BebanTransportasi || 0,
+          akomodasi: report.BebanAkomodasi || 0,
+          uangSaku: report.BebanUangSaku || 0,
+          totalUsulan: report.TotalUsulan || 0,
+          branch: report.branch?.nama || report.user?.branch?.nama || '-',
+          divisi: report.user?.divisi?.nama || '-',
+          pembuat: report.user?.fullName || report.user?.username || '-',
+          status: report.status === 'APPROVE_SUPERADMIN' ? 'Disetujui Superadmin' : 'Disetujui Admin',
+          tanggalDibuat: report.created_at ? new Date(report.created_at).toLocaleDateString('id-ID') : '-'
+        });
+
+        // Format number columns
+        ['jumlahPeserta', 'jumlahHari', 'beban', 'transportasi', 'akomodasi', 'uangSaku', 'totalUsulan'].forEach(key => {
+          const cell = row.getCell(key);
+          if (key === 'jumlahPeserta' || key === 'jumlahHari') {
+            cell.numFmt = '#,##0';
+          } else {
+            cell.numFmt = '#,##0';
+          }
+        });
+      });
+
+      // Generate filename with filter info
+      let filename = `Laporan_Pelatihan_Terlaksana_${new Date().toISOString().split('T')[0]}`;
+      if (branchId || divisiId) {
+        filename += '_Filtered';
+      }
+      filename += '.xlsx';
+
+      // Set response headers
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+
+      // Write to response
+      await workbook.xlsx.write(res);
+      res.end();
+    } catch (error) {
+      console.error("Export reports error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Gagal mengexport laporan",
+        error: error.message
       });
     }
   },

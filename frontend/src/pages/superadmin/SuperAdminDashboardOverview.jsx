@@ -123,21 +123,21 @@ const SuperAdminDashboardOverview = ({ users, proposals, auditLogs, onNavigate }
   const budgetComparisonData = [
     { 
       name: 'Di Request', 
-      'Total Biaya (Miliar)': parseFloat((totalBudgetRequested / 1000000000).toFixed(2)),
+      'Total Biaya (Juta)': parseFloat((totalBudgetRequested / 1000000).toFixed(2)),
       'Jumlah Peserta': totalParticipantsRequested,
       'Jumlah Usulan': pendingCount,
       'Jumlah Kegiatan': 0
     },
     { 
       name: 'Disetujui', 
-      'Total Biaya (Miliar)': parseFloat((totalBudgetAllApproved / 1000000000).toFixed(2)),
+      'Total Biaya (Juta)': parseFloat((totalBudgetAllApproved / 1000000).toFixed(2)),
       'Jumlah Peserta': totalParticipantsApproved,
       'Jumlah Usulan': waitingFinalCount + finalApprovedCount,
       'Jumlah Kegiatan': 0
     },
     { 
       name: 'Telah Terlaksana', 
-      'Total Biaya (Miliar)': parseFloat((totalBiayaRealisasi / 1000000000).toFixed(2)),
+      'Total Biaya (Juta)': parseFloat((totalBiayaRealisasi / 1000000).toFixed(2)),
       'Jumlah Peserta': totalPesertaRealisasi,
       'Jumlah Usulan': 0,
       'Jumlah Kegiatan': totalKegiatanRealisasi
@@ -173,7 +173,7 @@ const SuperAdminDashboardOverview = ({ users, proposals, auditLogs, onNavigate }
     .map(b => ({
       name: b.nama.length > 15 ? b.nama.substring(0, 15) + '...' : b.nama,
       'Total Draft': b.totalDraft,
-      'Total Biaya (Miliar)': parseFloat((b.totalBiaya / 1000000000).toFixed(2)),
+      'Total Biaya (Juta)': parseFloat((b.totalBiaya / 1000000).toFixed(2)),
       'Total Peserta': b.totalPeserta,
     })) || [];
 
@@ -184,7 +184,7 @@ const SuperAdminDashboardOverview = ({ users, proposals, auditLogs, onNavigate }
     .map(d => ({
       name: d.nama.length > 15 ? d.nama.substring(0, 15) + '...' : d.nama,
       'Total Draft': d.totalDraft,
-      'Total Biaya (Miliar)': parseFloat((d.totalBiaya / 1000000000).toFixed(2)),
+      'Total Biaya (Juta)': parseFloat((d.totalBiaya / 1000000).toFixed(2)),
       'Total Peserta': d.totalPeserta,
     })) || [];
 
@@ -236,8 +236,8 @@ const SuperAdminDashboardOverview = ({ users, proposals, auditLogs, onNavigate }
     .slice(0, 10)
     .map(d => ({
       name: d.divisiNama.length > 20 ? d.divisiNama.substring(0, 20) + '...' : d.divisiNama,
-      'Di Request': parseFloat((d.totalBiayaRequested / 1000000000).toFixed(2)),
-      'Disetujui': parseFloat((d.totalBiayaApproved / 1000000000).toFixed(2)),
+      'Di Request': parseFloat((d.totalBiayaRequested / 1000000).toFixed(2)),
+      'Disetujui': parseFloat((d.totalBiayaApproved / 1000000).toFixed(2)),
       'Jumlah Usulan': d.totalUsulan,
     }));
 
@@ -247,8 +247,8 @@ const SuperAdminDashboardOverview = ({ users, proposals, auditLogs, onNavigate }
     .slice(0, 10)
     .map(b => ({
       name: b.branchNama.length > 20 ? b.branchNama.substring(0, 20) + '...' : b.branchNama,
-      'Di Request': parseFloat((b.totalBiayaRequested / 1000000000).toFixed(2)),
-      'Disetujui': parseFloat((b.totalBiayaApproved / 1000000000).toFixed(2)),
+      'Di Request': parseFloat((b.totalBiayaRequested / 1000000).toFixed(2)),
+      'Disetujui': parseFloat((b.totalBiayaApproved / 1000000).toFixed(2)),
       'Jumlah Usulan': b.totalUsulan,
     }));
 
@@ -311,7 +311,7 @@ const SuperAdminDashboardOverview = ({ users, proposals, auditLogs, onNavigate }
           <div className="stat-content">
             <h3>
               Rp{" "}
-              {(totalBudgetAllApproved / 1000000000).toFixed(2)}M
+              {(totalBudgetAllApproved / 1000000).toFixed(2)} Juta
             </h3>
             <p>Total Anggaran Disetujui</p>
             <small>Admin + Superadmin</small>
@@ -323,7 +323,7 @@ const SuperAdminDashboardOverview = ({ users, proposals, auditLogs, onNavigate }
           <div className="stat-content">
             <h3>
               Rp{" "}
-              {(totalBiayaRealisasi / 1000000000).toFixed(2)}M
+              {(totalBiayaRealisasi / 1000000).toFixed(2)} Juta
             </h3>
             <p>Total Biaya Realisasi</p>
             <small>Diklat yang telah terlaksana</small>
@@ -373,7 +373,7 @@ const SuperAdminDashboardOverview = ({ users, proposals, auditLogs, onNavigate }
               <div className="stat-content">
                 <h3>
                   Rp{" "}
-                  {((rekapGabungan.total?.totalBiaya || 0) / 1000000000).toFixed(2)}M
+                  {((rekapGabungan.total?.totalBiaya || 0) / 1000000).toFixed(2)} Juta
                 </h3>
                 <p>Total Biaya Gabungan</p>
                 <small>20 Cabang + 18 Divisi</small>
@@ -420,18 +420,18 @@ const SuperAdminDashboardOverview = ({ users, proposals, auditLogs, onNavigate }
               <BarChart data={budgetComparisonData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
-                <YAxis yAxisId="left" label={{ value: 'Biaya (Miliar Rp)', angle: -90, position: 'insideLeft' }} />
+                <YAxis yAxisId="left" label={{ value: 'Biaya (Juta Rp)', angle: -90, position: 'insideLeft' }} />
                 <YAxis yAxisId="right" orientation="right" label={{ value: 'Jumlah', angle: 90, position: 'insideRight' }} />
                 <Tooltip 
                   formatter={(value, name) => {
-                    if (name === 'Total Biaya (Miliar)') {
-                      return [`Rp ${value} Miliar`, 'Total Biaya'];
+                    if (name === 'Total Biaya (Juta)') {
+                      return [`Rp ${value} Juta`, 'Total Biaya'];
                     }
                     return [value, name];
                   }}
                 />
                 <Legend />
-                <Bar yAxisId="left" dataKey="Total Biaya (Miliar)" fill="#8884d8" name="Total Biaya (Miliar Rp)" />
+                <Bar yAxisId="left" dataKey="Total Biaya (Juta)" fill="#8884d8" name="Total Biaya (Juta Rp)" />
                 <Bar yAxisId="right" dataKey="Jumlah Peserta" fill="#82ca9d" name="Jumlah Peserta" />
                 <Bar yAxisId="right" dataKey="Jumlah Usulan" fill="#ffc658" name="Jumlah Usulan" />
                 <Bar yAxisId="right" dataKey="Jumlah Kegiatan" fill="#ff9800" name="Jumlah Kegiatan" />
@@ -450,7 +450,7 @@ const SuperAdminDashboardOverview = ({ users, proposals, auditLogs, onNavigate }
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    label={({ name, value }) => `${name}: Rp ${(value / 1000000000).toFixed(2)}M`}
+                    label={({ name, value }) => `${name}: Rp ${(value / 1000000).toFixed(2)} Juta`}
                     outerRadius={80}
                     fill="#8884d8"
                     dataKey="value"
@@ -460,7 +460,7 @@ const SuperAdminDashboardOverview = ({ users, proposals, auditLogs, onNavigate }
                     ))}
                   </Pie>
                   <Tooltip 
-                    formatter={(value) => `Rp ${(value / 1000000000).toFixed(2)} Miliar`}
+                    formatter={(value) => `Rp ${(value / 1000000).toFixed(2)} Juta`}
                   />
                   <Legend />
                 </PieChart>
@@ -506,7 +506,7 @@ const SuperAdminDashboardOverview = ({ users, proposals, auditLogs, onNavigate }
                   <Tooltip />
                   <Legend />
                   <Bar yAxisId="left" dataKey="Total Draft" fill="#8884d8" />
-                  <Bar yAxisId="right" dataKey="Total Biaya (Miliar)" fill="#82ca9d" />
+                  <Bar yAxisId="right" dataKey="Total Biaya (Juta)" fill="#82ca9d" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -525,7 +525,7 @@ const SuperAdminDashboardOverview = ({ users, proposals, auditLogs, onNavigate }
                   <Tooltip />
                   <Legend />
                   <Bar yAxisId="left" dataKey="Total Draft" fill="#8884d8" />
-                  <Bar yAxisId="right" dataKey="Total Biaya (Miliar)" fill="#82ca9d" />
+                  <Bar yAxisId="right" dataKey="Total Biaya (Juta)" fill="#82ca9d" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -571,13 +571,13 @@ const SuperAdminDashboardOverview = ({ users, proposals, auditLogs, onNavigate }
               <div style={{ padding: '14px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
                 <h5 style={{ margin: '0 0 8px 0', color: '#0271B6', fontSize: '0.8125rem', fontWeight: '500', letterSpacing: '-0.01em' }}>Usulan yang Di Request</h5>
                 <p style={{ margin: '4px 0', fontSize: '0.75rem', color: '#64748b' }}><strong style={{ color: '#1e293b', fontWeight: '500' }}>Jumlah:</strong> {pendingCount} usulan</p>
-                <p style={{ margin: '4px 0', fontSize: '0.75rem', color: '#64748b' }}><strong style={{ color: '#1e293b', fontWeight: '500' }}>Total Biaya:</strong> Rp {(totalBudgetRequested / 1000000000).toFixed(2)} Miliar</p>
+                <p style={{ margin: '4px 0', fontSize: '0.75rem', color: '#64748b' }}><strong style={{ color: '#1e293b', fontWeight: '500' }}>Total Biaya:</strong> Rp {(totalBudgetRequested / 1000000).toFixed(2)} Juta</p>
                 <p style={{ margin: '4px 0', fontSize: '0.75rem', color: '#64748b' }}><strong style={{ color: '#1e293b', fontWeight: '500' }}>Total Peserta:</strong> {totalParticipantsRequested} orang</p>
               </div>
               <div style={{ padding: '14px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
                 <h5 style={{ margin: '0 0 8px 0', color: '#4CAF50', fontSize: '0.8125rem', fontWeight: '500', letterSpacing: '-0.01em' }}>Usulan yang Disetujui</h5>
                 <p style={{ margin: '4px 0', fontSize: '0.75rem', color: '#64748b' }}><strong style={{ color: '#1e293b', fontWeight: '500' }}>Jumlah:</strong> {waitingFinalCount + finalApprovedCount} usulan</p>
-                <p style={{ margin: '4px 0', fontSize: '0.75rem', color: '#64748b' }}><strong style={{ color: '#1e293b', fontWeight: '500' }}>Total Biaya:</strong> Rp {(totalBudgetAllApproved / 1000000000).toFixed(2)} Miliar</p>
+                <p style={{ margin: '4px 0', fontSize: '0.75rem', color: '#64748b' }}><strong style={{ color: '#1e293b', fontWeight: '500' }}>Total Biaya:</strong> Rp {(totalBudgetAllApproved / 1000000).toFixed(2)} Juta</p>
                 <p style={{ margin: '4px 0', fontSize: '0.75rem', color: '#64748b' }}><strong style={{ color: '#1e293b', fontWeight: '500' }}>Total Peserta:</strong> {totalParticipantsApproved} orang</p>
                 <p style={{ margin: '4px 0', fontSize: '0.75rem', color: '#64748b' }}>
                   <strong style={{ color: '#1e293b', fontWeight: '500' }}>Detail:</strong> {waitingFinalCount} disetujui Admin, {finalApprovedCount} disetujui Superadmin
@@ -586,7 +586,7 @@ const SuperAdminDashboardOverview = ({ users, proposals, auditLogs, onNavigate }
               <div style={{ padding: '14px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
                 <h5 style={{ margin: '0 0 8px 0', color: '#2196F3', fontSize: '0.8125rem', fontWeight: '500', letterSpacing: '-0.01em' }}>Diklat yang Telah Terlaksana</h5>
                 <p style={{ margin: '4px 0', fontSize: '0.75rem', color: '#64748b' }}><strong style={{ color: '#1e293b', fontWeight: '500' }}>Jumlah Kegiatan:</strong> {totalKegiatanRealisasi} kegiatan</p>
-                <p style={{ margin: '4px 0', fontSize: '0.75rem', color: '#64748b' }}><strong style={{ color: '#1e293b', fontWeight: '500' }}>Total Biaya:</strong> Rp {(totalBiayaRealisasi / 1000000000).toFixed(2)} Miliar</p>
+                <p style={{ margin: '4px 0', fontSize: '0.75rem', color: '#64748b' }}><strong style={{ color: '#1e293b', fontWeight: '500' }}>Total Biaya:</strong> Rp {(totalBiayaRealisasi / 1000000).toFixed(2)} Juta</p>
                 <p style={{ margin: '4px 0', fontSize: '0.75rem', color: '#64748b' }}><strong style={{ color: '#1e293b', fontWeight: '500' }}>Total Peserta:</strong> {totalPesertaRealisasi} orang</p>
                 <p style={{ margin: '4px 0', fontSize: '0.75rem', color: '#64748b' }}><strong style={{ color: '#1e293b', fontWeight: '500' }}>Tempat Diklat:</strong> {totalRealisasi} lokasi</p>
               </div>
@@ -613,19 +613,19 @@ const SuperAdminDashboardOverview = ({ users, proposals, auditLogs, onNavigate }
                 <BarChart data={divisiChartData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" angle={-45} textAnchor="end" height={100} />
-                  <YAxis yAxisId="left" label={{ value: 'Biaya (Miliar Rp)', angle: -90, position: 'insideLeft' }} />
+                  <YAxis yAxisId="left" label={{ value: 'Biaya (Juta Rp)', angle: -90, position: 'insideLeft' }} />
                   <YAxis yAxisId="right" orientation="right" label={{ value: 'Jumlah Usulan', angle: 90, position: 'insideRight' }} />
                   <Tooltip 
                     formatter={(value, name) => {
                       if (name === 'Di Request' || name === 'Disetujui') {
-                        return [`Rp ${value} Miliar`, name];
+                        return [`Rp ${value} Juta`, name];
                       }
                       return [value, name];
                     }}
                   />
                   <Legend />
-                  <Bar yAxisId="left" dataKey="Di Request" fill="#FFA500" name="Biaya Di Request (Miliar)" />
-                  <Bar yAxisId="left" dataKey="Disetujui" fill="#4CAF50" name="Biaya Disetujui (Miliar)" />
+                  <Bar yAxisId="left" dataKey="Di Request" fill="#FFA500" name="Biaya Di Request (Juta)" />
+                  <Bar yAxisId="left" dataKey="Disetujui" fill="#4CAF50" name="Biaya Disetujui (Juta)" />
                   <Bar yAxisId="right" dataKey="Jumlah Usulan" fill="#2196F3" name="Jumlah Usulan" />
                 </BarChart>
               </ResponsiveContainer>
@@ -640,19 +640,19 @@ const SuperAdminDashboardOverview = ({ users, proposals, auditLogs, onNavigate }
                 <BarChart data={branchChartData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" angle={-45} textAnchor="end" height={100} />
-                  <YAxis yAxisId="left" label={{ value: 'Biaya (Miliar Rp)', angle: -90, position: 'insideLeft' }} />
+                  <YAxis yAxisId="left" label={{ value: 'Biaya (Juta Rp)', angle: -90, position: 'insideLeft' }} />
                   <YAxis yAxisId="right" orientation="right" label={{ value: 'Jumlah Usulan', angle: 90, position: 'insideRight' }} />
                   <Tooltip 
                     formatter={(value, name) => {
                       if (name === 'Di Request' || name === 'Disetujui') {
-                        return [`Rp ${value} Miliar`, name];
+                        return [`Rp ${value} Juta`, name];
                       }
                       return [value, name];
                     }}
                   />
                   <Legend />
-                  <Bar yAxisId="left" dataKey="Di Request" fill="#FFA500" name="Biaya Di Request (Miliar)" />
-                  <Bar yAxisId="left" dataKey="Disetujui" fill="#4CAF50" name="Biaya Disetujui (Miliar)" />
+                  <Bar yAxisId="left" dataKey="Di Request" fill="#FFA500" name="Biaya Di Request (Juta)" />
+                  <Bar yAxisId="left" dataKey="Disetujui" fill="#4CAF50" name="Biaya Disetujui (Juta)" />
                   <Bar yAxisId="right" dataKey="Jumlah Usulan" fill="#2196F3" name="Jumlah Usulan" />
                 </BarChart>
               </ResponsiveContainer>
@@ -688,8 +688,8 @@ const SuperAdminDashboardOverview = ({ users, proposals, auditLogs, onNavigate }
                           <td>{item.totalUsulan}</td>
                           <td><span className="badge badge-warning">{item.diRequest}</span></td>
                           <td><span className="badge badge-success">{item.disetujui}</span></td>
-                          <td className="text-right">Rp {(item.totalBiayaRequested / 1000000000).toFixed(2)}M</td>
-                          <td className="text-right">Rp {(item.totalBiayaApproved / 1000000000).toFixed(2)}M</td>
+                          <td className="text-right">Rp {(item.totalBiayaRequested / 1000000).toFixed(2)} Juta</td>
+                          <td className="text-right">Rp {(item.totalBiayaApproved / 1000000).toFixed(2)} Juta</td>
                           <td>{item.totalPesertaRequested}</td>
                           <td>{item.totalPesertaApproved}</td>
                         </tr>
@@ -729,8 +729,8 @@ const SuperAdminDashboardOverview = ({ users, proposals, auditLogs, onNavigate }
                           <td>{item.totalUsulan}</td>
                           <td><span className="badge badge-warning">{item.diRequest}</span></td>
                           <td><span className="badge badge-success">{item.disetujui}</span></td>
-                          <td className="text-right">Rp {(item.totalBiayaRequested / 1000000000).toFixed(2)}M</td>
-                          <td className="text-right">Rp {(item.totalBiayaApproved / 1000000000).toFixed(2)}M</td>
+                          <td className="text-right">Rp {(item.totalBiayaRequested / 1000000).toFixed(2)} Juta</td>
+                          <td className="text-right">Rp {(item.totalBiayaApproved / 1000000).toFixed(2)} Juta</td>
                           <td>{item.totalPesertaRequested}</td>
                           <td>{item.totalPesertaApproved}</td>
                         </tr>

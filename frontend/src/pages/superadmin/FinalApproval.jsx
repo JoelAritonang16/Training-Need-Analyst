@@ -27,7 +27,15 @@ const FinalApproval = ({ proposals, onFinalApprove, onFinalReject, onViewDetail 
               <p><strong>Waktu Pelaksanaan:</strong> {new Date(proposal.WaktuPelaksanan).toLocaleDateString('id-ID')}</p>
               <p><strong>Level:</strong> {proposal.LevelTingkatan}</p>
               <p><strong>Jumlah Peserta:</strong> {proposal.JumlahPeserta} orang</p>
-              <p><strong>Total Biaya:</strong> Rp {proposal.TotalUsulan.toLocaleString('id-ID')}</p>
+              <p><strong>Total Biaya:</strong> {(() => {
+                const numValue = parseFloat(proposal.TotalUsulan) || 0;
+                if (numValue === 0) return 'Rp 0';
+                const inMillions = numValue / 1000000;
+                const formatted = inMillions % 1 === 0 
+                  ? inMillions.toLocaleString('id-ID', { maximumFractionDigits: 0 })
+                  : inMillions.toLocaleString('id-ID', { maximumFractionDigits: 2, minimumFractionDigits: 2 });
+                return `Rp ${formatted} Juta`;
+              })()}</p>
               <p><strong>Tanggal Pengajuan:</strong> {new Date(proposal.created_at).toLocaleDateString('id-ID')}</p>
             </div>
             <div className="proposal-actions">

@@ -19,6 +19,17 @@ router.get(
   auth.isAuthenticated,
   trainingProposalController.exportProposalsXlsx
 );
+// Reports routes must be before /:id routes to avoid conflict
+router.get(
+  "/reports/data",
+  auth.isAuthenticated,
+  trainingProposalController.getReportsData
+);
+router.get(
+  "/reports/export",
+  auth.isAuthenticated,
+  trainingProposalController.exportReportsXlsx
+);
 router.post(
   "/",
   auth.isAuthenticated,

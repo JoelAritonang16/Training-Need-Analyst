@@ -193,11 +193,18 @@ const DraftTNA2026 = ({ user, currentUserRole, onNavigate }) => {
   };
 
   const formatCurrency = (value) => {
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      minimumFractionDigits: 0
-    }).format(value);
+    const numValue = parseFloat(value) || 0;
+    if (numValue === 0) return 'Rp 0';
+    
+    // Convert to millions (Juta)
+    const inMillions = numValue / 1000000;
+    
+    // Format with 2 decimal places if needed, otherwise no decimals
+    const formatted = inMillions % 1 === 0 
+      ? inMillions.toLocaleString('id-ID', { maximumFractionDigits: 0 })
+      : inMillions.toLocaleString('id-ID', { maximumFractionDigits: 2, minimumFractionDigits: 2 });
+    
+    return `Rp ${formatted} Juta`;
   };
 
   const formatDate = (dateString) => {
@@ -388,7 +395,18 @@ const DraftModal = ({ draft, isEditMode, isSuperadmin, isAdmin, branches, divisi
 
   const formatCurrency = (value) => {
     if (!value && value !== 0) return '0';
-    return parseFloat(value).toLocaleString('id-ID');
+    const numValue = parseFloat(value) || 0;
+    if (numValue === 0) return '0';
+    
+    // Convert to millions (Juta) for display in input fields
+    const inMillions = numValue / 1000000;
+    
+    // Format with 2 decimal places if needed, otherwise no decimals
+    const formatted = inMillions % 1 === 0 
+      ? inMillions.toLocaleString('id-ID', { maximumFractionDigits: 0 })
+      : inMillions.toLocaleString('id-ID', { maximumFractionDigits: 2, minimumFractionDigits: 2 });
+    
+    return `${formatted} Juta`;
   };
 
   const handleSubmit = (e) => {

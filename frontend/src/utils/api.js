@@ -19,28 +19,35 @@ export const apiCall = async (endpoint, options = {}) => {
     ...options
   };
 
-  console.log('Making API call to:', url);
-  console.log('Request config:', {
+  console.log('[API] Making API call to:', url);
+  console.log('[API] Request config:', {
     method: config.method || 'GET',
-    headers: config.headers,
+    headers: { ...config.headers, Authorization: config.headers.Authorization ? 'Bearer ***' : 'none' },
     hasBody: !!config.body
   });
 
   try {
     const response = await fetch(url, config);
     
-    console.log('Response received:', {
+    console.log('[API] Response received:', {
       status: response.status,
       statusText: response.statusText,
-      ok: response.ok
+      ok: response.ok,
+      url: response.url
     });
     
     // Handle 401 Unauthorized
     if (response.status === 401) {
-      console.log('401 Unauthorized - clearing token');
+      console.log('[API] 401 Unauthorized - clearing token');
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       throw new Error('Session expired. Please login again.');
+    }
+
+    // Handle 404 Not Found
+    if (response.status === 404) {
+      console.error('[API] 404 Not Found for endpoint:', url);
+      throw new Error(`Endpoint tidak ditemukan: ${endpoint}`);
     }
 
     if (!response.ok) {
@@ -49,9 +56,9 @@ export const apiCall = async (endpoint, options = {}) => {
       try {
         const errorData = await response.json();
         errorMessage = errorData.message || errorData.error || errorMessage;
-        console.log('Error response data:', errorData);
+        console.error('[API] Error response data:', errorData);
       } catch (parseError) {
-        console.log('Could not parse error response as JSON');
+        console.error('[API] Could not parse error response as JSON');
         errorMessage = response.statusText || errorMessage;
       }
       
@@ -59,10 +66,19 @@ export const apiCall = async (endpoint, options = {}) => {
     }
 
     const responseData = await response.json();
-    console.log('Response data:', responseData);
+    console.log('[API] Response data received:', {
+      success: responseData.success,
+      hasReports: !!responseData.reports,
+      reportsCount: responseData.reports?.length || 0
+    });
     return responseData;
   } catch (error) {
-    console.error('API call error:', error);
+    console.error('[API] API call error:', error);
+    console.error('[API] Error details:', {
+      message: error.message,
+      name: error.name,
+      endpoint: url
+    });
     throw error;
   }
 };
@@ -129,6 +145,54 @@ export const trainingProposalAPI = {
     return apiCall(`/api/training-proposals/${id}`, {
       method: 'DELETE'
     });
+  },
+  
+  getReportsData: async (filters = {}) => {
+    console.log('Fetching reports data with filters:', filters);
+    const queryParams = new URLSearchParams();
+    if (filters.branchId) queryParams.append('branchId', filters.branchId);
+    if (filters.divisiId) queryParams.append('divisiId', filters.divisiId);
+    
+    const queryString = queryParams.toString();
+    const endpoint = queryString ? `/api/training-proposals/reports/data?${queryString}` : '/api/training-proposals/reports/data';
+    return apiCall(endpoint);
+  },
+  
+  exportReports: async (filters = {}) => {
+    console.log('Exporting reports with filters:', filters);
+    const token = localStorage.getItem('token');
+    const queryParams = new URLSearchParams();
+    if (filters.branchId) queryParams.append('branchId', filters.branchId);
+    if (filters.divisiId) queryParams.append('divisiId', filters.divisiId);
+    
+    const queryString = queryParams.toString();
+    const endpoint = queryString ? `/api/training-proposals/reports/export?${queryString}` : '/api/training-proposals/reports/export';
+    
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error('Gagal mengexport laporan');
+    }
+    
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    
+    // Generate filename with filter info
+    let filename = `Laporan_Pelatihan_Terlaksana_${new Date().toISOString().split('T')[0]}`;
+    filename += '.xlsx';
+    
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
   }
 };
 

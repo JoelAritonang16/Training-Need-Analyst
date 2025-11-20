@@ -138,7 +138,7 @@ const AdminDashboardOverview = ({ users, proposals, user, onNavigate }) => {
           <div className="stat-content">
             <h3>
               Rp{" "}
-              {(totalBudgetApproved / 1000000000).toFixed(2)}M
+              {(totalBudgetApproved / 1000000).toFixed(2)} Juta
             </h3>
             <p>Anggaran Disetujui</p>
             <small>Usulan yang disetujui</small>

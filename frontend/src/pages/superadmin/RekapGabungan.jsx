@@ -39,11 +39,18 @@ const RekapGabungan = ({ onNavigate }) => {
   };
 
   const formatCurrency = (value) => {
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      minimumFractionDigits: 0
-    }).format(value);
+    const numValue = parseFloat(value) || 0;
+    if (numValue === 0) return 'Rp 0';
+    
+    // Convert to millions (Juta)
+    const inMillions = numValue / 1000000;
+    
+    // Format with 2 decimal places if needed, otherwise no decimals
+    const formatted = inMillions % 1 === 0 
+      ? inMillions.toLocaleString('id-ID', { maximumFractionDigits: 0 })
+      : inMillions.toLocaleString('id-ID', { maximumFractionDigits: 2, minimumFractionDigits: 2 });
+    
+    return `Rp ${formatted} Juta`;
   };
 
   const handleExport = () => {
@@ -74,7 +81,7 @@ const RekapGabungan = ({ onNavigate }) => {
     .map(b => ({
       name: b.nama.length > 15 ? b.nama.substring(0, 15) + '...' : b.nama,
       'Total Draft': b.totalDraft,
-      'Total Biaya (Miliar)': (b.totalBiaya / 1000000000).toFixed(2),
+      'Total Biaya (Juta)': (b.totalBiaya / 1000000).toFixed(2),
       'Total Peserta': b.totalPeserta,
     }));
 
@@ -84,7 +91,7 @@ const RekapGabungan = ({ onNavigate }) => {
     .map(d => ({
       name: d.nama.length > 15 ? d.nama.substring(0, 15) + '...' : d.nama,
       'Total Draft': d.totalDraft,
-      'Total Biaya (Miliar)': (d.totalBiaya / 1000000000).toFixed(2),
+      'Total Biaya (Juta)': (d.totalBiaya / 1000000).toFixed(2),
       'Total Peserta': d.totalPeserta,
     }));
 
@@ -177,7 +184,7 @@ const RekapGabungan = ({ onNavigate }) => {
                     <Tooltip />
                     <Legend />
                     <Bar yAxisId="left" dataKey="Total Draft" fill="#8884d8" />
-                    <Bar yAxisId="right" dataKey="Total Biaya (Miliar)" fill="#82ca9d" />
+                    <Bar yAxisId="right" dataKey="Total Biaya (Juta)" fill="#82ca9d" />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -219,7 +226,7 @@ const RekapGabungan = ({ onNavigate }) => {
                     <Tooltip />
                     <Legend />
                     <Bar yAxisId="left" dataKey="Total Draft" fill="#8884d8" />
-                    <Bar yAxisId="right" dataKey="Total Biaya (Miliar)" fill="#82ca9d" />
+                    <Bar yAxisId="right" dataKey="Total Biaya (Juta)" fill="#82ca9d" />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
