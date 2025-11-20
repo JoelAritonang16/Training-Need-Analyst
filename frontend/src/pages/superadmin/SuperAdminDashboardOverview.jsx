@@ -63,49 +63,58 @@ const SuperAdminDashboardOverview = ({ users, proposals, auditLogs, onNavigate }
 
   useEffect(() => {
     fetchDashboardData();
-  }, []);
+  }, [proposals]); // Re-fetch when proposals change
 
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
       
+      console.log('SuperAdminDashboardOverview: Fetching dashboard data...');
+      console.log('SuperAdminDashboardOverview: Current proposals count:', proposals?.length || 0);
+      
       // Fetch drafts
       const draftsResult = await draftTNA2026API.getAll();
       if (draftsResult.success) {
+        console.log('SuperAdminDashboardOverview: Drafts fetched:', draftsResult.drafts?.length || 0);
         setDrafts(draftsResult.drafts || []);
       }
 
       // Fetch tempat diklat realisasi
       const realisasiResult = await tempatDiklatRealisasiAPI.getAll();
       if (realisasiResult.success) {
+        console.log('SuperAdminDashboardOverview: Realisasi data fetched:', realisasiResult.data?.length || 0);
         setRealisasiData(realisasiResult.data || []);
       }
 
       // Fetch rekap per bulan
       const rekapResult = await tempatDiklatRealisasiAPI.getRekapPerBulan(new Date().getFullYear());
       if (rekapResult.success) {
+        console.log('SuperAdminDashboardOverview: Rekap per bulan fetched:', rekapResult.rekap?.length || 0);
         setRekapPerBulan(rekapResult.rekap || []);
       }
 
       // Fetch rekap gabungan (20 cabang + 18 divisi)
       const rekapGabunganResult = await draftTNA2026API.getRekapGabungan();
       if (rekapGabunganResult.success) {
+        console.log('SuperAdminDashboardOverview: Rekap gabungan fetched');
         setRekapGabungan(rekapGabunganResult.rekap);
       }
 
       // Fetch divisi list
       const divisiResult = await divisiAPI.getAll();
       if (divisiResult.success) {
+        console.log('SuperAdminDashboardOverview: Divisi list fetched:', divisiResult.divisi?.length || 0);
         setDivisiList(divisiResult.divisi || []);
       }
 
       // Fetch branch list
       const branchResult = await branchAPI.getAll();
       if (branchResult.success) {
+        console.log('SuperAdminDashboardOverview: Branch list fetched:', branchResult.branch?.length || 0);
         setBranchList(branchResult.branch || []);
       }
     } catch (error) {
-      console.error('Error fetching dashboard data:', error);
+      console.error('SuperAdminDashboardOverview: Error fetching dashboard data:', error);
     } finally {
       setLoading(false);
     }
@@ -188,9 +197,16 @@ const SuperAdminDashboardOverview = ({ users, proposals, auditLogs, onNavigate }
       'Total Peserta': d.totalPeserta,
     })) || [];
 
-  // Group proposals by divisi
+  // Group proposals by divisi - Fixed to properly get divisi from user relation
   const proposalsByDivisi = (proposals && divisiList && divisiList.length > 0) ? divisiList.map(divisi => {
-    const divisiProposals = proposals.filter(p => p.user && p.user.divisiId === divisi.id);
+    const divisiProposals = proposals.filter(p => {
+      // Check multiple possible paths to divisi
+      if (p.user) {
+        const userDivisiId = p.user.divisiId || (p.user.divisi && p.user.divisi.id);
+        return userDivisiId === divisi.id;
+      }
+      return false;
+    });
     const requested = divisiProposals.filter(p => p.status === 'MENUNGGU');
     const approved = divisiProposals.filter(p => p.status === 'APPROVE_ADMIN' || p.status === 'APPROVE_SUPERADMIN');
     
@@ -207,13 +223,16 @@ const SuperAdminDashboardOverview = ({ users, proposals, auditLogs, onNavigate }
     };
   }).filter(d => d.totalUsulan > 0) : [];
 
-  // Group proposals by branch
-  const proposalsByBranch = (proposals && branchList && branchList.length > 0) ? branchList.map(branch => {
-    const branchProposals = proposals.filter(p => 
-      (p.branchId === branch.id) || 
-      (p.branch && p.branch.id === branch.id) ||
-      (p.user && p.user.branchId === branch.id)
-    );
+  // Group proposals by branch - Fixed to properly get branch from multiple sources
+  const proposalsByBranch = (proposals && proposals.length > 0 && branchList && branchList.length > 0) ? branchList.map(branch => {
+    const branchProposals = proposals.filter(p => {
+      // Check multiple possible paths to branch
+      if (p.branchId === branch.id) return true;
+      if (p.branch && p.branch.id === branch.id) return true;
+      if (p.user && p.user.branchId === branch.id) return true;
+      if (p.user && p.user.branch && p.user.branch.id === branch.id) return true;
+      return false;
+    });
     const requested = branchProposals.filter(p => p.status === 'MENUNGGU');
     const approved = branchProposals.filter(p => p.status === 'APPROVE_ADMIN' || p.status === 'APPROVE_SUPERADMIN');
     
@@ -229,6 +248,8 @@ const SuperAdminDashboardOverview = ({ users, proposals, auditLogs, onNavigate }
       totalPesertaApproved: approved.reduce((sum, p) => sum + (parseInt(p.JumlahPeserta) || 0), 0),
     };
   }).filter(b => b.totalUsulan > 0) : [];
+  
+  console.log('SuperAdminDashboardOverview: proposalsByBranch count:', proposalsByBranch.length);
 
   // Chart data for divisi comparison
   const divisiChartData = proposalsByDivisi
@@ -400,6 +421,7 @@ const SuperAdminDashboardOverview = ({ users, proposals, auditLogs, onNavigate }
                   labelLine={false}
                   label={({ name, value }) => `${name}: ${value}`}
                   outerRadius={80}
+                  innerRadius={45}
                   fill="#8884d8"
                   dataKey="value"
                 >
@@ -431,10 +453,10 @@ const SuperAdminDashboardOverview = ({ users, proposals, auditLogs, onNavigate }
                   }}
                 />
                 <Legend />
-                <Bar yAxisId="left" dataKey="Total Biaya (Juta)" fill="#8884d8" name="Total Biaya (Juta Rp)" />
-                <Bar yAxisId="right" dataKey="Jumlah Peserta" fill="#82ca9d" name="Jumlah Peserta" />
-                <Bar yAxisId="right" dataKey="Jumlah Usulan" fill="#ffc658" name="Jumlah Usulan" />
-                <Bar yAxisId="right" dataKey="Jumlah Kegiatan" fill="#ff9800" name="Jumlah Kegiatan" />
+                <Bar yAxisId="left" dataKey="Total Biaya (Juta)" fill="#60a5fa" name="Total Biaya (Juta Rp)" radius={[6, 6, 0, 0]} />
+                <Bar yAxisId="right" dataKey="Jumlah Peserta" fill="#34d399" name="Jumlah Peserta" radius={[6, 6, 0, 0]} />
+                <Bar yAxisId="right" dataKey="Jumlah Usulan" fill="#fbbf24" name="Jumlah Usulan" radius={[6, 6, 0, 0]} />
+                <Bar yAxisId="right" dataKey="Jumlah Kegiatan" fill="#fb923c" name="Jumlah Kegiatan" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -452,6 +474,7 @@ const SuperAdminDashboardOverview = ({ users, proposals, auditLogs, onNavigate }
                     labelLine={false}
                     label={({ name, value }) => `${name}: Rp ${(value / 1000000).toFixed(2)} Juta`}
                     outerRadius={80}
+                    innerRadius={45}
                     fill="#8884d8"
                     dataKey="value"
                   >
@@ -505,8 +528,8 @@ const SuperAdminDashboardOverview = ({ users, proposals, auditLogs, onNavigate }
                   <YAxis yAxisId="right" orientation="right" />
                   <Tooltip />
                   <Legend />
-                  <Bar yAxisId="left" dataKey="Total Draft" fill="#8884d8" />
-                  <Bar yAxisId="right" dataKey="Total Biaya (Juta)" fill="#82ca9d" />
+                  <Bar yAxisId="left" dataKey="Total Draft" fill="#60a5fa" radius={[6, 6, 0, 0]} />
+                  <Bar yAxisId="right" dataKey="Total Biaya (Juta)" fill="#34d399" radius={[6, 6, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -524,8 +547,8 @@ const SuperAdminDashboardOverview = ({ users, proposals, auditLogs, onNavigate }
                   <YAxis yAxisId="right" orientation="right" />
                   <Tooltip />
                   <Legend />
-                  <Bar yAxisId="left" dataKey="Total Draft" fill="#8884d8" />
-                  <Bar yAxisId="right" dataKey="Total Biaya (Juta)" fill="#82ca9d" />
+                  <Bar yAxisId="left" dataKey="Total Draft" fill="#60a5fa" radius={[6, 6, 0, 0]} />
+                  <Bar yAxisId="right" dataKey="Total Biaya (Juta)" fill="#34d399" radius={[6, 6, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -559,7 +582,7 @@ const SuperAdminDashboardOverview = ({ users, proposals, auditLogs, onNavigate }
                   formatter={(value) => `Rp ${value} Juta`}
                 />
                 <Legend />
-                <Bar dataKey="Total Biaya (Juta)" fill="#8884d8" />
+                <Bar dataKey="Total Biaya (Juta)" fill="#60a5fa" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -624,9 +647,9 @@ const SuperAdminDashboardOverview = ({ users, proposals, auditLogs, onNavigate }
                     }}
                   />
                   <Legend />
-                  <Bar yAxisId="left" dataKey="Di Request" fill="#FFA500" name="Biaya Di Request (Juta)" />
-                  <Bar yAxisId="left" dataKey="Disetujui" fill="#4CAF50" name="Biaya Disetujui (Juta)" />
-                  <Bar yAxisId="right" dataKey="Jumlah Usulan" fill="#2196F3" name="Jumlah Usulan" />
+                  <Bar yAxisId="left" dataKey="Di Request" fill="#fbbf24" name="Biaya Di Request (Juta)" radius={[6, 6, 0, 0]} />
+                  <Bar yAxisId="left" dataKey="Disetujui" fill="#34d399" name="Biaya Disetujui (Juta)" radius={[6, 6, 0, 0]} />
+                  <Bar yAxisId="right" dataKey="Jumlah Usulan" fill="#60a5fa" name="Jumlah Usulan" radius={[6, 6, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -651,8 +674,8 @@ const SuperAdminDashboardOverview = ({ users, proposals, auditLogs, onNavigate }
                     }}
                   />
                   <Legend />
-                  <Bar yAxisId="left" dataKey="Di Request" fill="#FFA500" name="Biaya Di Request (Juta)" />
-                  <Bar yAxisId="left" dataKey="Disetujui" fill="#4CAF50" name="Biaya Disetujui (Juta)" />
+                  <Bar yAxisId="left" dataKey="Di Request" fill="#fbbf24" name="Biaya Di Request (Juta)" radius={[6, 6, 0, 0]} />
+                  <Bar yAxisId="left" dataKey="Disetujui" fill="#34d399" name="Biaya Disetujui (Juta)" radius={[6, 6, 0, 0]} />
                   <Bar yAxisId="right" dataKey="Jumlah Usulan" fill="#2196F3" name="Jumlah Usulan" />
                 </BarChart>
               </ResponsiveContainer>
@@ -660,7 +683,7 @@ const SuperAdminDashboardOverview = ({ users, proposals, auditLogs, onNavigate }
           )}
 
           {/* Data Table by Divisi */}
-          {proposalsByDivisi.length > 0 && (
+          {proposalsByDivisi.length > 0 ? (
             <div className="chart-card chart-full-width">
               <h4>Rekap Usulan per Divisi Korporat</h4>
               <div className="data-table-container">
@@ -682,26 +705,33 @@ const SuperAdminDashboardOverview = ({ users, proposals, auditLogs, onNavigate }
                     {proposalsByDivisi
                       .sort((a, b) => b.totalBiayaApproved - a.totalBiayaApproved)
                       .map((item, index) => (
-                        <tr key={item.divisiId}>
+                        <tr key={item.divisiId || index}>
                           <td>{index + 1}</td>
-                          <td className="text-left"><strong>{item.divisiNama}</strong></td>
-                          <td>{item.totalUsulan}</td>
-                          <td><span className="badge badge-warning">{item.diRequest}</span></td>
-                          <td><span className="badge badge-success">{item.disetujui}</span></td>
-                          <td className="text-right">Rp {(item.totalBiayaRequested / 1000000).toFixed(2)} Juta</td>
-                          <td className="text-right">Rp {(item.totalBiayaApproved / 1000000).toFixed(2)} Juta</td>
-                          <td>{item.totalPesertaRequested}</td>
-                          <td>{item.totalPesertaApproved}</td>
+                          <td className="text-left"><strong>{item.divisiNama || 'N/A'}</strong></td>
+                          <td>{item.totalUsulan || 0}</td>
+                          <td><span className="badge badge-warning">{item.diRequest || 0}</span></td>
+                          <td><span className="badge badge-success">{item.disetujui || 0}</span></td>
+                          <td className="text-right">Rp {((item.totalBiayaRequested || 0) / 1000000).toFixed(2)} Juta</td>
+                          <td className="text-right">Rp {((item.totalBiayaApproved || 0) / 1000000).toFixed(2)} Juta</td>
+                          <td>{item.totalPesertaRequested || 0}</td>
+                          <td>{item.totalPesertaApproved || 0}</td>
                         </tr>
                       ))}
                   </tbody>
                 </table>
               </div>
             </div>
+          ) : (
+            <div className="chart-card chart-full-width">
+              <h4>Rekap Usulan per Divisi Korporat</h4>
+              <div style={{ padding: '40px', textAlign: 'center', color: '#94a3b8' }}>
+                <p>Tidak ada data divisi yang memiliki usulan</p>
+              </div>
+            </div>
           )}
 
           {/* Data Table by Branch */}
-          {proposalsByBranch.length > 0 && (
+          {proposalsByBranch.length > 0 ? (
             <div className="chart-card chart-full-width">
               <h4>Rekap Usulan per Cabang</h4>
               <div className="data-table-container">
@@ -723,20 +753,27 @@ const SuperAdminDashboardOverview = ({ users, proposals, auditLogs, onNavigate }
                     {proposalsByBranch
                       .sort((a, b) => b.totalBiayaApproved - a.totalBiayaApproved)
                       .map((item, index) => (
-                        <tr key={item.branchId}>
+                        <tr key={item.branchId || index}>
                           <td>{index + 1}</td>
-                          <td className="text-left"><strong>{item.branchNama}</strong></td>
-                          <td>{item.totalUsulan}</td>
-                          <td><span className="badge badge-warning">{item.diRequest}</span></td>
-                          <td><span className="badge badge-success">{item.disetujui}</span></td>
-                          <td className="text-right">Rp {(item.totalBiayaRequested / 1000000).toFixed(2)} Juta</td>
-                          <td className="text-right">Rp {(item.totalBiayaApproved / 1000000).toFixed(2)} Juta</td>
-                          <td>{item.totalPesertaRequested}</td>
-                          <td>{item.totalPesertaApproved}</td>
+                          <td className="text-left"><strong>{item.branchNama || 'N/A'}</strong></td>
+                          <td>{item.totalUsulan || 0}</td>
+                          <td><span className="badge badge-warning">{item.diRequest || 0}</span></td>
+                          <td><span className="badge badge-success">{item.disetujui || 0}</span></td>
+                          <td className="text-right">Rp {((item.totalBiayaRequested || 0) / 1000000).toFixed(2)} Juta</td>
+                          <td className="text-right">Rp {((item.totalBiayaApproved || 0) / 1000000).toFixed(2)} Juta</td>
+                          <td>{item.totalPesertaRequested || 0}</td>
+                          <td>{item.totalPesertaApproved || 0}</td>
                         </tr>
                       ))}
                   </tbody>
                 </table>
+              </div>
+            </div>
+          ) : (
+            <div className="chart-card chart-full-width">
+              <h4>Rekap Usulan per Cabang</h4>
+              <div style={{ padding: '40px', textAlign: 'center', color: '#94a3b8' }}>
+                <p>Tidak ada data cabang yang memiliki usulan</p>
               </div>
             </div>
           )}

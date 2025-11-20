@@ -49,13 +49,7 @@ const SuperadminDashboard = ({ user, onLogout, onUserUpdate }) => {
   };
   const [activeMenu, setActiveMenu] = useState('dashboard');
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  const [users, setUsers] = useState([
-    { id: 1, username: 'john_doe', role: 'user', unit: 'IT Division', email: 'john@pelindo.com', status: 'active', createdAt: '2024-01-01' },
-    { id: 2, username: 'jane_smith', role: 'user', unit: 'HR Division', email: 'jane@pelindo.com', status: 'active', createdAt: '2024-01-02' },
-    { id: 3, username: 'bob_wilson', role: 'user', unit: 'Finance Division', email: 'bob@pelindo.com', status: 'inactive', createdAt: '2024-01-03' },
-    { id: 4, username: 'admin_user', role: 'admin', unit: 'Management', email: 'admin@pelindo.com', status: 'active', createdAt: '2024-01-04' }
-  ]);
-  
+  const [users, setUsers] = useState([]);
   const [proposals, setProposals] = useState([]);
   const [selectedUserForEdit, setSelectedUserForEdit] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -71,9 +65,10 @@ const SuperadminDashboard = ({ user, onLogout, onUserUpdate }) => {
     type: 'info' // 'success', 'error', 'warning', 'info'
   });
 
-  // Fetch proposals from database
+  // Fetch proposals and users from database
   useEffect(() => {
     fetchProposals();
+    fetchUsers();
   }, []);
 
   const [proposalFilters, setProposalFilters] = useState({});
@@ -87,7 +82,7 @@ const SuperadminDashboard = ({ user, onLogout, onUserUpdate }) => {
       const data = await trainingProposalAPI.getAll(filters);
       
       if (data.success) {
-        console.log('SuperadminDashboard: Proposals fetched:', data.proposals);
+        console.log('SuperadminDashboard: Proposals fetched:', data.proposals?.length || 0, 'proposals');
         setProposals(data.proposals || []);
       } else {
         setError(data.message || 'Gagal mengambil data proposal');
@@ -97,6 +92,36 @@ const SuperadminDashboard = ({ user, onLogout, onUserUpdate }) => {
       setError(err.message || 'Terjadi kesalahan saat mengambil data');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const fetchUsers = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const headers = {
+        'Content-Type': 'application/json'
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      console.log('SuperadminDashboard: Fetching users from database...');
+      const response = await fetch(`http://localhost:5000/api/users?currentUserRole=superadmin`, {
+        method: 'GET',
+        headers: headers,
+        credentials: 'include'
+      });
+      
+      const data = await response.json();
+      if (data.success) {
+        console.log('SuperadminDashboard: Users fetched:', data.users?.length || 0, 'users');
+        setUsers(data.users || []);
+      } else {
+        console.error('SuperadminDashboard: Failed to fetch users:', data.message);
+      }
+    } catch (error) {
+      console.error('SuperadminDashboard: Error fetching users:', error);
     }
   };
   
