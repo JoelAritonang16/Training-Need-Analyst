@@ -1,5 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { LuClipboardList, LuBookOpen, LuFileText } from 'react-icons/lu';
+import { 
+  LuClipboardList, 
+  LuBookOpen, 
+  LuFileText, 
+  LuCheckCircle2, 
+  LuClock, 
+  LuWallet, 
+  LuUsers,
+  LuFileCheck2
+} from 'react-icons/lu';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { draftTNA2026API, trainingProposalAPI } from '../../utils/api';
 import './DashboardOverview.css';
@@ -29,16 +38,24 @@ const DashboardOverview = ({ user, proposals, onNavigate }) => {
       setLoading(true);
       
       // Fetch drafts sesuai divisi user
-      const draftsResult = await draftTNA2026API.getAll();
-      if (draftsResult.success) {
-        // Filter drafts sesuai divisi user
-        const userDivisiDrafts = draftsResult.drafts?.filter(d => 
-          d.divisiId === user?.divisiId || d.branchId === user?.branchId
-        ) || [];
-        setDrafts(userDivisiDrafts);
+      try {
+        const draftsResult = await draftTNA2026API.getAll();
+        if (draftsResult.success) {
+          // Filter drafts sesuai divisi user
+          const userDivisiDrafts = draftsResult.drafts?.filter(d => 
+            d.divisiId === user?.divisiId || d.branchId === user?.branchId
+          ) || [];
+          setDrafts(userDivisiDrafts);
+        }
+      } catch (err) {
+        console.warn('Error fetching drafts:', err);
+        // Set empty array if fetch fails
+        setDrafts([]);
       }
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
+      // Don't throw - let component continue rendering
+      setDrafts([]);
     } finally {
       setLoading(false);
     }
@@ -60,48 +77,66 @@ const DashboardOverview = ({ user, proposals, onNavigate }) => {
 
   return (
     <div className="dashboard-overview">
-      <div className="overview-header">
-        
-        <p>Selamat datang, {user?.username || 'User'}!</p>
+      {/* Modern Header Banner */}
+      <div className="dashboard-header-banner">
+        <h1>Dashboard User</h1>
+        <p>Selamat datang di panel dashboard user - Kelola usulan pelatihan dan draft TNA 2026 Anda</p>
       </div>
 
+      {/* Metric Cards with Icons */}
       <div className="stats-grid">
         <div className="stat-card">
-          <h3>Total Usulan</h3>
-          <div className="stat-number">{totalProposals}</div>
-          <small>Divisi: {user?.divisi?.nama || 'N/A'}</small>
-        </div>
-        
-        <div className="stat-card">
-          <h3>Menunggu Persetujuan</h3>
-          <div className="stat-number">{pendingProposals}</div>
-          <small>Usulan TNA 2026</small>
-        </div>
-        
-        <div className="stat-card">
-          <h3>Disetujui</h3>
-          <div className="stat-number">{approvedProposals}</div>
-          <small>Usulan yang disetujui</small>
-        </div>
-
-        <div className="stat-card">
-          <h3>Total Anggaran</h3>
-          <div className="stat-number">
-            Rp {totalBudget.toLocaleString("id-ID", { maximumFractionDigits: 0 })}
+          <div className="stat-icon"><LuClipboardList size={20} /></div>
+          <div className="stat-content">
+            <h3>{totalProposals}</h3>
+            <p>Total Usulan</p>
+            <small>Divisi: {user?.divisi?.nama || 'N/A'}</small>
           </div>
-          <small>Semua usulan</small>
+        </div>
+        
+        <div className="stat-card">
+          <div className="stat-icon"><LuClock size={20} /></div>
+          <div className="stat-content">
+            <h3>{pendingProposals}</h3>
+            <p>Menunggu Persetujuan</p>
+            <small>Usulan TNA 2026</small>
+          </div>
+        </div>
+        
+        <div className="stat-card">
+          <div className="stat-icon"><LuCheckCircle2 size={20} /></div>
+          <div className="stat-content">
+            <h3>{approvedProposals}</h3>
+            <p>Disetujui</p>
+            <small>Usulan yang disetujui</small>
+          </div>
         </div>
 
         <div className="stat-card">
-          <h3>Total Peserta</h3>
-          <div className="stat-number">{totalParticipants}</div>
-          <small>Semua usulan</small>
+          <div className="stat-icon"><LuWallet size={20} /></div>
+          <div className="stat-content">
+            <h3>Rp {(totalBudget / 1000000).toFixed(1)} Juta</h3>
+            <p>Total Anggaran</p>
+            <small>Semua usulan</small>
+          </div>
         </div>
 
         <div className="stat-card">
-          <h3>Draft TNA 2026</h3>
-          <div className="stat-number">{totalDrafts}</div>
-          <small>Divisi: {user?.divisi?.nama || 'N/A'}</small>
+          <div className="stat-icon"><LuUsers size={20} /></div>
+          <div className="stat-content">
+            <h3>{totalParticipants}</h3>
+            <p>Total Peserta</p>
+            <small>Semua usulan</small>
+          </div>
+        </div>
+
+        <div className="stat-card">
+          <div className="stat-icon"><LuFileText size={20} /></div>
+          <div className="stat-content">
+            <h3>{totalDrafts}</h3>
+            <p>Draft TNA 2026</p>
+            <small>Divisi: {user?.divisi?.nama || 'N/A'}</small>
+          </div>
         </div>
       </div>
 
@@ -110,77 +145,87 @@ const DashboardOverview = ({ user, proposals, onNavigate }) => {
         <h3>Grafik dan Analisis</h3>
         
         <div className="charts-grid">
-          {/* Proposal Status Pie Chart */}
+          {/* Proposal Status Donut Chart */}
           <div className="chart-card">
             <h4>Status Usulan Pelatihan</h4>
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={280}>
               <PieChart>
                 <Pie
                   data={proposalStatusData}
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  label={({ name, value }) => `${name}: ${value}`}
-                  outerRadius={80}
+                  label={({ name, percent }) => percent > 0.05 ? `${(percent * 100).toFixed(0)}%` : ''}
+                  outerRadius={100}
+                  innerRadius={50}
                   fill="#8884d8"
                   dataKey="value"
+                  paddingAngle={2}
                 >
                   {proposalStatusData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
-                <Tooltip />
-                <Legend />
+                <Tooltip 
+                  formatter={(value, name, props) => [
+                    `${value} usulan`,
+                    props.payload.name
+                  ]}
+                />
+                <Legend 
+                  verticalAlign="bottom" 
+                  height={36}
+                  formatter={(value, entry) => (
+                    <span style={{ color: entry.color, fontSize: '0.875rem' }}>
+                      {value}
+                    </span>
+                  )}
+                />
               </PieChart>
             </ResponsiveContainer>
           </div>
 
-          {/* Draft Status Pie Chart */}
+          {/* Draft Status Donut Chart */}
           {totalDrafts > 0 && (
             <div className="chart-card">
               <h4>Status Draft TNA 2026</h4>
-              <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={280}>
                 <PieChart>
                   <Pie
-                    data={draftStatusData}
+                    data={draftStatusData.filter(d => d.value > 0)}
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    label={({ name, value }) => `${name}: ${value}`}
-                    outerRadius={80}
+                    label={({ name, percent }) => percent > 0.05 ? `${(percent * 100).toFixed(0)}%` : ''}
+                    outerRadius={100}
+                    innerRadius={50}
                     fill="#8884d8"
                     dataKey="value"
+                    paddingAngle={2}
                   >
-                    {draftStatusData.map((entry, index) => (
+                    {draftStatusData.filter(d => d.value > 0).map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
-                  <Tooltip />
-                  <Legend />
+                  <Tooltip 
+                    formatter={(value, name, props) => [
+                      `${value} draft`,
+                      props.payload.name
+                    ]}
+                  />
+                  <Legend 
+                    verticalAlign="bottom" 
+                    height={36}
+                    formatter={(value, entry) => (
+                      <span style={{ color: entry.color, fontSize: '0.875rem' }}>
+                        {value}
+                      </span>
+                    )}
+                  />
                 </PieChart>
               </ResponsiveContainer>
             </div>
           )}
-        </div>
-      </div>
-
-      <div className="quick-actions">
-        <h3>Quick Actions</h3>
-        <div className="action-buttons">
-          <button 
-            className="btn-primary"
-            onClick={() => onNavigate('proposal-create')}
-          >
-            <span className="btn-icon"><LuClipboardList size={18} /></span>
-            Buat Usulan Baru
-          </button>
-          <button 
-            className="btn-secondary"
-            onClick={() => onNavigate('proposal-list')}
-          >
-            <span className="btn-icon"><LuBookOpen size={18} /></span>
-            Lihat Daftar Usulan
-          </button>
         </div>
       </div>
     </div>

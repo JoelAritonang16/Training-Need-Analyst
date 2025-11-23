@@ -14,6 +14,39 @@ if ('serviceWorker' in navigator) {
   });
 }
 
+// Global error handler untuk menangkap unhandled promise rejections
+window.addEventListener('unhandledrejection', (event) => {
+  console.error('Unhandled promise rejection:', event.reason);
+  
+  // Prevent default error display for timeout errors
+  if (event.reason?.isTimeout || event.reason?.name === 'TimeoutError' || 
+      event.reason?.message?.includes('timeout') || event.reason?.message?.includes('Timeout')) {
+    console.warn('Timeout error caught globally, handling gracefully');
+    event.preventDefault(); // Prevent default error display
+    return;
+  }
+  
+  // Prevent default error display for network errors
+  if (event.reason?.isNetworkError || event.reason?.name === 'NetworkError') {
+    console.warn('Network error caught globally, handling gracefully');
+    event.preventDefault();
+    return;
+  }
+});
+
+// Global error handler untuk menangkap JavaScript errors
+window.addEventListener('error', (event) => {
+  console.error('Global error:', event.error);
+  
+  // Prevent default error display for timeout errors
+  if (event.error?.isTimeout || event.error?.name === 'TimeoutError' || 
+      event.error?.message?.includes('timeout') || event.error?.message?.includes('Timeout')) {
+    console.warn('Timeout error caught globally, handling gracefully');
+    event.preventDefault();
+    return;
+  }
+});
+
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>

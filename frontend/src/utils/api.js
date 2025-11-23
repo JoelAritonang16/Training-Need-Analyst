@@ -10,24 +10,42 @@ export const getAuthHeaders = () => {
   };
 };
 
-// Generic API call function
+// Generic API call function with timeout
 export const apiCall = async (endpoint, options = {}) => {
   const url = `${API_BASE_URL}${endpoint}`;
+  // Increase timeout for endpoints that might take longer
+  const defaultTimeout = endpoint.includes('/reports') || endpoint.includes('/rekap') ? 60000 : 45000; // 60s for reports, 45s default
+  const timeout = options.timeout || defaultTimeout;
+  // Remove timeout from options before passing to fetch
+  const { timeout: _, ...fetchOptions } = options;
   const config = {
     headers: getAuthHeaders(),
     credentials: 'include',
-    ...options
+    ...fetchOptions
   };
 
   console.log('[API] Making API call to:', url);
   console.log('[API] Request config:', {
     method: config.method || 'GET',
     headers: { ...config.headers, Authorization: config.headers.Authorization ? 'Bearer ***' : 'none' },
-    hasBody: !!config.body
+    hasBody: !!config.body,
+    timeout: timeout
   });
 
   try {
-    const response = await fetch(url, config);
+    // Create AbortController for timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => {
+      controller.abort();
+      console.warn('[API] Request timeout after', timeout, 'ms for endpoint:', endpoint);
+    }, timeout);
+
+    const response = await fetch(url, {
+      ...config,
+      signal: controller.signal
+    });
+
+    clearTimeout(timeoutId);
     
     console.log('[API] Response received:', {
       status: response.status,
@@ -79,7 +97,25 @@ export const apiCall = async (endpoint, options = {}) => {
       name: error.name,
       endpoint: url
     });
-    throw error;
+    
+    // Handle timeout specifically - return user-friendly error
+    if (error.name === 'AbortError' || error.message.includes('timeout') || error.message.includes('Timeout')) {
+      const timeoutError = new Error(`Request timeout: Server tidak merespons dalam ${timeout/1000} detik. Silakan coba lagi atau periksa koneksi server.`);
+      timeoutError.name = 'TimeoutError';
+      timeoutError.isTimeout = true;
+      return Promise.reject(timeoutError);
+    }
+    
+    // Handle network errors
+    if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+      const networkError = new Error(`Tidak dapat terhubung ke server. Pastikan server backend berjalan di ${API_BASE_URL}`);
+      networkError.name = 'NetworkError';
+      networkError.isNetworkError = true;
+      return Promise.reject(networkError);
+    }
+    
+    // Re-throw other errors
+    return Promise.reject(error);
   }
 };
 
@@ -400,7 +436,9 @@ export const draftTNA2026API = {
   },
   
   getRekapGabungan: async () => {
-    return apiCall('/api/draft-tna-2026/rekap/gabungan');
+    return apiCall('/api/draft-tna-2026/rekap/gabungan', {
+      timeout: 90000 // 90 seconds for rekap gabungan as it processes 20 branches + 18 divisions
+    });
   }
 };
 

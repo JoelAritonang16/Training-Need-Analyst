@@ -67,6 +67,14 @@ export const DatabaseDataProvider = ({ children }) => {
     const token = localStorage.getItem('token');
     if (token) {
       fetchProposals();
+      
+      // Auto-refresh proposals setiap 5 detik untuk mendapatkan data terbaru
+      // Ini memastikan data langsung muncul setelah user submit proposal
+      const intervalId = setInterval(() => {
+        fetchProposals();
+      }, 5000); // Refresh setiap 5 detik
+      
+      return () => clearInterval(intervalId); // Cleanup interval on unmount
     }
   }, []);
 

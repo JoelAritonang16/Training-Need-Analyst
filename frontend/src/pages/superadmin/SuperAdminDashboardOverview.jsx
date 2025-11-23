@@ -3,13 +3,7 @@ import {
   LuUsers,
   LuCheckCircle2,
   LuClipboardList,
-  LuShieldCheck,
   LuBookOpen,
-  LuBuilding,
-  LuStore,
-  LuFactory,
-  LuSettings,
-  LuScrollText,
   LuFileText,
   LuMapPin,
   LuBarChart3,
@@ -73,48 +67,73 @@ const SuperAdminDashboardOverview = ({ users, proposals, auditLogs, onNavigate }
       console.log('SuperAdminDashboardOverview: Current proposals count:', proposals?.length || 0);
       
       // Fetch drafts
-      const draftsResult = await draftTNA2026API.getAll();
-      if (draftsResult.success) {
-        console.log('SuperAdminDashboardOverview: Drafts fetched:', draftsResult.drafts?.length || 0);
-        setDrafts(draftsResult.drafts || []);
+      try {
+        const draftsResult = await draftTNA2026API.getAll();
+        if (draftsResult.success) {
+          console.log('SuperAdminDashboardOverview: Drafts fetched:', draftsResult.drafts?.length || 0);
+          setDrafts(draftsResult.drafts || []);
+        }
+      } catch (err) {
+        console.warn('SuperAdminDashboardOverview: Error fetching drafts:', err);
       }
 
       // Fetch tempat diklat realisasi
-      const realisasiResult = await tempatDiklatRealisasiAPI.getAll();
-      if (realisasiResult.success) {
-        console.log('SuperAdminDashboardOverview: Realisasi data fetched:', realisasiResult.data?.length || 0);
-        setRealisasiData(realisasiResult.data || []);
+      try {
+        const realisasiResult = await tempatDiklatRealisasiAPI.getAll();
+        if (realisasiResult.success) {
+          console.log('SuperAdminDashboardOverview: Realisasi data fetched:', realisasiResult.data?.length || 0);
+          setRealisasiData(realisasiResult.data || []);
+        }
+      } catch (err) {
+        console.warn('SuperAdminDashboardOverview: Error fetching realisasi:', err);
       }
 
       // Fetch rekap per bulan
-      const rekapResult = await tempatDiklatRealisasiAPI.getRekapPerBulan(new Date().getFullYear());
-      if (rekapResult.success) {
-        console.log('SuperAdminDashboardOverview: Rekap per bulan fetched:', rekapResult.rekap?.length || 0);
-        setRekapPerBulan(rekapResult.rekap || []);
+      try {
+        const rekapResult = await tempatDiklatRealisasiAPI.getRekapPerBulan(new Date().getFullYear());
+        if (rekapResult.success) {
+          console.log('SuperAdminDashboardOverview: Rekap per bulan fetched:', rekapResult.rekap?.length || 0);
+          setRekapPerBulan(rekapResult.rekap || []);
+        }
+      } catch (err) {
+        console.warn('SuperAdminDashboardOverview: Error fetching rekap per bulan:', err);
       }
 
-      // Fetch rekap gabungan (20 cabang + 18 divisi)
-      const rekapGabunganResult = await draftTNA2026API.getRekapGabungan();
-      if (rekapGabunganResult.success) {
-        console.log('SuperAdminDashboardOverview: Rekap gabungan fetched');
-        setRekapGabungan(rekapGabunganResult.rekap);
+      // Fetch rekap gabungan (20 cabang + 18 divisi) - might take longer
+      try {
+        const rekapGabunganResult = await draftTNA2026API.getRekapGabungan();
+        if (rekapGabunganResult.success) {
+          console.log('SuperAdminDashboardOverview: Rekap gabungan fetched');
+          setRekapGabungan(rekapGabunganResult.rekap);
+        }
+      } catch (err) {
+        console.warn('SuperAdminDashboardOverview: Error fetching rekap gabungan:', err);
       }
 
       // Fetch divisi list
-      const divisiResult = await divisiAPI.getAll();
-      if (divisiResult.success) {
-        console.log('SuperAdminDashboardOverview: Divisi list fetched:', divisiResult.divisi?.length || 0);
-        setDivisiList(divisiResult.divisi || []);
+      try {
+        const divisiResult = await divisiAPI.getAll();
+        if (divisiResult.success) {
+          console.log('SuperAdminDashboardOverview: Divisi list fetched:', divisiResult.divisi?.length || 0);
+          setDivisiList(divisiResult.divisi || []);
+        }
+      } catch (err) {
+        console.warn('SuperAdminDashboardOverview: Error fetching divisi:', err);
       }
 
       // Fetch branch list
-      const branchResult = await branchAPI.getAll();
-      if (branchResult.success) {
-        console.log('SuperAdminDashboardOverview: Branch list fetched:', branchResult.branch?.length || 0);
-        setBranchList(branchResult.branch || []);
+      try {
+        const branchResult = await branchAPI.getAll();
+        if (branchResult.success) {
+          console.log('SuperAdminDashboardOverview: Branch list fetched:', branchResult.branch?.length || 0);
+          setBranchList(branchResult.branch || []);
+        }
+      } catch (err) {
+        console.warn('SuperAdminDashboardOverview: Error fetching branch:', err);
       }
     } catch (error) {
       console.error('SuperAdminDashboardOverview: Error fetching dashboard data:', error);
+      // Don't throw - let component continue rendering
     } finally {
       setLoading(false);
     }
@@ -273,27 +292,11 @@ const SuperAdminDashboardOverview = ({ users, proposals, auditLogs, onNavigate }
       'Jumlah Usulan': b.totalUsulan,
     }));
 
-  // Sidebar-equivalent items to display as tiles on the dashboard
-  const menuTiles = [
-    { id: 'user-management', icon: <LuUsers size={22} />, label: 'Manajemen User' },
-    { id: 'proposal-approval', icon: <LuCheckCircle2 size={22} />, label: 'Persetujuan Usulan' },
-    { id: 'approved-proposals', icon: <LuClipboardList size={22} />, label: 'Usulan Disetujui' },
-    { id: 'final-approval', icon: <LuShieldCheck size={22} />, label: 'Persetujuan Akhir' },
-    { id: 'all-proposals', icon: <LuBookOpen size={22} />, label: 'Semua Usulan' },
-    { id: 'draft-tna-2026', icon: <LuFileText size={22} />, label: 'Draft TNA 2026' },
-    { id: 'tempat-diklat-realisasi', icon: <LuMapPin size={22} />, label: 'Tempat Diklat Realisasi' },
-    { id: 'rekap-gabungan', icon: <LuBarChart3 size={22} />, label: 'Rekap Gabungan' },
-    { id: 'divisi-management', icon: <LuBuilding size={22} />, label: 'Manajemen Divisi' },
-    { id: 'branch-management', icon: <LuStore size={22} />, label: 'Manajemen Branch' },
-    { id: 'anak-perusahaan-management', icon: <LuFactory size={22} />, label: 'Manajemen Anak Perusahaan' },
-    { id: 'system-config', icon: <LuSettings size={22} />, label: 'Konfigurasi Sistem' },
-    { id: 'audit-logs', icon: <LuScrollText size={22} />, label: 'Log Audit' },
-  ];
 
   return (
     <div className="dashboard-overview">
-      {/* Blue rounded banner header */}
-      <div className="admin-banner" role="region" aria-label="Dashboard Header">
+      {/* Modern Header Banner */}
+      <div className="dashboard-header-banner" role="region" aria-label="Dashboard Header">
         <h1>Dashboard Superadmin</h1>
         <p>Selamat datang di panel administrasi PT Pelindo - Overview lengkap semua cabang dan divisi</p>
       </div>
@@ -409,28 +412,42 @@ const SuperAdminDashboardOverview = ({ users, proposals, auditLogs, onNavigate }
         <h3>Grafik dan Analisis</h3>
         
         <div className="charts-grid">
-          {/* Proposal Status Pie Chart */}
+          {/* Proposal Status Donut Chart */}
           <div className="chart-card">
             <h4>Status Usulan Pelatihan</h4>
-            <ResponsiveContainer width="100%" height={180}>
+            <ResponsiveContainer width="100%" height={280}>
               <PieChart>
                 <Pie
                   data={proposalStatusData}
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  label={({ name, value }) => `${name}: ${value}`}
-                  outerRadius={80}
-                  innerRadius={45}
+                  label={({ name, percent }) => percent > 0.05 ? `${(percent * 100).toFixed(0)}%` : ''}
+                  outerRadius={100}
+                  innerRadius={50}
                   fill="#8884d8"
                   dataKey="value"
+                  paddingAngle={2}
                 >
                   {proposalStatusData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
-                <Tooltip />
-                <Legend />
+                <Tooltip 
+                  formatter={(value, name, props) => [
+                    `${value} usulan`,
+                    props.payload.name
+                  ]}
+                />
+                <Legend 
+                  verticalAlign="bottom" 
+                  height={36}
+                  formatter={(value, entry) => (
+                    <span style={{ color: entry.color, fontSize: '0.875rem' }}>
+                      {value}
+                    </span>
+                  )}
+                />
               </PieChart>
             </ResponsiveContainer>
           </div>
@@ -465,18 +482,19 @@ const SuperAdminDashboardOverview = ({ users, proposals, auditLogs, onNavigate }
           {budgetByStatusData.length > 0 && (
             <div className="chart-card">
               <h4>Rincian Biaya Berdasarkan Status</h4>
-              <ResponsiveContainer width="100%" height={180}>
+              <ResponsiveContainer width="100%" height={280}>
                 <PieChart>
                   <Pie
                     data={budgetByStatusData}
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    label={({ name, value }) => `${name}: Rp ${(value / 1000000).toFixed(2)} Juta`}
-                    outerRadius={80}
-                    innerRadius={45}
+                    label={({ name, percent }) => percent > 0.05 ? `${(percent * 100).toFixed(0)}%` : ''}
+                    outerRadius={100}
+                    innerRadius={50}
                     fill="#8884d8"
                     dataKey="value"
+                    paddingAngle={2}
                   >
                     {budgetByStatusData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
@@ -485,33 +503,56 @@ const SuperAdminDashboardOverview = ({ users, proposals, auditLogs, onNavigate }
                   <Tooltip 
                     formatter={(value) => `Rp ${(value / 1000000).toFixed(2)} Juta`}
                   />
-                  <Legend />
+                  <Legend 
+                    verticalAlign="bottom" 
+                    height={36}
+                    formatter={(value, entry) => (
+                      <span style={{ color: entry.color, fontSize: '0.875rem' }}>
+                        {value}
+                      </span>
+                    )}
+                  />
                 </PieChart>
               </ResponsiveContainer>
             </div>
           )}
 
-          {/* Draft Status Pie Chart */}
+          {/* Draft Status Donut Chart */}
           <div className="chart-card">
             <h4>Status Draft TNA 2026</h4>
-            <ResponsiveContainer width="100%" height={180}>
+            <ResponsiveContainer width="100%" height={280}>
               <PieChart>
                 <Pie
-                  data={draftStatusData}
+                  data={draftStatusData.filter(d => d.value > 0)}
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  label={({ name, value }) => `${name}: ${value}`}
-                  outerRadius={80}
+                  label={({ name, percent }) => percent > 0.05 ? `${(percent * 100).toFixed(0)}%` : ''}
+                  outerRadius={100}
+                  innerRadius={50}
                   fill="#8884d8"
                   dataKey="value"
+                  paddingAngle={2}
                 >
-                  {draftStatusData.map((entry, index) => (
+                  {draftStatusData.filter(d => d.value > 0).map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
-                <Tooltip />
-                <Legend />
+                <Tooltip 
+                  formatter={(value, name, props) => [
+                    `${value} draft`,
+                    props.payload.name
+                  ]}
+                />
+                <Legend 
+                  verticalAlign="bottom" 
+                  height={36}
+                  formatter={(value, entry) => (
+                    <span style={{ color: entry.color, fontSize: '0.875rem' }}>
+                      {value}
+                    </span>
+                  )}
+                />
               </PieChart>
             </ResponsiveContainer>
           </div>
@@ -780,61 +821,6 @@ const SuperAdminDashboardOverview = ({ users, proposals, auditLogs, onNavigate }
         </div>
       </div>
 
-      {/* Quick Actions */}
-      <div className="quick-actions">
-        <h3>Aksi Cepat</h3>
-        <div className="action-buttons">
-          <button
-            className="action-btn primary"
-            onClick={() => onNavigate("proposal-approval")}
-          >
-            <span className="btn-icon"><LuCheckCircle2 size={18} /></span>
-            Review Usulan ({pendingCount})
-          </button>
-          <button
-            className="action-btn secondary"
-            onClick={() => onNavigate("draft-tna-2026")}
-          >
-            <span className="btn-icon"><LuFileText size={18} /></span>
-            Draft TNA 2026 ({totalDrafts})
-          </button>
-          <button
-            className="action-btn secondary"
-            onClick={() => onNavigate("tempat-diklat-realisasi")}
-          >
-            <span className="btn-icon"><LuMapPin size={18} /></span>
-            Tempat Diklat Realisasi
-          </button>
-          <button
-            className="action-btn secondary"
-            onClick={() => onNavigate("rekap-gabungan")}
-          >
-            <span className="btn-icon"><LuBarChart3 size={18} /></span>
-            Rekap Gabungan (20 Cabang + 18 Divisi)
-          </button>
-          <button
-            className="action-btn secondary"
-            onClick={() => onNavigate("all-proposals")}
-          >
-            <span className="btn-icon"><LuBookOpen size={18} /></span>
-            Semua Usulan
-          </button>
-        </div>
-      </div>
-
-      {/* Sidebar-driven menu tiles */}
-      <div className="menu-tiles">
-        {menuTiles.map(tile => (
-          <button
-            key={tile.id}
-            className="menu-tile"
-            onClick={() => onNavigate(tile.id)}
-          >
-            <span className="tile-icon" aria-hidden>{tile.icon}</span>
-            <span className="tile-label">{tile.label}</span>
-          </button>
-        ))}
-      </div>
     </div>
   );
 };

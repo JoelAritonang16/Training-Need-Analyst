@@ -537,6 +537,7 @@ const trainingProposalController = {
       }
 
       // Buat proposal baru dengan branchId dari user
+      // Status default: MENUNGGU (akan otomatis diset oleh database)
       const proposalData = {
         Uraian,
         WaktuPelaksanan,
@@ -549,12 +550,18 @@ const trainingProposalController = {
         BebanUangSaku,
         TotalUsulan,
         userId,
-        branchId: branchId // Auto-assign branchId from user
+        branchId: branchId, // Auto-assign branchId from user
+        status: 'MENUNGGU' // Explicitly set status to MENUNGGU for new proposals
       };
       
       console.log('Data yang akan disimpan:', proposalData);
+      console.log('Status proposal: MENUNGGU (menunggu review admin)');
       
+      // Simpan proposal langsung ke database
       const newProposal = await TrainingProposal.create(proposalData);
+      
+      console.log('Proposal berhasil disimpan ke database dengan ID:', newProposal.id);
+      console.log('Status proposal:', newProposal.status);
 
       // Jika items ada: simpan item dan hitung total proposal
       if (Array.isArray(items) && items.length > 0) {

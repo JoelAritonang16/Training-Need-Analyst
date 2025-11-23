@@ -5,6 +5,7 @@ import AdminDashboard from "./pages/admin/AdminDashboard.jsx";
 import SuperadminDashboard from "./pages/superadmin/SuperadminDashboard.jsx";
 import UserDashboardWrapper from "./components/UserDashboardWrapper.jsx";
 import { DatabaseDataProvider } from "./components/DatabaseDataProvider.jsx";
+import ErrorBoundary from "./components/ErrorBoundary.jsx";
 import "./App.css";
 
 
@@ -166,21 +167,23 @@ function App() {
   }
 
   return (
-    <div className="App">
-      <DatabaseDataProvider>
-        {user ? renderDashboard() : (
-          <Login onLoginSuccess={handleLoginSuccess} />
-        )}
-        <ConfirmModal
-          open={showLogoutConfirm}
-          message="Anda yakin ingin keluar dari sistem?"
-          confirmText="Ya"
-          cancelText="Batal"
-          onConfirm={actuallyLogout}
-          onCancel={() => setShowLogoutConfirm(false)}
-        />
-      </DatabaseDataProvider>
-    </div>
+    <ErrorBoundary>
+      <div className="App">
+        <DatabaseDataProvider>
+          {user ? renderDashboard() : (
+            <Login onLoginSuccess={handleLoginSuccess} />
+          )}
+          <ConfirmModal
+            open={showLogoutConfirm}
+            message="Anda yakin ingin keluar dari sistem?"
+            confirmText="Ya"
+            cancelText="Batal"
+            onConfirm={actuallyLogout}
+            onCancel={() => setShowLogoutConfirm(false)}
+          />
+        </DatabaseDataProvider>
+      </div>
+    </ErrorBoundary>
   );
 }
 

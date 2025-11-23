@@ -65,14 +65,10 @@ const SuperadminDashboard = ({ user, onLogout, onUserUpdate }) => {
     type: 'info' // 'success', 'error', 'warning', 'info'
   });
 
-  // Fetch proposals and users from database
-  useEffect(() => {
-    fetchProposals();
-    fetchUsers();
-  }, []);
-
+  // Proposal filters state - harus dideklarasikan sebelum useEffect yang menggunakannya
   const [proposalFilters, setProposalFilters] = useState({});
 
+  // Fetch proposals function - harus dideklarasikan sebelum useEffect yang menggunakannya
   const fetchProposals = async (filters = {}) => {
     try {
       setIsLoading(true);
@@ -129,6 +125,20 @@ const SuperadminDashboard = ({ user, onLogout, onUserUpdate }) => {
     setProposalFilters(filters);
     fetchProposals(filters);
   };
+
+  // Fetch proposals and users from database
+  useEffect(() => {
+    fetchProposals();
+    fetchUsers();
+    
+    // Auto-refresh proposals setiap 5 detik untuk mendapatkan data terbaru
+    // Ini memastikan data langsung muncul setelah user submit proposal
+    const intervalId = setInterval(() => {
+      fetchProposals(proposalFilters);
+    }, 5000); // Refresh setiap 5 detik
+    
+    return () => clearInterval(intervalId); // Cleanup interval on unmount
+  }, [proposalFilters]);
 
   const [auditLogs, setAuditLogs] = useState([
     { id: 1, user: 'admin_user', action: 'APPROVE_PROPOSAL', target: 'Workshop Project Management', timestamp: '2024-01-15T10:30:00Z' },

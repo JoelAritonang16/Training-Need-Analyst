@@ -42,6 +42,14 @@ const AdminDashboard = ({ user, onLogout }) => {
   // Fetch proposals from database
   useEffect(() => {
     fetchProposals();
+    
+    // Auto-refresh proposals setiap 5 detik untuk mendapatkan data terbaru
+    // Ini memastikan data langsung muncul setelah user submit proposal
+    const intervalId = setInterval(() => {
+      fetchProposals();
+    }, 5000); // Refresh setiap 5 detik
+    
+    return () => clearInterval(intervalId); // Cleanup interval on unmount
   }, []);
 
   const fetchProposals = async () => {
@@ -60,6 +68,20 @@ const AdminDashboard = ({ user, onLogout }) => {
       }
     } catch (err) {
       console.error('AdminDashboard: Error fetching proposals:', err);
+      
+      // Handle timeout errors gracefully
+      if (err.isTimeout || err.name === 'TimeoutError' || err.message?.includes('timeout')) {
+        setError('Request timeout: Server tidak merespons. Silakan coba lagi.');
+        // Don't show alert modal for timeout, just set error state
+        return;
+      }
+      
+      // Handle network errors
+      if (err.isNetworkError || err.name === 'NetworkError') {
+        setError('Tidak dapat terhubung ke server. Pastikan server backend berjalan.');
+        return;
+      }
+      
       setError(err.message || 'Terjadi kesalahan saat mengambil data');
     } finally {
       setIsLoading(false);
@@ -102,10 +124,19 @@ const AdminDashboard = ({ user, onLogout }) => {
       }
     } catch (error) {
       console.error('AdminDashboard: Error approving proposal:', error);
+      
+      // Handle timeout errors gracefully
+      let errorMessage = error.message || 'Terjadi kesalahan saat menyetujui proposal';
+      if (error.isTimeout || error.name === 'TimeoutError' || error.message?.includes('timeout')) {
+        errorMessage = 'Request timeout: Server tidak merespons. Silakan coba lagi.';
+      } else if (error.isNetworkError || error.name === 'NetworkError') {
+        errorMessage = 'Tidak dapat terhubung ke server. Pastikan server backend berjalan.';
+      }
+      
       setAlertModal({
         open: true,
         title: 'Terjadi Kesalahan',
-        message: error.message || 'Terjadi kesalahan saat menyetujui proposal',
+        message: errorMessage,
         type: 'error'
       });
     }

@@ -1,10 +1,55 @@
 /* General Dashboard Styling */
 .dashboard-overview {
-  padding: 12px 20px;
+  padding: 24px 32px;
   width: 100%;
+  max-width: 1400px;
   margin: 0 auto;
   background: linear-gradient(135deg, #f5f7fa 0%, #e8f0f7 100%);
   min-height: 100vh;
+}
+
+/* Modern Header Banner */
+.dashboard-header-banner {
+  background: linear-gradient(135deg, #1e5a8e 0%, #0271B6 100%);
+  color: #ffffff;
+  padding: 32px 40px;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(30, 90, 142, 0.2);
+  margin-bottom: 32px;
+  position: relative;
+  overflow: hidden;
+}
+
+.dashboard-header-banner::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+  border-radius: 50%;
+  transform: translate(30%, -30%);
+}
+
+.dashboard-header-banner h1 {
+  margin: 0 0 12px 0;
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  position: relative;
+  z-index: 1;
+}
+
+.dashboard-header-banner p {
+  margin: 0;
+  opacity: 0.95;
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.6;
+  position: relative;
+  z-index: 1;
+  max-width: 800px;
 }
 
 .content-header {
@@ -37,187 +82,121 @@
 /* Stats Grid */
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 12px;
-  margin-bottom: 24px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px;
+  margin-bottom: 32px;
 }
 
-/* Individual Stat Card */
+/* Individual Stat Card - Modern Design */
 .stat-card {
-  background: linear-gradient(135deg, #0271B6 0%, #1e5a8e 100%);
-  color: white;
-  padding: 12px 14px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  box-shadow: 0 1px 3px rgba(2, 113, 182, 0.15), 0 1px 2px rgba(2, 113, 182, 0.1);
-  transition: all 0.2s ease;
-  border: none;
-  position: relative;
-  overflow: hidden;
+  background: white !important;
+  color: #2c3e50 !important;
+  padding: 20px 24px !important;
+  border-radius: 12px !important;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 16px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  border: 1px solid #e5e7eb !important;
+  position: relative !important;
+  overflow: hidden !important;
 }
 
-.stat-card::before {
+.stat-card::after {
   content: '';
   position: absolute;
   top: 0;
+  left: 0;
   right: 0;
-  width: 40px;
-  height: 40px;
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 50%;
-  transform: translate(12px, -12px);
+  height: 3px;
+  background: linear-gradient(90deg, #0271B6 0%, #1e5a8e 100%);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.stat-card:hover::after {
+  transform: scaleX(1);
 }
 
 .stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(2, 113, 182, 0.2), 0 2px 4px rgba(2, 113, 182, 0.1);
+  transform: translateY(-4px) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
+  border-color: #bfdbfe !important;
+}
+
+.stat-card::before {
+  display: none !important;
 }
 
 /* Stat Card Icon and Content */
 .stat-icon {
-  font-size: 1.5rem;
-  opacity: 0.95;
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 8px;
-  flex-shrink: 0;
-  transition: all 0.2s ease;
+  font-size: 1rem !important;
+  width: 48px !important;
+  height: 48px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: #f0f7ff !important;
+  border-radius: 12px !important;
+  flex-shrink: 0 !important;
+  color: #0271B6 !important;
+  box-shadow: 0 2px 6px rgba(2, 113, 182, 0.1) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.stat-card:hover .stat-icon {
+  transform: scale(1.08) rotate(3deg) !important;
+  box-shadow: 0 3px 10px rgba(2, 113, 182, 0.15) !important;
+  background: #dbeafe !important;
 }
 
 .stat-icon svg { 
-  width: 18px; 
-  height: 18px; 
-  stroke: white; 
-  stroke-width: 2; 
-  fill: none; 
+  width: 20px !important; 
+  height: 20px !important; 
+  stroke: #0271B6 !important; 
+  stroke-width: 2.2 !important; 
+  fill: none !important; 
 }
 
 .stat-content {
-  flex: 1;
-  min-width: 0;
+  flex: 1 !important;
+  min-width: 0 !important;
 }
 
 .stat-content h3 {
-  font-size: 1.125rem;
-  margin: 0 0 2px 0;
-  font-weight: 600;
-  color: white;
-  line-height: 1.2;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-size: 1.5rem !important;
+  margin: 0 0 4px 0 !important;
+  font-weight: 700 !important;
+  line-height: 1.2 !important;
+  color: #1e293b !important;
+  letter-spacing: -0.02em !important;
+}
+
+.stat-card:hover .stat-content h3 {
+  color: #0271B6 !important;
 }
 
 .stat-content p {
-  margin: 0 0 2px 0;
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.95);
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  line-height: 1.2;
+  margin: 0 0 4px 0 !important;
+  font-size: 0.8125rem !important;
+  font-weight: 500 !important;
+  color: #64748b !important;
+  line-height: 1.3 !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
 }
 
 .stat-content small {
-  color: rgba(255, 255, 255, 0.85);
-  font-size: 0.7rem;
-  font-weight: 400;
-  display: block;
-  line-height: 1.1;
+  color: #94a3b8 !important;
+  font-size: 0.75rem !important;
+  font-weight: 400 !important;
+  display: block !important;
+  line-height: 1.2 !important;
 }
 
-/* Quick Actions */
-.quick-actions {
-  background: #ffffff;
-  padding: 16px;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
-  margin-bottom: 16px;
-  border: 1px solid #e5e7eb;
-}
-
-.quick-actions h3 {
-  color: #1e5a8e;
-  margin-bottom: 14px;
-  font-size: 1rem;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-}
-
-.action-buttons {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.action-btn {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 10px 16px;
-  border: none;
-  border-radius: 6px;
-  font-size: 0.8125rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  text-decoration: none;
-  flex: 1;
-  min-width: 140px;
-  justify-content: center;
-  height: auto;
-}
-
-/* Action Button Variants */
-.action-btn.primary {
-  background: linear-gradient(135deg, #0271B6 0%, #1e5a8e 100%);
-  color: white;
-  position: relative;
-  overflow: hidden;
-}
-
-.action-btn.primary::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  transition: left 0.5s;
-}
-
-.action-btn.primary:hover::before {
-  left: 100%;
-}
-
-.action-btn.primary:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 6px 25px rgba(2, 113, 182, 0.4);
-}
-
-.action-btn.secondary {
-  background: linear-gradient(135deg, #ffffff 0%, #f8fbff 100%);
-  color: #0271B6;
-  border: 2px solid #0271B6;
-  font-weight: 600;
-}
-
-.action-btn.secondary:hover {
-  background: linear-gradient(135deg, #0271B6 0%, #1e5a8e 100%);
-  color: white;
-  transform: translateY(-3px);
-  box-shadow: 0 4px 20px rgba(2, 113, 182, 0.3);
-}
-
-.btn-icon { font-size: 1.2rem; display: inline-flex; align-items: center; justify-content: center; }
-.btn-icon svg { width: 18px; height: 18px; stroke: currentColor; stroke-width: 1.8; fill: none; }
 
 /* Recent Activities Section */
 .recent-activities {
@@ -291,43 +270,48 @@
   font-size: 0.75rem;
 }
 
-/* Charts Section - Same as Superadmin */
+/* Charts Section - Modern Design */
 .charts-section {
   background: #ffffff;
-  padding: 28px;
+  padding: 32px;
   border-radius: 16px;
-  box-shadow: var(--shadow-sm);
-  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  margin-bottom: 32px;
   border: 1px solid #f1f5f9;
 }
 
 .charts-section h3 {
   color: #1e5a8e;
-  margin-bottom: 24px;
-  font-size: 1.25rem;
+  margin-bottom: 28px;
+  font-size: 1.5rem;
   font-weight: 700;
   letter-spacing: -0.02em;
+  text-align: left;
 }
 
 .charts-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
   gap: 24px;
+  align-items: start;
 }
 
 .chart-card {
   background: white;
-  padding: 24px;
+  padding: 28px;
   border-radius: 12px;
-  box-shadow: var(--shadow-xs);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   border: 1px solid #f1f5f9;
-  min-height: auto;
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
   transition: all 0.3s ease;
 }
 
 .chart-card:hover {
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
   border-color: #bfdbfe;
+  transform: translateY(-2px);
 }
 
 .chart-card.chart-full-width {
@@ -336,11 +320,17 @@
 
 .chart-card h4 {
   color: #1e293b;
-  margin-bottom: 20px;
-  font-size: 1rem;
+  margin-bottom: 24px;
+  font-size: 1.125rem;
   font-weight: 600;
   text-align: center;
   letter-spacing: -0.01em;
+  flex-shrink: 0;
+}
+
+.chart-card .recharts-responsive-container {
+  flex: 1;
+  min-height: 280px;
 }
 
 /* Chart Styling Enhancements - Same as Superadmin */
@@ -408,9 +398,34 @@
 }
 
 .recharts-legend-item-text {
-  font-size: 0.8125rem !important;
+  font-size: 0.875rem !important;
   color: #64748b !important;
   font-weight: 500 !important;
+  margin-left: 8px !important;
+}
+
+.recharts-legend-wrapper {
+  padding-top: 20px !important;
+  padding-bottom: 8px !important;
+}
+
+.recharts-legend-item {
+  margin-right: 24px !important;
+  margin-bottom: 8px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+}
+
+/* Improve pie/donut chart labels */
+.recharts-pie-label-text {
+  font-size: 0.875rem !important;
+  font-weight: 600 !important;
+  fill: #1e293b !important;
+}
+
+/* Ensure chart container has proper spacing */
+.chart-card .recharts-responsive-container {
+  margin: 0 auto;
 }
 
 /* Data Table Styles - Same as Superadmin */
@@ -526,7 +541,19 @@
 /* Mobile Responsiveness */
 @media (max-width: 768px) {
   .dashboard-overview {
-    padding: 15px;
+    padding: 16px;
+  }
+
+  .dashboard-header-banner {
+    padding: 24px 20px;
+  }
+
+  .dashboard-header-banner h1 {
+    font-size: 1.5rem;
+  }
+
+  .dashboard-header-banner p {
+    font-size: 0.875rem;
   }
   
   .content-header h1 {
@@ -535,11 +562,33 @@
   
   .stats-grid {
     grid-template-columns: 1fr;
-    gap: 15px;
+    gap: 16px;
+  }
+
+  .stat-card {
+    padding: 16px 20px !important;
+  }
+
+  .stat-icon {
+    width: 40px !important;
+    height: 40px !important;
+  }
+
+  .stat-content h3 {
+    font-size: 1.25rem !important;
+  }
+
+  .charts-section {
+    padding: 20px;
   }
 
   .charts-grid {
     grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .chart-card {
+    padding: 20px;
   }
 
   .chart-card.chart-full-width {

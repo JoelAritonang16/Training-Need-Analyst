@@ -53,24 +53,40 @@ const AdminDashboardOverview = ({ users, proposals, user, onNavigate }) => {
       setLoading(true);
       
       // Fetch drafts (view only for admin)
-      const draftsResult = await draftTNA2026API.getAll();
-      if (draftsResult.success) {
-        setDrafts(draftsResult.drafts || []);
+      try {
+        const draftsResult = await draftTNA2026API.getAll();
+        if (draftsResult.success) {
+          setDrafts(draftsResult.drafts || []);
+        }
+      } catch (err) {
+        console.warn('Error fetching drafts:', err);
+        // Continue with other data fetches
       }
 
       // Fetch tempat diklat realisasi
-      const realisasiResult = await tempatDiklatRealisasiAPI.getAll();
-      if (realisasiResult.success) {
-        setRealisasiData(realisasiResult.data || []);
+      try {
+        const realisasiResult = await tempatDiklatRealisasiAPI.getAll();
+        if (realisasiResult.success) {
+          setRealisasiData(realisasiResult.data || []);
+        }
+      } catch (err) {
+        console.warn('Error fetching realisasi data:', err);
+        // Continue with other data fetches
       }
 
       // Fetch rekap per bulan
-      const rekapResult = await tempatDiklatRealisasiAPI.getRekapPerBulan(new Date().getFullYear());
-      if (rekapResult.success) {
-        setRekapPerBulan(rekapResult.rekap || []);
+      try {
+        const rekapResult = await tempatDiklatRealisasiAPI.getRekapPerBulan(new Date().getFullYear());
+        if (rekapResult.success) {
+          setRekapPerBulan(rekapResult.rekap || []);
+        }
+      } catch (err) {
+        console.warn('Error fetching rekap per bulan:', err);
+        // Continue - this is not critical
       }
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
+      // Don't throw - let component continue rendering
     } finally {
       setLoading(false);
     }
@@ -100,9 +116,10 @@ const AdminDashboardOverview = ({ users, proposals, user, onNavigate }) => {
 
   return (
     <div className="dashboard-overview">
-      <div className="content-header">
+      {/* Modern Header Banner */}
+      <div className="dashboard-header-banner">
         <h1>Dashboard Admin</h1>
-        <p>Kelola pengguna, review usulan pelatihan, dan monitoring sistem</p>
+        <p>Selamat datang di panel administrasi - Kelola pengguna, review usulan pelatihan, dan monitoring sistem</p>
       </div>
 
       <div className="stats-grid">
@@ -178,52 +195,82 @@ const AdminDashboardOverview = ({ users, proposals, user, onNavigate }) => {
         <h3>Grafik dan Analisis</h3>
         
         <div className="charts-grid">
-          {/* Proposal Status Pie Chart */}
+          {/* Proposal Status Donut Chart */}
           <div className="chart-card">
             <h4>Status Usulan Pelatihan</h4>
-            <ResponsiveContainer width="100%" height={200}>
+            <ResponsiveContainer width="100%" height={280}>
               <PieChart>
                 <Pie
                   data={proposalStatusData}
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  label={({ name, value }) => `${name}: ${value}`}
-                  outerRadius={80}
+                  label={({ name, percent }) => percent > 0.05 ? `${(percent * 100).toFixed(0)}%` : ''}
+                  outerRadius={100}
+                  innerRadius={50}
                   fill="#8884d8"
                   dataKey="value"
+                  paddingAngle={2}
                 >
                   {proposalStatusData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
-                <Tooltip />
-                <Legend />
+                <Tooltip 
+                  formatter={(value, name, props) => [
+                    `${value} usulan`,
+                    props.payload.name
+                  ]}
+                />
+                <Legend 
+                  verticalAlign="bottom" 
+                  height={36}
+                  formatter={(value, entry) => (
+                    <span style={{ color: entry.color, fontSize: '0.875rem' }}>
+                      {value}
+                    </span>
+                  )}
+                />
               </PieChart>
             </ResponsiveContainer>
           </div>
 
-          {/* Draft Status Pie Chart */}
+          {/* Draft Status Donut Chart */}
           <div className="chart-card">
             <h4>Status Draft TNA 2026</h4>
-            <ResponsiveContainer width="100%" height={200}>
+            <ResponsiveContainer width="100%" height={280}>
               <PieChart>
                 <Pie
-                  data={draftStatusData}
+                  data={draftStatusData.filter(d => d.value > 0)}
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  label={({ name, value }) => `${name}: ${value}`}
-                  outerRadius={80}
+                  label={({ name, percent }) => percent > 0.05 ? `${(percent * 100).toFixed(0)}%` : ''}
+                  outerRadius={100}
+                  innerRadius={50}
                   fill="#8884d8"
                   dataKey="value"
+                  paddingAngle={2}
                 >
-                  {draftStatusData.map((entry, index) => (
+                  {draftStatusData.filter(d => d.value > 0).map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
-                <Tooltip />
-                <Legend />
+                <Tooltip 
+                  formatter={(value, name, props) => [
+                    `${value} draft`,
+                    props.payload.name
+                  ]}
+                />
+                <Legend 
+                  verticalAlign="bottom" 
+                  height={36}
+                  formatter={(value, entry) => (
+                    <span style={{ color: entry.color, fontSize: '0.875rem' }}>
+                      {value}
+                    </span>
+                  )}
+                />
               </PieChart>
             </ResponsiveContainer>
           </div>
@@ -258,47 +305,6 @@ const AdminDashboardOverview = ({ users, proposals, user, onNavigate }) => {
               </BarChart>
             </ResponsiveContainer>
           </div>
-        </div>
-      </div>
-
-      <div className="quick-actions">
-        <h3>Aksi Cepat</h3>
-        <div className="action-buttons">
-          <button
-            className="action-btn primary"
-            onClick={() => onNavigate("proposal-approval")}
-          >
-            <span className="btn-icon"><LuCheckCircle2 size={18} /></span>
-            Review Usulan ({pendingCount})
-          </button>
-          <button
-            className="action-btn secondary"
-            onClick={() => onNavigate("user-management")}
-          >
-            <span className="btn-icon"><LuUsers size={18} /></span>
-            Kelola Pengguna
-          </button>
-          <button
-            className="action-btn secondary"
-            onClick={() => onNavigate("approved-proposals")}
-          >
-            <span className="btn-icon"><LuFileCheck2 size={18} /></span>
-            Konfirmasi ke Super Admin ({approvedCount})
-          </button>
-          <button
-            className="action-btn secondary"
-            onClick={() => onNavigate("draft-tna-2026")}
-          >
-            <span className="btn-icon"><LuFileText size={18} /></span>
-            Draft TNA 2026 ({totalDrafts})
-          </button>
-          <button
-            className="action-btn secondary"
-            onClick={() => onNavigate("tempat-diklat-realisasi")}
-          >
-            <span className="btn-icon"><LuMapPin size={18} /></span>
-            Tempat Diklat Realisasi
-          </button>
         </div>
       </div>
 
