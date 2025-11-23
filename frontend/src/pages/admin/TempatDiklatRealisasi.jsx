@@ -34,7 +34,16 @@ const TempatDiklatRealisasi = ({ user, currentUserRole, onNavigate }) => {
     if (currentUserRole === 'superadmin') {
       fetchBranches();
     }
-  }, [selectedYear, selectedMonth]);
+    
+    // Auto-refresh data setiap 5 detik untuk mendapatkan data terbaru
+    // Ini memastikan data realisasi langsung muncul setelah user konfirmasi realisasi
+    const intervalId = setInterval(() => {
+      fetchData();
+      fetchRekapPerBulan();
+    }, 5000); // Refresh setiap 5 detik
+    
+    return () => clearInterval(intervalId); // Cleanup interval on unmount
+  }, [selectedYear, selectedMonth, currentUserRole]);
 
   const fetchData = async () => {
     try {

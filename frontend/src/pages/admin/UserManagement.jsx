@@ -340,7 +340,10 @@ const UserManagement = ({ users, onAddUser, onEditUser, onDeleteUser, onToggleSt
       .filter(Boolean)
       .some(val => String(val).toLowerCase().includes(searchQuery.toLowerCase()));
     const matchesRole = roleFilter === 'all' || (u.role === roleFilter);
-    const matchesStatus = statusFilter === 'all' || ((u.status || '').toLowerCase() === statusFilter);
+    // Normalize status comparison (case-insensitive)
+    const userStatus = (u.status || '').toLowerCase();
+    const filterStatus = statusFilter.toLowerCase();
+    const matchesStatus = statusFilter === 'all' || userStatus === filterStatus;
     return matchesSearch && matchesRole && matchesStatus;
   });
 

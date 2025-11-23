@@ -64,6 +64,42 @@ const UserEdit = ({ currentUserRole = 'superadmin', user, onNavigate }) => {
     }));
   };
 
+  // Jika user tidak ada, tampilkan pesan error
+  if (!user || !user.id) {
+    return (
+      <div className="user-create">
+        <div className="content-header banner">
+          <div>
+            <h2>Edit Pengguna</h2>
+            <p>User tidak ditemukan atau belum dipilih untuk diedit.</p>
+          </div>
+        </div>
+        <div style={{ padding: '20px', textAlign: 'center' }}>
+          <p style={{ color: '#dc2626', marginBottom: '20px' }}>
+            Tidak ada user yang dipilih untuk diedit. Silakan pilih user dari halaman User Management.
+          </p>
+          {onNavigate && (
+            <button 
+              onClick={() => onNavigate('user-management')}
+              style={{
+                padding: '10px 20px',
+                backgroundColor: '#0070C0',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontSize: '0.95rem',
+                fontWeight: '600'
+              }}
+            >
+              Kembali ke User Management
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!user?.id) return;

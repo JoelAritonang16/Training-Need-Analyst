@@ -4,6 +4,9 @@ import AlertModal from '../../components/AlertModal';
 import './ProposalApproval.css';
 
 const ProposalApproval = ({ proposals, onApprove, onReject, onViewDetail }) => {
+  const [rejectReason, setRejectReason] = useState('');
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [selectedProposalId, setSelectedProposalId] = useState(null);
   const [alertModal, setAlertModal] = useState({
     open: false,
     title: '',
@@ -11,6 +14,37 @@ const ProposalApproval = ({ proposals, onApprove, onReject, onViewDetail }) => {
     type: 'info'
   });
   const pendingProposals = proposals.filter(p => p.status === 'MENUNGGU');
+
+  const formatCurrency = (value) => {
+    if (value === null || value === undefined || value === '') return 'Rp 0';
+    const numValue = parseFloat(value);
+    if (isNaN(numValue)) return 'Rp 0';
+    return `Rp ${numValue.toLocaleString('id-ID')}`;
+  };
+
+  const handleRejectClick = (proposalId) => {
+    setSelectedProposalId(proposalId);
+    setShowRejectModal(true);
+    setRejectReason('');
+  };
+
+  const handleRejectConfirm = () => {
+    if (!rejectReason.trim()) {
+      setAlertModal({
+        open: true,
+        type: 'warning',
+        title: 'Peringatan',
+        message: 'Alasan penolakan harus diisi'
+      });
+      return;
+    }
+    if (onReject && selectedProposalId) {
+      onReject(selectedProposalId, rejectReason);
+      setShowRejectModal(false);
+      setRejectReason('');
+      setSelectedProposalId(null);
+    }
+  };
 
   const handleExport = async () => {
     try {
@@ -116,7 +150,7 @@ const ProposalApproval = ({ proposals, onApprove, onReject, onViewDetail }) => {
               <p><strong>Waktu Pelaksanaan:</strong> {new Date(proposal.WaktuPelaksanan).toLocaleDateString('id-ID')}</p>
               <p><strong>Jumlah Peserta:</strong> {proposal.JumlahPeserta} orang</p>
               <p><strong>Level Tingkatan:</strong> {proposal.LevelTingkatan}</p>
-              <p><strong>Total Biaya:</strong> Rp {proposal.TotalUsulan.toLocaleString('id-ID')}</p>
+              <p><strong>Total Biaya:</strong> {formatCurrency(proposal.TotalUsulan)}</p>
               <p><strong>Tanggal Pengajuan:</strong> {new Date(proposal.created_at).toLocaleDateString('id-ID')}</p>
             </div>
             <div className="proposal-actions">
@@ -128,7 +162,7 @@ const ProposalApproval = ({ proposals, onApprove, onReject, onViewDetail }) => {
               </button>
               <button 
                 className="btn-reject"
-                onClick={() => onReject(proposal.id)}
+                onClick={() => handleRejectClick(proposal.id)}
               >
                 Tolak
               </button>
@@ -154,6 +188,36 @@ const ProposalApproval = ({ proposals, onApprove, onReject, onViewDetail }) => {
           <div className="empty-icon">OK</div>
           <h3>Tidak Ada Usulan Pending</h3>
           <p>Semua usulan pelatihan telah diproses. Tidak ada usulan yang menunggu persetujuan.</p>
+        </div>
+      )}
+
+      {/* Reject Modal */}
+      {showRejectModal && (
+        <div className="modal-overlay" onClick={() => setShowRejectModal(false)}>
+          <div className="modal-content reject-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Tolak Proposal</h2>
+              <button className="modal-close" onClick={() => setShowRejectModal(false)}>×</button>
+            </div>
+            <div className="modal-body">
+              <p className="modal-label">Alasan Penolakan:</p>
+              <textarea
+                className="reject-reason-input"
+                value={rejectReason}
+                onChange={(e) => setRejectReason(e.target.value)}
+                placeholder="Masukkan alasan penolakan proposal. Pesan ini akan dikirim ke user untuk revisi."
+                rows={5}
+              />
+            </div>
+            <div className="modal-footer">
+              <button className="btn-cancel" onClick={() => setShowRejectModal(false)}>
+                Batal
+              </button>
+              <button className="btn-confirm-reject" onClick={handleRejectConfirm}>
+                Tolak Proposal
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

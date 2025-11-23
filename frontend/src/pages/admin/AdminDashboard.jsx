@@ -5,12 +5,10 @@ import UserManagement from './UserManagement.jsx';
 import ProposalApproval from './ProposalApproval.jsx';
 import ApprovedProposals from './ApprovedProposals.jsx';
 import Reports from './Reports.jsx';
-import UserCreate from './UserCreate.jsx';
 import UserCreateForAdmin from './UserCreateForAdmin.jsx';
 import DraftTNA2026 from './DraftTNA2026.jsx';
-import TempatDiklatRealisasi from './TempatDiklatRealisasi.jsx';
 import AlertModal from '../../components/AlertModal.jsx';
-import { trainingProposalAPI, userProfileAPI, updateProposalStatusAPI } from '../../utils/api';
+import { trainingProposalAPI, updateProposalStatusAPI } from '../../utils/api';
 import AdminProfile from './AdminProfile';
 import danantaraLogo from '../../assets/Danantara2.png';
 import pelindoLogo from '../../assets/LogoFixx.png';
@@ -26,8 +24,6 @@ const AdminDashboard = ({ user, onLogout }) => {
   ]);
   
   const [proposals, setProposals] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
   const [selectedProposal, setSelectedProposal] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   
@@ -54,9 +50,6 @@ const AdminDashboard = ({ user, onLogout }) => {
 
   const fetchProposals = async () => {
     try {
-      setIsLoading(true);
-      setError(null);
-      
       console.log('AdminDashboard: Fetching proposals from database...');
       const data = await trainingProposalAPI.getAll();
       
@@ -64,27 +57,24 @@ const AdminDashboard = ({ user, onLogout }) => {
         console.log('AdminDashboard: Proposals fetched:', data.proposals);
         setProposals(data.proposals || []);
       } else {
-        setError(data.message || 'Gagal mengambil data proposal');
+        console.error('AdminDashboard: Failed to fetch proposals:', data.message);
       }
     } catch (err) {
       console.error('AdminDashboard: Error fetching proposals:', err);
       
       // Handle timeout errors gracefully
       if (err.isTimeout || err.name === 'TimeoutError' || err.message?.includes('timeout')) {
-        setError('Request timeout: Server tidak merespons. Silakan coba lagi.');
-        // Don't show alert modal for timeout, just set error state
+        console.error('Request timeout: Server tidak merespons. Silakan coba lagi.');
         return;
       }
       
       // Handle network errors
       if (err.isNetworkError || err.name === 'NetworkError') {
-        setError('Tidak dapat terhubung ke server. Pastikan server backend berjalan.');
+        console.error('Tidak dapat terhubung ke server. Pastikan server backend berjalan.');
         return;
       }
       
-      setError(err.message || 'Terjadi kesalahan saat mengambil data');
-    } finally {
-      setIsLoading(false);
+      console.error('Error:', err.message || 'Terjadi kesalahan saat mengambil data');
     }
   };
 
@@ -142,15 +132,57 @@ const AdminDashboard = ({ user, onLogout }) => {
     }
   };
 
-  const handleRejectProposal = async (proposalId) => {
-    // Admin tidak bisa reject proposal, hanya superadmin yang bisa
-    setAlertModal({
-      open: true,
-      title: 'Akses Ditolak',
-      message: 'Admin tidak dapat menolak proposal. Hanya superadmin yang dapat menolak proposal.',
-      type: 'warning'
-    });
-    return;
+  const handleRejectProposal = async (proposalId, alasan) => {
+    if (!alasan || alasan.trim() === '') {
+      setAlertModal({
+        open: true,
+        title: 'Peringatan',
+        message: 'Alasan penolakan harus diisi',
+        type: 'warning'
+      });
+      return;
+    }
+    
+    try {
+      console.log('AdminDashboard: Rejecting proposal:', proposalId, 'Reason:', alasan);
+      
+      const data = await updateProposalStatusAPI(proposalId, 'DITOLAK', alasan);
+      
+      if (data.success) {
+        setAlertModal({
+          open: true,
+          title: 'Berhasil',
+          message: 'Proposal berhasil ditolak. Notifikasi dengan alasan telah dikirim langsung ke user untuk revisi.',
+          type: 'success'
+        });
+        // Refresh data from database
+        fetchProposals();
+      } else {
+        setAlertModal({
+          open: true,
+          title: 'Error',
+          message: data.message || 'Gagal menolak proposal',
+          type: 'error'
+        });
+      }
+    } catch (error) {
+      console.error('AdminDashboard: Error rejecting proposal:', error);
+      
+      // Handle timeout errors gracefully
+      let errorMessage = error.message || 'Terjadi kesalahan saat menolak proposal';
+      if (error.isTimeout || error.name === 'TimeoutError' || error.message?.includes('timeout')) {
+        errorMessage = 'Request timeout: Server tidak merespons. Silakan coba lagi.';
+      } else if (error.isNetworkError || error.name === 'NetworkError') {
+        errorMessage = 'Tidak dapat terhubung ke server. Pastikan server backend berjalan.';
+      }
+      
+      setAlertModal({
+        open: true,
+        title: 'Terjadi Kesalahan',
+        message: errorMessage,
+        type: 'error'
+      });
+    }
   };
 
   const handleConfirmToUser = async (proposalId) => {
@@ -208,8 +240,22 @@ const AdminDashboard = ({ user, onLogout }) => {
     ));
   };
 
-  const handleViewDetail = (proposalId) => {
-    const proposal = proposals.find(p => p.id === proposalId);
+  const handleViewDetail = async (proposalId) => {
+    // Cari proposal dari list terlebih dahulu
+    let proposal = proposals.find(p => p.id === proposalId);
+    
+    // Jika proposal ditemukan tapi tidak ada items, atau items tidak lengkap, fetch ulang dari API
+    if (proposal && (!proposal.items || proposal.items.length === 0)) {
+      try {
+        const data = await trainingProposalAPI.getById(proposalId);
+        if (data.success && data.proposal) {
+          proposal = data.proposal;
+        }
+      } catch (error) {
+        console.error('Error fetching proposal details:', error);
+      }
+    }
+    
     if (proposal) {
       setSelectedProposal(proposal);
       setIsModalOpen(true);
@@ -228,6 +274,42 @@ const AdminDashboard = ({ user, onLogout }) => {
       month: 'long',
       day: 'numeric'
     });
+  };
+
+  const formatCurrency = (value) => {
+    if (value === null || value === undefined || value === '') return 'Rp 0';
+    const numValue = parseFloat(value);
+    if (isNaN(numValue)) return 'Rp 0';
+    return `Rp ${numValue.toLocaleString('id-ID')}`;
+  };
+
+  // Helper function to calculate totals from items or use header values
+  const getProposalCosts = (proposal) => {
+    if (!proposal) {
+      return { beban: 0, transportasi: 0, akomodasi: 0, uangSaku: 0, total: 0 };
+    }
+
+    // Jika ada items, aggregate dari items
+    if (proposal.items && Array.isArray(proposal.items) && proposal.items.length > 0) {
+      const totals = proposal.items.reduce((acc, item) => {
+        acc.beban += parseFloat(item.Beban) || 0;
+        acc.transportasi += parseFloat(item.BebanTransportasi) || 0;
+        acc.akomodasi += parseFloat(item.BebanAkomodasi) || 0;
+        acc.uangSaku += parseFloat(item.BebanUangSaku) || 0;
+        acc.total += parseFloat(item.TotalUsulan) || 0;
+        return acc;
+      }, { beban: 0, transportasi: 0, akomodasi: 0, uangSaku: 0, total: 0 });
+      return totals;
+    }
+
+    // Jika tidak ada items, gunakan nilai dari header
+    return {
+      beban: parseFloat(proposal.Beban) || 0,
+      transportasi: parseFloat(proposal.BebanTranportasi) || 0,
+      akomodasi: parseFloat(proposal.BebanAkomodasi) || 0,
+      uangSaku: parseFloat(proposal.BebanUangSaku) || 0,
+      total: parseFloat(proposal.TotalUsulan) || 0
+    };
   };
 
   const getStatusText = (status) => {
@@ -407,26 +489,33 @@ const AdminDashboard = ({ user, onLogout }) => {
               <div className="modal-divider"></div>
 
               <div className="modal-costs-list">
-                <div className="modal-cost-row">
-                  <span>Beban</span>
-                  <strong>{selectedProposal.Beban ? `Rp ${parseFloat(selectedProposal.Beban).toLocaleString('id-ID')}` : '-'}</strong>
-                </div>
-                <div className="modal-cost-row">
-                  <span>Beban Transportasi</span>
-                  <strong>{selectedProposal.BebanTranportasi ? `Rp ${parseFloat(selectedProposal.BebanTranportasi).toLocaleString('id-ID')}` : '-'}</strong>
-                </div>
-                <div className="modal-cost-row">
-                  <span>Beban Akomodasi</span>
-                  <strong>{selectedProposal.BebanAkomodasi ? `Rp ${parseFloat(selectedProposal.BebanAkomodasi).toLocaleString('id-ID')}` : '-'}</strong>
-                </div>
-                <div className="modal-cost-row">
-                  <span>Beban Uang Saku</span>
-                  <strong>{selectedProposal.BebanUangSaku ? `Rp ${parseFloat(selectedProposal.BebanUangSaku).toLocaleString('id-ID')}` : '-'}</strong>
-                </div>
-                <div className="modal-cost-row total">
-                  <span>Total Usulan</span>
-                  <strong>{selectedProposal.TotalUsulan ? `Rp ${parseFloat(selectedProposal.TotalUsulan).toLocaleString('id-ID')}` : '-'}</strong>
-                </div>
+                {(() => {
+                  const costs = getProposalCosts(selectedProposal);
+                  return (
+                    <>
+                      <div className="modal-cost-row">
+                        <span>Beban</span>
+                        <strong>{formatCurrency(costs.beban)}</strong>
+                      </div>
+                      <div className="modal-cost-row">
+                        <span>Beban Transportasi</span>
+                        <strong>{formatCurrency(costs.transportasi)}</strong>
+                      </div>
+                      <div className="modal-cost-row">
+                        <span>Beban Akomodasi</span>
+                        <strong>{formatCurrency(costs.akomodasi)}</strong>
+                      </div>
+                      <div className="modal-cost-row">
+                        <span>Beban Uang Saku</span>
+                        <strong>{formatCurrency(costs.uangSaku)}</strong>
+                      </div>
+                      <div className="modal-cost-row total">
+                        <span>Total Usulan</span>
+                        <strong>{formatCurrency(costs.total || selectedProposal.TotalUsulan)}</strong>
+                      </div>
+                    </>
+                  );
+                })()}
               </div>
             </div>
 

@@ -34,7 +34,18 @@ const TrainingProposalList = ({ onCreateNew, onEdit, onViewDetail }) => {
     const matchesSearch = proposal.Uraian?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          proposal.LevelTingkatan?.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesStatus = statusFilter === 'all' || proposal.status === statusFilter;
+    // Map filter values to actual database status values
+    let matchesStatus = true;
+    if (statusFilter !== 'all') {
+      const statusMap = {
+        'MENUNGGU': 'MENUNGGU',
+        'APPROVE_ADMIN': 'APPROVE_ADMIN',
+        'APPROVE_SUPERADMIN': 'APPROVE_SUPERADMIN',
+        'DITOLAK': 'DITOLAK'
+      };
+      const targetStatus = statusMap[statusFilter];
+      matchesStatus = proposal.status === targetStatus;
+    }
     
     return matchesSearch && matchesStatus;
   });
@@ -51,7 +62,19 @@ const TrainingProposalList = ({ onCreateNew, onEdit, onViewDetail }) => {
     }
   };
 
-  const handleViewDetail = (proposal) => {
+  const handleViewDetail = async (proposal) => {
+    // Jika proposal tidak ada items, fetch ulang dari API
+    if (proposal && (!proposal.items || proposal.items.length === 0)) {
+      try {
+        const data = await trainingProposalAPI.getById(proposal.id);
+        if (data.success && data.proposal) {
+          proposal = data.proposal;
+        }
+      } catch (error) {
+        console.error('Error fetching proposal details:', error);
+      }
+    }
+    
     setSelectedProposal(proposal);
     setIsModalOpen(true);
   };
@@ -158,6 +181,42 @@ const TrainingProposalList = ({ onCreateNew, onEdit, onViewDetail }) => {
     });
   };
 
+  const formatCurrency = (value) => {
+    if (value === null || value === undefined || value === '') return 'Rp 0';
+    const numValue = parseFloat(value);
+    if (isNaN(numValue)) return 'Rp 0';
+    return `Rp ${numValue.toLocaleString('id-ID')}`;
+  };
+
+  // Helper function to calculate totals from items or use header values
+  const getProposalCosts = (proposal) => {
+    if (!proposal) {
+      return { beban: 0, transportasi: 0, akomodasi: 0, uangSaku: 0, total: 0 };
+    }
+
+    // Jika ada items, aggregate dari items
+    if (proposal.items && Array.isArray(proposal.items) && proposal.items.length > 0) {
+      const totals = proposal.items.reduce((acc, item) => {
+        acc.beban += parseFloat(item.Beban) || 0;
+        acc.transportasi += parseFloat(item.BebanTransportasi) || 0;
+        acc.akomodasi += parseFloat(item.BebanAkomodasi) || 0;
+        acc.uangSaku += parseFloat(item.BebanUangSaku) || 0;
+        acc.total += parseFloat(item.TotalUsulan) || 0;
+        return acc;
+      }, { beban: 0, transportasi: 0, akomodasi: 0, uangSaku: 0, total: 0 });
+      return totals;
+    }
+
+    // Jika tidak ada items, gunakan nilai dari header
+    return {
+      beban: parseFloat(proposal.Beban) || 0,
+      transportasi: parseFloat(proposal.BebanTranportasi) || 0,
+      akomodasi: parseFloat(proposal.BebanAkomodasi) || 0,
+      uangSaku: parseFloat(proposal.BebanUangSaku) || 0,
+      total: parseFloat(proposal.TotalUsulan) || 0
+    };
+  };
+
   if (isLoading) {
     return (
       <div className="proposals-container">
@@ -227,9 +286,10 @@ const TrainingProposalList = ({ onCreateNew, onEdit, onViewDetail }) => {
             className="status-filter"
           >
             <option value="all">Semua Status</option>
-            <option value="PENDING">Menunggu</option>
-            <option value="APPROVED">Disetujui</option>
-            <option value="REJECTED">Ditolak</option>
+            <option value="MENUNGGU">Menunggu</option>
+            <option value="APPROVE_ADMIN">Disetujui Admin</option>
+            <option value="APPROVE_SUPERADMIN">Disetujui Superadmin</option>
+            <option value="DITOLAK">Ditolak</option>
           </select>
         </div>
       </div>
@@ -285,7 +345,7 @@ const TrainingProposalList = ({ onCreateNew, onEdit, onViewDetail }) => {
                   <p><strong>Jumlah Peserta:</strong> {proposal.JumlahPeserta || '-'} orang</p>
                   <p><strong>Hari Peserta Pelatihan:</strong> {proposal.JumlahHariPesertaPelatihan || '-'} hari</p>
                   <p><strong>Level Tingkatan:</strong> {proposal.LevelTingkatan || '-'}</p>
-                  <p><strong>Total Usulan:</strong> {proposal.TotalUsulan ? `Rp ${parseFloat(proposal.TotalUsulan).toLocaleString('id-ID')}` : '-'}</p>
+                  <p><strong>Total Usulan:</strong> {formatCurrency(proposal.TotalUsulan)}</p>
                   <p><strong>Tanggal Dibuat:</strong> {formatDate(proposal.created_at)}</p>
                   
                   {/* Status Realisasi - untuk proposal yang sudah disetujui */}
@@ -299,6 +359,28 @@ const TrainingProposalList = ({ onCreateNew, onEdit, onViewDetail }) => {
                           ? '⏳ Belum Direalisasikan'
                           : '❓ Belum Dikonfirmasi'}
                       </span>
+                    </div>
+                  )}
+                  
+                  {/* Alasan Penolakan - untuk proposal yang ditolak */}
+                  {proposal.status === 'DITOLAK' && proposal.alasan && (
+                    <div className="rejection-reason-box" style={{
+                      marginTop: '12px',
+                      padding: '12px',
+                      backgroundColor: '#fff3cd',
+                      border: '1px solid #ffc107',
+                      borderRadius: '6px',
+                      borderLeft: '4px solid #ff9800'
+                    }}>
+                      <strong style={{ color: '#856404', display: 'block', marginBottom: '8px' }}>
+                        ⚠️ Alasan Penolakan:
+                      </strong>
+                      <p style={{ color: '#856404', margin: 0, whiteSpace: 'pre-wrap' }}>
+                        {proposal.alasan}
+                      </p>
+                      <p style={{ color: '#856404', marginTop: '8px', marginBottom: 0, fontSize: '0.9em', fontStyle: 'italic' }}>
+                        Silakan lakukan revisi sesuai feedback di atas dan submit ulang proposal.
+                      </p>
                     </div>
                   )}
                 </div>
@@ -411,26 +493,33 @@ const TrainingProposalList = ({ onCreateNew, onEdit, onViewDetail }) => {
               <div className="modal-divider"></div>
 
               <div className="modal-costs-list">
-                <div className="modal-cost-row">
-                  <span>Beban</span>
-                  <strong>{selectedProposal.Beban ? `Rp ${parseFloat(selectedProposal.Beban).toLocaleString('id-ID')}` : '-'}</strong>
-                </div>
-                <div className="modal-cost-row">
-                  <span>Beban Transportasi</span>
-                  <strong>{selectedProposal.BebanTranportasi ? `Rp ${parseFloat(selectedProposal.BebanTranportasi).toLocaleString('id-ID')}` : '-'}</strong>
-                </div>
-                <div className="modal-cost-row">
-                  <span>Beban Akomodasi</span>
-                  <strong>{selectedProposal.BebanAkomodasi ? `Rp ${parseFloat(selectedProposal.BebanAkomodasi).toLocaleString('id-ID')}` : '-'}</strong>
-                </div>
-                <div className="modal-cost-row">
-                  <span>Beban Uang Saku</span>
-                  <strong>{selectedProposal.BebanUangSaku ? `Rp ${parseFloat(selectedProposal.BebanUangSaku).toLocaleString('id-ID')}` : '-'}</strong>
-                </div>
-                <div className="modal-cost-row total">
-                  <span>Total Usulan</span>
-                  <strong>{selectedProposal.TotalUsulan ? `Rp ${parseFloat(selectedProposal.TotalUsulan).toLocaleString('id-ID')}` : '-'}</strong>
-                </div>
+                {(() => {
+                  const costs = getProposalCosts(selectedProposal);
+                  return (
+                    <>
+                      <div className="modal-cost-row">
+                        <span>Beban</span>
+                        <strong>{formatCurrency(costs.beban)}</strong>
+                      </div>
+                      <div className="modal-cost-row">
+                        <span>Beban Transportasi</span>
+                        <strong>{formatCurrency(costs.transportasi)}</strong>
+                      </div>
+                      <div className="modal-cost-row">
+                        <span>Beban Akomodasi</span>
+                        <strong>{formatCurrency(costs.akomodasi)}</strong>
+                      </div>
+                      <div className="modal-cost-row">
+                        <span>Beban Uang Saku</span>
+                        <strong>{formatCurrency(costs.uangSaku)}</strong>
+                      </div>
+                      <div className="modal-cost-row total">
+                        <span>Total Usulan</span>
+                        <strong>{formatCurrency(costs.total || selectedProposal.TotalUsulan)}</strong>
+                      </div>
+                    </>
+                  );
+                })()}
               </div>
             </div>
 

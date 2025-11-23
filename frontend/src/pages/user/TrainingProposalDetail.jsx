@@ -89,8 +89,10 @@ const TrainingProposalDetail = ({ proposalId, onEdit, onBack }) => {
   };
 
   const formatCurrency = (amount) => {
-    if (!amount) return '-';
-    return `Rp ${parseFloat(amount).toLocaleString('id-ID')}`;
+    if (amount === null || amount === undefined || amount === '') return 'Rp 0';
+    const numValue = parseFloat(amount);
+    if (isNaN(numValue)) return 'Rp 0';
+    return `Rp ${numValue.toLocaleString('id-ID')}`;
   };
 
   const getStatusBadgeClass = (status) => {

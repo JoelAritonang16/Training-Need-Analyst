@@ -30,7 +30,15 @@ const DraftTNA2026 = ({ user, currentUserRole, onNavigate }) => {
     if (currentUserRole === 'superadmin') {
       fetchBranchesAndDivisi();
     }
-  }, []);
+    
+    // Auto-refresh drafts setiap 5 detik untuk mendapatkan data terbaru
+    // Ini memastikan data draft langsung muncul setelah user konfirmasi realisasi
+    const intervalId = setInterval(() => {
+      fetchDrafts();
+    }, 5000); // Refresh setiap 5 detik
+    
+    return () => clearInterval(intervalId); // Cleanup interval on unmount
+  }, [currentUserRole]);
 
   const fetchDrafts = async () => {
     try {

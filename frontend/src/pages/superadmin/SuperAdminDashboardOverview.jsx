@@ -57,6 +57,14 @@ const SuperAdminDashboardOverview = ({ users, proposals, auditLogs, onNavigate }
 
   useEffect(() => {
     fetchDashboardData();
+    
+    // Auto-refresh dashboard data setiap 5 detik untuk mendapatkan data terbaru
+    // Ini memastikan data draft dan realisasi langsung muncul setelah user konfirmasi realisasi
+    const intervalId = setInterval(() => {
+      fetchDashboardData();
+    }, 5000); // Refresh setiap 5 detik
+    
+    return () => clearInterval(intervalId); // Cleanup interval on unmount
   }, [proposals]); // Re-fetch when proposals change
 
   const fetchDashboardData = async () => {

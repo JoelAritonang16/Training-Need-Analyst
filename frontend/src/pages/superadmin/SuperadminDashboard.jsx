@@ -18,7 +18,7 @@ import TempatDiklatRealisasi from '../admin/TempatDiklatRealisasi.jsx';
 import RekapGabungan from './RekapGabungan.jsx';
 import SuperadminReports from './SuperadminReports.jsx';
 import AlertModal from '../../components/AlertModal.jsx';
-import { trainingProposalAPI, userProfileAPI, updateProposalStatusAPI } from '../../utils/api';
+import { trainingProposalAPI, updateProposalStatusAPI } from '../../utils/api';
 import SuperAdminProfile from './SuperAdminProfile';
 import danantaraLogo from '../../assets/Danantara2.png';
 import pelindoLogo from '../../assets/LogoFixx.png';
@@ -52,8 +52,6 @@ const SuperadminDashboard = ({ user, onLogout, onUserUpdate }) => {
   const [users, setUsers] = useState([]);
   const [proposals, setProposals] = useState([]);
   const [selectedUserForEdit, setSelectedUserForEdit] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
   const [selectedProposal, setSelectedProposal] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   
@@ -71,9 +69,6 @@ const SuperadminDashboard = ({ user, onLogout, onUserUpdate }) => {
   // Fetch proposals function - harus dideklarasikan sebelum useEffect yang menggunakannya
   const fetchProposals = async (filters = {}) => {
     try {
-      setIsLoading(true);
-      setError(null);
-      
       console.log('SuperadminDashboard: Fetching proposals from database with filters:', filters);
       const data = await trainingProposalAPI.getAll(filters);
       
@@ -81,13 +76,10 @@ const SuperadminDashboard = ({ user, onLogout, onUserUpdate }) => {
         console.log('SuperadminDashboard: Proposals fetched:', data.proposals?.length || 0, 'proposals');
         setProposals(data.proposals || []);
       } else {
-        setError(data.message || 'Gagal mengambil data proposal');
+        console.error('SuperadminDashboard: Failed to fetch proposals:', data.message);
       }
     } catch (err) {
       console.error('SuperadminDashboard: Error fetching proposals:', err);
-      setError(err.message || 'Terjadi kesalahan saat mengambil data');
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -280,8 +272,22 @@ const SuperadminDashboard = ({ user, onLogout, onUserUpdate }) => {
     setActiveMenu('user-edit');
   };
 
-  const handleViewDetail = (proposalId) => {
-    const proposal = proposals.find(p => p.id === proposalId);
+  const handleViewDetail = async (proposalId) => {
+    // Cari proposal dari list terlebih dahulu
+    let proposal = proposals.find(p => p.id === proposalId);
+    
+    // Jika proposal ditemukan tapi tidak ada items, atau items tidak lengkap, fetch ulang dari API
+    if (proposal && (!proposal.items || proposal.items.length === 0)) {
+      try {
+        const data = await trainingProposalAPI.getById(proposalId);
+        if (data.success && data.proposal) {
+          proposal = data.proposal;
+        }
+      } catch (error) {
+        console.error('Error fetching proposal details:', error);
+      }
+    }
+    
     if (proposal) {
       setSelectedProposal(proposal);
       setIsModalOpen(true);
@@ -300,6 +306,42 @@ const SuperadminDashboard = ({ user, onLogout, onUserUpdate }) => {
       month: 'long',
       day: 'numeric'
     });
+  };
+
+  const formatCurrency = (value) => {
+    if (value === null || value === undefined || value === '') return 'Rp 0';
+    const numValue = parseFloat(value);
+    if (isNaN(numValue)) return 'Rp 0';
+    return `Rp ${numValue.toLocaleString('id-ID')}`;
+  };
+
+  // Helper function to calculate totals from items or use header values
+  const getProposalCosts = (proposal) => {
+    if (!proposal) {
+      return { beban: 0, transportasi: 0, akomodasi: 0, uangSaku: 0, total: 0 };
+    }
+
+    // Jika ada items, aggregate dari items
+    if (proposal.items && Array.isArray(proposal.items) && proposal.items.length > 0) {
+      const totals = proposal.items.reduce((acc, item) => {
+        acc.beban += parseFloat(item.Beban) || 0;
+        acc.transportasi += parseFloat(item.BebanTransportasi) || 0;
+        acc.akomodasi += parseFloat(item.BebanAkomodasi) || 0;
+        acc.uangSaku += parseFloat(item.BebanUangSaku) || 0;
+        acc.total += parseFloat(item.TotalUsulan) || 0;
+        return acc;
+      }, { beban: 0, transportasi: 0, akomodasi: 0, uangSaku: 0, total: 0 });
+      return totals;
+    }
+
+    // Jika tidak ada items, gunakan nilai dari header
+    return {
+      beban: parseFloat(proposal.Beban) || 0,
+      transportasi: parseFloat(proposal.BebanTranportasi) || 0,
+      akomodasi: parseFloat(proposal.BebanAkomodasi) || 0,
+      uangSaku: parseFloat(proposal.BebanUangSaku) || 0,
+      total: parseFloat(proposal.TotalUsulan) || 0
+    };
   };
 
   const getStatusText = (status) => {
@@ -330,12 +372,6 @@ const SuperadminDashboard = ({ user, onLogout, onUserUpdate }) => {
 
   const handleNavigate = (menuId) => {
     setActiveMenu(menuId);
-  };
-
-  const handleUpdateProfile = (updatedUser) => {
-    // Update user data in parent component if needed
-    console.log('Profile updated:', updatedUser);
-    // You might want to update the user in your global state here
   };
 
   const renderContent = () => {
@@ -390,6 +426,18 @@ const SuperadminDashboard = ({ user, onLogout, onUserUpdate }) => {
         );
 
       case 'user-edit':
+        // Validasi: pastikan user sudah dipilih untuk di-edit
+        if (!selectedUserForEdit) {
+          // Jika user belum dipilih, redirect ke user-management
+          setTimeout(() => {
+            setActiveMenu('user-management');
+          }, 0);
+          return (
+            <div style={{ padding: '20px', textAlign: 'center' }}>
+              <p>Memuat halaman edit user...</p>
+            </div>
+          );
+        }
         return (
           <UserEdit 
             currentUserRole="superadmin"
@@ -605,26 +653,33 @@ const SuperadminDashboard = ({ user, onLogout, onUserUpdate }) => {
               <div className="modal-divider"></div>
 
               <div className="modal-costs-list">
-                <div className="modal-cost-row">
-                  <span>Beban</span>
-                  <strong>{selectedProposal.Beban ? `Rp ${parseFloat(selectedProposal.Beban).toLocaleString('id-ID')}` : '-'}</strong>
-                </div>
-                <div className="modal-cost-row">
-                  <span>Beban Transportasi</span>
-                  <strong>{selectedProposal.BebanTranportasi ? `Rp ${parseFloat(selectedProposal.BebanTranportasi).toLocaleString('id-ID')}` : '-'}</strong>
-                </div>
-                <div className="modal-cost-row">
-                  <span>Beban Akomodasi</span>
-                  <strong>{selectedProposal.BebanAkomodasi ? `Rp ${parseFloat(selectedProposal.BebanAkomodasi).toLocaleString('id-ID')}` : '-'}</strong>
-                </div>
-                <div className="modal-cost-row">
-                  <span>Beban Uang Saku</span>
-                  <strong>{selectedProposal.BebanUangSaku ? `Rp ${parseFloat(selectedProposal.BebanUangSaku).toLocaleString('id-ID')}` : '-'}</strong>
-                </div>
-                <div className="modal-cost-row total">
-                  <span>Total Usulan</span>
-                  <strong>{selectedProposal.TotalUsulan ? `Rp ${parseFloat(selectedProposal.TotalUsulan).toLocaleString('id-ID')}` : '-'}</strong>
-                </div>
+                {(() => {
+                  const costs = getProposalCosts(selectedProposal);
+                  return (
+                    <>
+                      <div className="modal-cost-row">
+                        <span>Beban</span>
+                        <strong>{formatCurrency(costs.beban)}</strong>
+                      </div>
+                      <div className="modal-cost-row">
+                        <span>Beban Transportasi</span>
+                        <strong>{formatCurrency(costs.transportasi)}</strong>
+                      </div>
+                      <div className="modal-cost-row">
+                        <span>Beban Akomodasi</span>
+                        <strong>{formatCurrency(costs.akomodasi)}</strong>
+                      </div>
+                      <div className="modal-cost-row">
+                        <span>Beban Uang Saku</span>
+                        <strong>{formatCurrency(costs.uangSaku)}</strong>
+                      </div>
+                      <div className="modal-cost-row total">
+                        <span>Total Usulan</span>
+                        <strong>{formatCurrency(costs.total || selectedProposal.TotalUsulan)}</strong>
+                      </div>
+                    </>
+                  );
+                })()}
               </div>
             </div>
 
