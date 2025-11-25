@@ -1,6 +1,60 @@
 /* 🌟 === UPDATED CSS STYLES FOR BETTER DESIGN === 🌟 */
 
 /* Reset margin, padding, and box-sizing */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Filters Section */
+.filters-section {
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border: 1px solid #eef1f5;
+}
+
+.filters {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  min-width: 200px;
+  flex: 1;
+}
+
+.filter-group label {
+  font-size: 0.85rem;
+  color: #4b5563;
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+.filter-select {
+  padding: 8px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  background-color: #fff;
+  color: #1f2937;
+  transition: all 0.2s ease;
+  height: 40px;
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
 /* Header Daftar Pengguna - Pelindo gradient capsule */
 .content-header.banner {
   background: linear-gradient(145deg, #003865 0%, #0077b6 100%);
@@ -401,9 +455,30 @@ html, body {
 .status-dot[data-status="inactive"] { background: #ef4444; }
 
 /* Responsive tweaks */
+@media (max-width: 1024px) {
+  .card-surface {
+    padding: 12px;
+  }
+  
+  .user-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  }
+}
+
+/* Responsive adjustments for filters */
 @media (max-width: 768px) {
-  .controls-row .filters { width: 100%; }
-  .controls-row .filters select { width: calc(50% - 6px); margin-right: 6px; }
+  .filters {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .filter-group {
+    width: 100%;
+  }
+  
+  .filter-select {
+    width: 100%;
+  }
 }
 
 /* Modal design */

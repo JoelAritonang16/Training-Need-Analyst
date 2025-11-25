@@ -115,11 +115,10 @@ const ProposalApproval = ({ proposals, onApprove, onReject, onViewDetail }) => {
   return (
     <div className="proposals-container">
       <div className="content-header">
-        <div>
+        <div className="header-left">
           <h2>Persetujuan Usulan Pelatihan</h2>
           <p>Review dan setujui usulan pelatihan dari pengguna. Setelah disetujui, proposal akan dikirim ke superadmin.</p>
         </div>
-       
       </div>
       
       <div className="proposals-grid">

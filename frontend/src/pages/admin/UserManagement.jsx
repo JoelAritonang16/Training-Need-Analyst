@@ -2,12 +2,27 @@ import React, { useState, useEffect } from 'react';
 import { divisiAPI, branchAPI, anakPerusahaanAPI } from '../../utils/api';
 import AlertModal from '../../components/AlertModal';
 import ConfirmModal from '../../components/ConfirmModal';
+import PageHeader from '../../components/PageHeader';
 import './UserManagement.css';
 
-const UserManagement = ({ users, onAddUser, onEditUser, onDeleteUser, onToggleStatus, currentUserRole = 'admin', onNavigate }) => {
+const UserManagement = ({ 
+  users = [], 
+  onAddUser, 
+  onEditUser, 
+  onDeleteUser, 
+  onToggleStatus, 
+  currentUserRole = 'admin', 
+  onNavigate 
+}) => {
+  // State management
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [userList, setUserList] = useState(users);
+  const [divisiList, setDivisiList] = useState([]);
+  const [branchList, setBranchList] = useState([]);
+  const [anakPerusahaanList, setAnakPerusahaanList] = useState([]);
   const [formData, setFormData] = useState({
     username: '',
     password: '',
@@ -18,34 +33,31 @@ const UserManagement = ({ users, onAddUser, onEditUser, onDeleteUser, onToggleSt
     branchId: '',
     anakPerusahaanId: ''
   });
-  const [loading, setLoading] = useState(false);
-  const [userList, setUserList] = useState([]);
-  const [divisiList, setDivisiList] = useState([]);
-  const [branchList, setBranchList] = useState([]);
-  const [anakPerusahaanList, setAnakPerusahaanList] = useState([]);
+
+  // UI state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [roleFilter, setRoleFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [compactMode, setCompactMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState(new Set());
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
+  const [sortBy, setSortBy] = useState('username');
+  const [sortDir, setSortDir] = useState('asc');
+
+  // Modal states
   const [alertModal, setAlertModal] = useState({
     open: false,
     title: '',
     message: '',
-    type: 'success'
+    type: 'info'
   });
+  
   const [confirmDelete, setConfirmDelete] = useState({
     open: false,
     userId: null,
     isBulk: false
   });
-  // UI state: search & filters & compact mode
-  const [searchQuery, setSearchQuery] = useState('');
-  const [roleFilter, setRoleFilter] = useState('all');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [compactMode, setCompactMode] = useState(false);
-  // Sorting & pagination
-  const [sortBy, setSortBy] = useState('username'); // username | role | status
-  const [sortDir, setSortDir] = useState('asc'); // asc | desc
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
-  // Bulk selection
-  const [selectedIds, setSelectedIds] = useState(new Set());
 
   useEffect(() => {
     fetchUsers();
@@ -122,17 +134,22 @@ const UserManagement = ({ users, onAddUser, onEditUser, onDeleteUser, onToggleSt
   };
 
   const handleAddUser = () => {
-    // Navigate to dedicated create page (new layout), keeping logic intact
-    if (onNavigate) onNavigate('user-create');
+    if (onAddUser) {
+      onAddUser();
+    } else if (onNavigate) {
+      onNavigate('user-create');
+    } else {
+      setShowAddModal(true);
+    }
   };
 
-  const handleEditUser = (userId) => {
-    const user = userList.find(u => u.id === userId);
+  const handleEditUser = (user) => {
+    if (typeof user === 'string') {
+      // Handle case where userId is passed instead of user object
+      user = userList.find(u => u.id === user);
+    }
+    
     if (user) {
-      console.log('Editing user:', user);
-      console.log('User divisi:', user.divisi);
-      console.log('User branch:', user.branch);
-      
       setSelectedUser(user);
       setFormData({
         username: user.username,
@@ -276,7 +293,6 @@ const UserManagement = ({ users, onAddUser, onEditUser, onDeleteUser, onToggleSt
   };
 
   const handleDeleteUser = (userId) => {
-    const user = userList.find(u => u.id === userId);
     setConfirmDelete({
       open: true,
       userId: userId,
@@ -331,23 +347,27 @@ const UserManagement = ({ users, onAddUser, onEditUser, onDeleteUser, onToggleSt
     }
   };
 
-  // Derived: options for role filter from existing users
-  const roleOptions = Array.from(new Set(userList.map(u => u.role))).filter(Boolean);
+  // Get unique roles for filter options
+  const roleOptions = currentUserRole === 'superadmin' 
+    ? ['superadmin', 'admin', 'user'] 
+    : ['admin', 'user'];
 
-  // Derived: filtered users
-  const filteredUsers = userList.filter(u => {
-    const matchesSearch = [u.username, u.email, u.unit, u?.divisi?.nama, u?.branch?.nama, u?.anakPerusahaan?.nama]
+  // Filter users based on search and filters
+  const filteredUsers = userList.filter(user => {
+    const matchesSearch = [user.username, user.email, user.unit, 
+                         user?.divisi?.nama, user?.branch?.nama, 
+                         user?.anakPerusahaan?.nama]
       .filter(Boolean)
       .some(val => String(val).toLowerCase().includes(searchQuery.toLowerCase()));
-    const matchesRole = roleFilter === 'all' || (u.role === roleFilter);
-    // Normalize status comparison (case-insensitive)
-    const userStatus = (u.status || '').toLowerCase();
-    const filterStatus = statusFilter.toLowerCase();
-    const matchesStatus = statusFilter === 'all' || userStatus === filterStatus;
+      
+    const matchesRole = roleFilter === 'all' || user.role === roleFilter;
+    const userStatus = (user.status || '').toLowerCase();
+    const matchesStatus = statusFilter === 'all' || userStatus === statusFilter.toLowerCase();
+    
     return matchesSearch && matchesRole && matchesStatus;
   });
 
-  // Sort
+  // Sort users
   const sortedUsers = [...filteredUsers].sort((a, b) => {
     const dir = sortDir === 'asc' ? 1 : -1;
     const getVal = (u) => {
@@ -362,11 +382,11 @@ const UserManagement = ({ users, onAddUser, onEditUser, onDeleteUser, onToggleSt
     return 0;
   });
 
-  // No pagination: show all
-  const totalUsers = sortedUsers.length;
-  const totalPages = 1;
-  const currentPage = 1;
-  const pagedUsers = sortedUsers;
+  // Pagination
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const pagedUsers = sortedUsers.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.max(1, Math.ceil(sortedUsers.length / itemsPerPage));
 
   const toggleSelect = (id) => {
     setSelectedIds(prev => {
@@ -484,65 +504,153 @@ const UserManagement = ({ users, onAddUser, onEditUser, onDeleteUser, onToggleSt
       return [{ value: 'user', label: 'User' }];
     }
   };
+  // Helper functions
+
+
   return (
     <div className="users-container">
-      <div className="content-header banner">
-        <div>
-         
-          <p>Kelola pengguna dan hak akses. {currentUserRole === 'superadmin' ? 'SuperAdmin mengelola User & Admin.' : 'Admin mengelola User.'}</p>
+      <PageHeader 
+        title="Manajemen Pengguna"
+        subtitle="Kelola data pengguna dalam sistem"
+        actionButton={
+          <button 
+            className="btn btn-primary" 
+            onClick={handleAddUser}
+            disabled={loading}
+            style={{
+              padding: '8px 16px',
+              borderRadius: '6px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              fontWeight: 500
+            }}
+          >
+            <i className="fas fa-plus"></i>
+            <span>Tambah Pengguna</span>
+          </button>
+        }
+      />
+      
+      <div className="filters-section" style={{
+        backgroundColor: '#fff',
+        borderRadius: '8px',
+        padding: '16px',
+        marginBottom: '24px',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+      }}>
+        <div className="filters" style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+          gap: '16px',
+          alignItems: 'end'
+        }}>
+          <div className="filter-group" style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '4px'
+          }}>
+            <label style={{
+              fontSize: '0.875rem',
+              color: '#4b5563',
+              fontWeight: 500
+            }}>Role</label>
+            <select 
+              value={roleFilter} 
+              onChange={(e) => setRoleFilter(e.target.value)}
+              className="filter-select"
+              disabled={loading}
+              style={{
+                padding: '8px 12px',
+                borderRadius: '6px',
+                border: '1px solid #d1d5db',
+                backgroundColor: '#fff',
+                fontSize: '0.875rem',
+                width: '100%'
+              }}
+            >
+              <option value="all">Semua Role</option>
+              {roleOptions.map(role => (
+                <option key={role} value={role}>
+                  {role.charAt(0).toUpperCase() + role.slice(1)}
+                </option>
+              ))}
+            </select>
+          </div>
+          
+          <div className="filter-group" style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '4px'
+          }}>
+            <label style={{
+              fontSize: '0.875rem',
+              color: '#4b5563',
+              fontWeight: 500
+            }}>Status</label>
+            <select 
+              value={statusFilter} 
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="filter-select"
+              disabled={loading}
+              style={{
+                padding: '8px 12px',
+                borderRadius: '6px',
+                border: '1px solid #d1d5db',
+                backgroundColor: '#fff',
+                fontSize: '0.875rem',
+                width: '100%'
+              }}
+            >
+              <option value="all">Semua Status</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div>
+
+          <div className="filter-group" style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '4px'
+          }}>
+            <label style={{
+              fontSize: '0.875rem',
+              color: '#4b5563',
+              fontWeight: 500
+            }}>Cari</label>
+            <input
+              type="text"
+              placeholder="Cari pengguna..."
+              className="filter-select"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              disabled={loading}
+              style={{
+                padding: '8px 12px',
+                borderRadius: '6px',
+                border: '1px solid #d1d5db',
+                fontSize: '0.875rem',
+                width: '100%'
+              }}
+            />
+          </div>
         </div>
       </div>
 
-      <div className="card-surface">
-        <div className="inner-card header-row">
-          <div className="list-title">
-            <span className="list-icon">USERS</span>
-            <h3>Daftar Pengguna</h3>
-            <span className="count-badge" aria-label={`Total pengguna: ${totalUsers}`}>{totalUsers}</span>
-          </div>
-          <button className="btn-primary" onClick={handleAddUser} disabled={loading}>
-            {loading ? 'Loading...' : '+ Tambah Pengguna'}
-          </button>
-        </div>
-
-        <div className="inner-card">
-          <div className="controls-row">
-            <div className="search-control">
-              <input
-                type="text"
-                placeholder="Cari nama, email, unit, divisi, branch..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-            <div className="filters">
-              <select value={roleFilter} onChange={(e)=>setRoleFilter(e.target.value)}>
-                <option value="all">Semua Role</option>
-                {roleOptions.map(r => (
-                  <option key={r} value={r}>{r.toUpperCase()}</option>
-                ))}
-              </select>
-              <select value={statusFilter} onChange={(e)=>setStatusFilter(e.target.value)}>
-                <option value="all">Semua Status</option>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-              </select>
-              {/* controls removed: sorting, compact toggle */}
-            </div>
-          </div>
-
-          {/* Bulk actions removed as requested */}
-
-          <div className={`user-list ${compactMode ? 'compact' : ''}`}>
-            {/* utility row removed */}
-
-            {pagedUsers.map(user => (
+      <div className="content-section">
+        <div className={`user-list ${compactMode ? 'compact' : ''}`}>
+          {pagedUsers.length > 0 ? (
+            pagedUsers.map(user => (
               <div key={user.id} className="user-item-card">
-                <div className={`avatar role-${user.role}`}>{user.username?.charAt(0)?.toUpperCase()}</div>
+                <div className={`avatar role-${user.role}`}>
+                  {user.username?.charAt(0)?.toUpperCase()}
+                </div>
                 <div className="user-meta">
                   <div className="top-line">
                     <strong className="username">{user.username}</strong>
-                    <span className={`role-badge ${user.role}`}>{user.role}</span>
+                    <span className={`role-badge ${user.role}`}>
+                      {user.role}
+                    </span>
                     <span className="status-dot" data-status={user.status}></span>
                   </div>
                   <div className="sub-line">
@@ -550,53 +658,94 @@ const UserManagement = ({ users, onAddUser, onEditUser, onDeleteUser, onToggleSt
                   </div>
                   <div className="sub-line">
                     <span>
-                      {user.role === 'user' ? 'Divisi' : 'Anak Perusahaan'}: {user.role === 'user' ? (user.divisi?.nama || 'Belum dipilih') : (user.anakPerusahaan?.nama || 'Belum dipilih')}
+                      {user.role === 'user' ? 'Divisi' : 'Anak Perusahaan'}:{' '}
+                      {user.role === 'user'
+                        ? user.divisi?.nama || 'Belum dipilih'
+                        : user.anakPerusahaan?.nama || 'Belum dipilih'}
                     </span>
                     <span> | Branch: {user.branch?.nama || 'Belum dipilih'}</span>
                   </div>
                 </div>
                 <div className="user-actions">
-                  <button className="btn-ghost" onClick={() => onEditUser && onEditUser(user)} disabled={loading}>Edit</button>
-                  <button className="btn-danger" onClick={() => handleDeleteUser(user.id)} disabled={loading}>Hapus</button>
+                  <button
+                    className="btn-ghost"
+                    onClick={() => onEditUser ? onEditUser(user) : handleEditUser(user)}
+                    disabled={loading}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    className="btn-danger"
+                    onClick={() => handleDeleteUser(user.id)}
+                    disabled={loading}
+                  >
+                    Hapus
+                  </button>
                 </div>
               </div>
-            ))}
-
-            {pagedUsers.length === 0 && (
-              <div className="empty-state">
-                <div>
-                  {currentUserRole === 'admin' 
-                    ? 'Belum ada pengguna yang dibuat untuk branch Anda. Mulai dengan menambahkan pengguna pertama.'
-                    : 'Tidak ada pengguna ditemukan'}
-                </div>
-                <button className="btn-primary" style={{marginTop: '12px'}} onClick={handleAddUser}>+ Tambah Pengguna</button>
+            ))
+          ) : (
+            <div className="empty-state">
+              <div>
+                {currentUserRole === 'admin'
+                  ? 'Belum ada pengguna yang dibuat untuk branch Anda. Mulai dengan menambahkan pengguna pertama.'
+                  : 'Tidak ada pengguna ditemukan'}
               </div>
-            )}
-          </div>
+              <button
+                className="btn-primary"
+                style={{ marginTop: '12px' }}
+                onClick={handleAddUser}
+                disabled={loading}
+              >
+                + Tambah Pengguna
+              </button>
+            </div>
+          )}
         </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="pagination">
+            <button 
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1 || loading}
+            >
+              Sebelumnya
+            </button>
+            <span>Halaman {currentPage} dari {totalPages}</span>
+            <button
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages || loading}
+            >
+              Selanjutnya
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* Edit melalui halaman khusus, modal dihapus */}
-
+      {/* Confirmation Modal for Delete */}
       <ConfirmModal
-        open={confirmDelete.open}
+        open={confirmDelete?.open || false}
         title="Konfirmasi Hapus"
         message={
-          confirmDelete.isBulk
+          confirmDelete?.isBulk
             ? `Apakah Anda yakin ingin menghapus ${selectedIds.size} user terpilih?`
-            : `Apakah Anda yakin ingin menghapus user "${userList.find(u => u.id === confirmDelete.userId)?.username || 'ini'}"?`
+            : `Apakah Anda yakin ingin menghapus user "${userList.find(u => u.id === confirmDelete?.userId)?.username || 'ini'}"?`
         }
         confirmText="Hapus"
         cancelText="Batal"
-        onConfirm={confirmDelete.isBulk ? confirmBulkDeleteAction : confirmDeleteAction}
+        onConfirm={confirmDeleteAction}
         onCancel={() => setConfirmDelete({ open: false, userId: null, isBulk: false })}
+        disabled={loading}
       />
 
+      {/* Alert/Notification Modal */}
       <AlertModal
         open={alertModal.open}
         title={alertModal.title}
         message={alertModal.message}
         type={alertModal.type}
+        onClose={() => setAlertModal({ ...alertModal, open: false })}
         onConfirm={() => setAlertModal({ ...alertModal, open: false })}
       />
     </div>

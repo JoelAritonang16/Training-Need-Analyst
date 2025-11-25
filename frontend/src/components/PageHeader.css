@@ -1,0 +1,102 @@
+/* Page Header Styles - Matches Manajemen Divisi style */
+.page-header {
+  margin-bottom: 24px;
+}
+
+.page-header .header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(145deg, #003865 0%, #0077b6 100%);
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 14px;
+  box-shadow: 0 14px 32px rgba(2, 113, 182, 0.26), 0 6px 14px rgba(2, 113, 182, 0.16);
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.page-header .header-text h2 {
+  margin: 0;
+  color: #fff;
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0.3px;
+}
+
+.page-header .header-text p {
+  margin: 4px 0 0 0;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.8rem;
+  opacity: 0.95;
+  letter-spacing: 0.2px;
+}
+
+.page-header .header-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+/* Action button style to match the design */
+.page-header .btn-primary {
+  background: #ffffff;
+  color: #0271B6;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 3px 8px rgba(2, 113, 182, 0.15);
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  line-height: 1;
+}
+
+.page-header .btn-primary:hover {
+  background: rgba(255, 255, 255, 0.95);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(2, 113, 182, 0.25);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .page-header .header-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 16px;
+  }
+  
+  .page-header .header-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+  
+  .page-header .btn-primary {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Animation for page header */
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.page-header {
+  animation: fadeInDown 0.4s ease-out forwards;
+}

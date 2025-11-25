@@ -1,28 +1,54 @@
 .proposals-container {
-  padding: 20px;
-  max-width: 1200px;
+  padding: 6px 24px;
+  max-width: 1440px;
   margin: 0 auto;
 }
 
-.content-header {
-  margin-bottom: 30px;
+.proposals-container .content-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+  background: linear-gradient(145deg, #003865 0%, #0077b6 100%);
+  color: #fff;
+  padding: 10px 18px;
+  border-radius: 14px;
+  outline: 1px solid rgba(255,255,255,0.15);
+  outline-offset: -1px;
+  box-shadow: 0 14px 32px rgba(2,113,182,0.26), 0 6px 14px rgba(2,113,182,0.16);
+  position: relative;
+}
+
+.proposals-container .content-header h2 {
+  margin: 0;
+  color: #fff;
+  font-size: 1.5rem;
+  font-weight: 600;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.25);
+}
+
+.proposals-container .content-header p {
+  margin: 5px 0 0 0;
+  color: rgba(255,255,255,0.95);
+  font-size: 0.9rem;
+}
+
+.proposals-container .header-left {
+  text-align: center;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Header actions and white primary button to mimic divisi management page */
+.proposals-container .header-actions {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.content-header h2 {
-  color: #2c3e50;
-  font-size: 2rem;
-  margin-bottom: 10px;
-  font-weight: 700;
-}
-
-.content-header p {
-  color: #7f8c8d;
-  font-size: 1.1rem;
-  margin: 0;
+  gap: 10px;
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
 .proposals-grid {
