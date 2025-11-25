@@ -446,14 +446,6 @@ const Profile = ({ user: userProp, proposals = [], onUpdateProfile }) => {
               </button>
             </div>
           </div>
-          <div className="stat-item">
-            <span className="stat-number">{approvedCount}</span>
-            <span className="stat-label">Disetujui</span>
-          </div>
-          <div className="stat-item">
-            <span className="stat-number">{pendingCount}</span>
-            <span className="stat-label">Menunggu</span>
-          </div>
         </div>
 
         <div className="profile-form-card">
@@ -526,62 +518,44 @@ const Profile = ({ user: userProp, proposals = [], onUpdateProfile }) => {
 
             {isEditing && (
               <div className="form-actions">
-                <button 
-                  type="button" 
-                  className="btn-save"
-                  onClick={handleSave}
-                  disabled={uploading}
-                >
-                  {uploading ? (
-                    <>
-                      <FiLoader className="spin" /> Menyimpan...
-                    </>
-                  ) : (
-                    'Simpan Perubahan'
-                  )}
-                </button>
-                <button 
-                  type="button" 
-                  className="btn-cancel"
-                  onClick={handleCancel}
-                >
-                  Batal
-                </button>
+                <div className="button-group">
+                  <button 
+                    type="button" 
+                    className="btn-save"
+                    onClick={handleSave}
+                    disabled={uploading}
+                  >
+                    {uploading ? (
+                      <>
+                        <FiLoader className="spin" /> Menyimpan...
+                      </>
+                    ) : (
+                      'Simpan Perubahan'
+                    )}
+                  </button>
+                  <button 
+                    type="button" 
+                    className="btn-cancel"
+                    onClick={handleCancel}
+                  >
+                    Batal
+                  </button>
+                </div>
               </div>
             )}
           </form>
-          <button 
-            type="button"
-            className="edit-profile-btn"
-            onClick={toggleEdit}
-          >
-            {isEditing ? 'Batal' : 'Edit Profil'}
-          </button>
+          {!isEditing && (
+            <button 
+              type="button"
+              className="edit-profile-btn"
+              onClick={toggleEdit}
+            >
+              Edit Profil
+            </button>
+          )}
         </div>
       </div>
 
-      <div className="activity-summary">
-        <h3>Ringkasan Aktivitas</h3>
-        <div className="activity-grid">
-          <div className="activity-item">
-            <div className="activity-icon">SUBMIT</div>
-            <div className="activity-content">
-              <h4>Usulan Terakhir</h4>
-              <p>{proposals.length > 0 ? proposals[0].uraian : 'Belum ada usulan'}</p>
-              <small>{proposals.length > 0 ? new Date(proposals[0].tanggalPengajuan).toLocaleDateString('id-ID') : ''}</small>
-            </div>
-          </div>
-          
-          <div className="activity-item">
-            <div className="activity-icon">OK</div>
-            <div className="activity-content">
-              <h4>Status Terbaru</h4>
-              <p>{proposals.length > 0 ? proposals[0].status : 'Tidak ada status'}</p>
-              <small>Update terakhir</small>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };

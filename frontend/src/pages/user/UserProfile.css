@@ -461,8 +461,45 @@ html, body {
   gap: 12px;
 }
 
+/* Form Actions */
+.form-actions {
+  margin-top: 24px;
+  width: 100%;
+}
+
+.button-group {
+  display: flex;
+  justify-content: flex-end;
+  gap: 16px; /* Jarak antara tombol */
+  width: 100%;
+  margin-top: 20px;
+}
+
+/* Tombol Simpan */
+.btn-save {
+  padding: 10px 24px;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 150px;
+}
+
+.btn-save:hover {
+  background: #2563eb;
+}
+
+.btn-save:disabled {
+  background: #93c5fd;
+  cursor: not-allowed;
+}
+
+/* Tombol Batal */
 .btn-cancel {
-  padding: 8px 20px;
+  padding: 10px 24px;
   background: #f1f5f9;
   color: #4a5568;
   border: 1px solid #cbd5e0;
@@ -470,6 +507,30 @@ html, body {
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
+  min-width: 100px;
+}
+
+.btn-cancel:hover {
+  background: #e2e8f0;
+}
+
+/* Tombol Edit Profil */
+.edit-profile-btn {
+  margin-top: 24px;
+  padding: 10px 24px;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 100%;
+  max-width: 200px;
+}
+
+.edit-profile-btn:hover {
+  background: #2563eb;
 }
 
 .btn-cancel:hover {
