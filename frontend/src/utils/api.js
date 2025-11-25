@@ -534,3 +534,17 @@ export const updateProposalStatusAPI = async (proposalId, status, alasan = '') =
     body: JSON.stringify({ status, alasan })
   });
 };
+
+// Demografi API
+export const demografiAPI = {
+  getData: async (filters = {}) => {
+    console.log('Getting demografi data with filters:', filters);
+    const queryParams = new URLSearchParams();
+    if (filters.branchId) queryParams.append('branchId', filters.branchId);
+    if (filters.divisiId) queryParams.append('divisiId', filters.divisiId);
+    
+    const queryString = queryParams.toString();
+    const endpoint = queryString ? `/api/demografi?${queryString}` : '/api/demografi';
+    return apiCall(endpoint);
+  }
+};

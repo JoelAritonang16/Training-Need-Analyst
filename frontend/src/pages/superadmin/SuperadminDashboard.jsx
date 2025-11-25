@@ -513,11 +513,7 @@ const SuperadminDashboard = ({ user, onLogout, onUserUpdate }) => {
         );
       
       case 'rekap-gabungan':
-        return (
-          <RekapGabungan 
-            onNavigate={handleNavigate}
-          />
-        );
+        return <RekapGabungan />;
       
       case 'reports':
         return (

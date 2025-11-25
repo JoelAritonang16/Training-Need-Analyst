@@ -14,6 +14,7 @@ import AnakPerusahaanRoute from "./routes/anakPerusahaan.js";
 import DraftTNA2026Route from "./routes/draftTNA2026.js";
 import TempatDiklatRealisasiRoute from "./routes/tempatDiklatRealisasi.js";
 import NotificationRoute from "./routes/notifications.js";
+import DemografiRoute from "./routes/demografi.js";
 
 dotenv.config();
 
@@ -60,6 +61,7 @@ app.use("/api/anak-perusahaan", AnakPerusahaanRoute);
 app.use("/api/draft-tna-2026", DraftTNA2026Route);
 app.use("/api/tempat-diklat-realisasi", TempatDiklatRealisasiRoute);
 app.use("/api/notifications", NotificationRoute);
+app.use("/api/demografi", DemografiRoute);
 
 // Health check endpoint
 app.get("/api/health", (req, res) => {
