@@ -18,30 +18,52 @@ const Reports = ({ proposals, users, onGenerateReport }) => {
   return (
     <div className="reports-container">
       <div className="content-header">
-        <h2>Laporan</h2>
-        <p>Laporan dan statistik sistem pelatihan</p>
+        <div className="header-left">
+          <h2>Laporan</h2>
+          <p>Laporan dan statistik sistem pelatihan</p>
+        </div>
+        <div className="header-actions">
+          <button className="btn-export">
+            <i className="fas fa-file-export"></i> Ekspor Data
+          </button>
+        </div>
       </div>
 
-      <div className="reports-summary">
+      <div className="summary-cards">
         <div className="summary-card">
-          <h3>Ringkasan Statistik</h3>
-          <div className="summary-stats">
-            <div className="summary-item">
-              <span className="summary-label">Total Usulan:</span>
-              <span className="summary-value">{proposals.length}</span>
-            </div>
-            <div className="summary-item">
-              <span className="summary-label">Total Pengguna:</span>
-              <span className="summary-value">{users.length}</span>
-            </div>
-            <div className="summary-item">
-              <span className="summary-label">Total Anggaran:</span>
-              <span className="summary-value">Rp {totalBudget.toLocaleString('id-ID')}</span>
-            </div>
-            <div className="summary-item">
-              <span className="summary-label">Anggaran Disetujui:</span>
-              <span className="summary-value">Rp {approvedBudget.toLocaleString('id-ID')}</span>
-            </div>
+          <div className="summary-icon">
+            <i className="fas fa-file-alt"></i>
+          </div>
+          <div className="summary-content">
+            <div className="summary-value">{proposals.length}</div>
+            <div className="summary-label">Total Usulan</div>
+          </div>
+        </div>
+        <div className="summary-card">
+          <div className="summary-icon">
+            <i className="fas fa-users"></i>
+          </div>
+          <div className="summary-content">
+            <div className="summary-value">{users.length}</div>
+            <div className="summary-label">Total Pengguna</div>
+          </div>
+        </div>
+        <div className="summary-card">
+          <div className="summary-icon">
+            <i className="fas fa-money-bill-wave"></i>
+          </div>
+          <div className="summary-content">
+            <div className="summary-value">Rp{totalBudget.toLocaleString('id-ID')}</div>
+            <div className="summary-label">Total Anggaran</div>
+          </div>
+        </div>
+        <div className="summary-card">
+          <div className="summary-icon">
+            <i className="fas fa-check-circle"></i>
+          </div>
+          <div className="summary-content">
+            <div className="summary-value">Rp{approvedBudget.toLocaleString('id-ID')}</div>
+            <div className="summary-label">Anggaran Disetujui</div>
           </div>
         </div>
       </div>

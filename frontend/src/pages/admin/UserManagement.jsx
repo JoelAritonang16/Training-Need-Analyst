@@ -36,8 +36,6 @@ const UserManagement = ({
 
   // UI state
   const [searchQuery, setSearchQuery] = useState('');
-  const [roleFilter, setRoleFilter] = useState('all');
-  const [statusFilter, setStatusFilter] = useState('all');
   const [compactMode, setCompactMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [currentPage, setCurrentPage] = useState(1);
@@ -341,30 +339,15 @@ const UserManagement = ({
         message: 'Terjadi kesalahan saat menghapus user. Silakan coba lagi.',
         type: 'error'
       });
-    } finally {
-      setLoading(false);
-      setConfirmDelete({ open: false, userId: null, isBulk: false });
+        setLoading(false);
     }
   };
 
-  // Get unique roles for filter options
-  const roleOptions = currentUserRole === 'superadmin' 
-    ? ['superadmin', 'admin', 'user'] 
-    : ['admin', 'user'];
-
-  // Filter users based on search and filters
-  const filteredUsers = userList.filter(user => {
-    const matchesSearch = [user.username, user.email, user.unit, 
-                         user?.divisi?.nama, user?.branch?.nama, 
-                         user?.anakPerusahaan?.nama]
+  // Filter users based on search query only
+  const filteredUsers = userList.filter(u => {
+    return [u.username, u.email, u.unit, u?.divisi?.nama, u?.branch?.nama, u?.anakPerusahaan?.nama]
       .filter(Boolean)
       .some(val => String(val).toLowerCase().includes(searchQuery.toLowerCase()));
-      
-    const matchesRole = roleFilter === 'all' || user.role === roleFilter;
-    const userStatus = (user.status || '').toLowerCase();
-    const matchesStatus = statusFilter === 'all' || userStatus === statusFilter.toLowerCase();
-    
-    return matchesSearch && matchesRole && matchesStatus;
   });
 
   // Sort users
@@ -388,124 +371,7 @@ const UserManagement = ({
   const pagedUsers = sortedUsers.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.max(1, Math.ceil(sortedUsers.length / itemsPerPage));
 
-  const toggleSelect = (id) => {
-    setSelectedIds(prev => {
-      const s = new Set(prev);
-      if (s.has(id)) s.delete(id); else s.add(id);
-      return s;
-    });
-  };
-
-  const toggleSelectAll = () => {
-    if (selectedIds.size === pagedUsers.length) {
-      setSelectedIds(new Set());
-    } else {
-      setSelectedIds(new Set(pagedUsers.map(u => u.id)));
-    }
-  };
-
-  const handleBulkDelete = () => {
-    if (selectedIds.size === 0) return;
-    setConfirmDelete({
-      open: true,
-      userId: null,
-      isBulk: true
-    });
-  };
-
-  const confirmBulkDeleteAction = async () => {
-    try {
-      setLoading(true);
-      const idsToDelete = Array.from(selectedIds);
-      let successCount = 0;
-      let failCount = 0;
-
-      for (const id of idsToDelete) {
-        try {
-          const response = await fetch(`http://localhost:5000/api/users/role-based/${id}`, {
-            method: 'DELETE',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            credentials: 'include',
-            body: JSON.stringify({ currentUserRole })
-          });
-          
-          const data = await response.json();
-          if (data.success) {
-            successCount++;
-          } else {
-            failCount++;
-          }
-        } catch (error) {
-          failCount++;
-        }
-      }
-
-      fetchUsers();
-      setSelectedIds(new Set());
-      
-      if (failCount === 0) {
-        setAlertModal({
-          open: true,
-          title: 'Berhasil!',
-          message: `${successCount} user berhasil dihapus dari sistem.`,
-          type: 'success'
-        });
-      } else {
-        setAlertModal({
-          open: true,
-          title: 'Sebagian Gagal',
-          message: `${successCount} user berhasil dihapus, ${failCount} user gagal dihapus.`,
-          type: 'warning'
-        });
-      }
-    } catch (error) {
-      console.error('Error bulk deleting users:', error);
-      setAlertModal({
-        open: true,
-        title: 'Terjadi Kesalahan',
-        message: 'Terjadi kesalahan saat menghapus user. Silakan coba lagi.',
-        type: 'error'
-      });
-    } finally {
-      setLoading(false);
-      setConfirmDelete({ open: false, userId: null, isBulk: false });
-    }
-  };
-
-  const handleBulkToggleStatus = (target) => {
-    // Local optimistic: flip/set status, also call onToggleStatus if provided.
-    setUserList(prev => prev.map(u => selectedIds.has(u.id) ? { ...u, status: target } : u));
-    if (onToggleStatus) {
-      selectedIds.forEach(id => onToggleStatus(id));
-    }
-    setSelectedIds(new Set());
-  };
-
-  const handleRoleChange = (newRole) => {
-    setFormData(prev => ({
-      ...prev,
-      role: newRole,
-      // Clear role-specific fields when role changes
-      divisiId: newRole === 'user' ? prev.divisiId : '',
-      anakPerusahaanId: newRole === 'admin' ? prev.anakPerusahaanId : '',
-      branchId: newRole === 'user' ? prev.branchId : '' // Clear branch for admin role
-    }));
-  };
-
-  const getRoleOptions = () => {
-    if (currentUserRole === 'superadmin') {
-      return [
-        { value: 'user', label: 'User' },
-        { value: 'admin', label: 'Admin' }
-      ];
-    } else {
-      return [{ value: 'user', label: 'User' }];
-    }
-  };
-  // Helper functions
-
+  // ...
 
   return (
     <div className="users-container">
@@ -545,92 +411,44 @@ const UserManagement = ({
           gap: '16px',
           alignItems: 'end'
         }}>
-          <div className="filter-group" style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '4px'
+          <div className="search-container" style={{
+            position: 'relative',
+            width: '100%',
+            maxWidth: '500px',
+            margin: '0 auto'
           }}>
-            <label style={{
-              fontSize: '0.875rem',
-              color: '#4b5563',
-              fontWeight: 500
-            }}>Role</label>
-            <select 
-              value={roleFilter} 
-              onChange={(e) => setRoleFilter(e.target.value)}
-              className="filter-select"
-              disabled={loading}
-              style={{
-                padding: '8px 12px',
-                borderRadius: '6px',
-                border: '1px solid #d1d5db',
-                backgroundColor: '#fff',
-                fontSize: '0.875rem',
-                width: '100%'
-              }}
-            >
-              <option value="all">Semua Role</option>
-              {roleOptions.map(role => (
-                <option key={role} value={role}>
-                  {role.charAt(0).toUpperCase() + role.slice(1)}
-                </option>
-              ))}
-            </select>
-          </div>
-          
-          <div className="filter-group" style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '4px'
-          }}>
-            <label style={{
-              fontSize: '0.875rem',
-              color: '#4b5563',
-              fontWeight: 500
-            }}>Status</label>
-            <select 
-              value={statusFilter} 
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="filter-select"
-              disabled={loading}
-              style={{
-                padding: '8px 12px',
-                borderRadius: '6px',
-                border: '1px solid #d1d5db',
-                backgroundColor: '#fff',
-                fontSize: '0.875rem',
-                width: '100%'
-              }}
-            >
-              <option value="all">Semua Status</option>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-            </select>
-          </div>
-
-          <div className="filter-group" style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '4px'
-          }}>
-            <label style={{
-              fontSize: '0.875rem',
-              color: '#4b5563',
-              fontWeight: 500
-            }}>Cari</label>
+            <i className="fas fa-search" style={{
+              position: 'absolute',
+              left: '12px',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              color: '#6b7280',
+              zIndex: 1
+            }}></i>
             <input
               type="text"
               placeholder="Cari pengguna..."
-              className="filter-select"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               disabled={loading}
               style={{
-                padding: '8px 12px',
-                borderRadius: '6px',
+                padding: '10px 16px 10px 40px',
+                borderRadius: '8px',
                 border: '1px solid #d1d5db',
-                fontSize: '0.875rem',
-                width: '100%'
+                fontSize: '0.9rem',
+                width: '100%',
+                boxSizing: 'border-box',
+                backgroundColor: '#f8fafc',
+                ':hover': {
+                  borderColor: '#9ca3af',
+                  backgroundColor: '#fff'
+                },
+                ':focus': {
+                  outline: 'none',
+                  borderColor: '#3b82f6',
+                  boxShadow: '0 0 0 3px rgba(59, 130, 246, 0.1)',
+                  backgroundColor: '#fff'
+                }
               }}
             />
           </div>

@@ -23,10 +23,14 @@ const ApprovedProposals = ({ proposals, onConfirmToUser, onViewDetail }) => {
                 </span>
                 {proposal.isRevision && (
                   <span className="status-badge" style={{ 
-                    backgroundColor: '#ff9800', 
-                    color: 'white',
-                    fontSize: '0.75em',
-                    padding: '2px 8px'
+                    backgroundColor: '#fff3e0', 
+                    color: '#e65100',
+                    border: '1px solid #ffb74d',
+                    fontSize: '0.7rem',
+                    padding: '4px 10px',
+                    borderRadius: '12px',
+                    fontWeight: '700',
+                    letterSpacing: '0.5px'
                   }}>
                     ⚠️ REVISI
                   </span>
@@ -34,24 +38,28 @@ const ApprovedProposals = ({ proposals, onConfirmToUser, onViewDetail }) => {
               </div>
             </div>
             <div className="proposal-details">
-              <p><strong>Pengaju:</strong> User ID {proposal.userId}</p>
-              <p><strong>Waktu Pelaksanaan:</strong> {new Date(proposal.WaktuPelaksanan).toLocaleDateString('id-ID')}</p>
-              <p><strong>Jumlah Peserta:</strong> {proposal.JumlahPeserta} orang</p>
-              <p><strong>Level Tingkatan:</strong> {proposal.LevelTingkatan}</p>
-              <p><strong>Total Biaya:</strong> Rp {proposal.TotalUsulan.toLocaleString('id-ID')}</p>
+              <p><strong>📋 Pengaju:</strong> User ID {proposal.userId}</p>
+              <p><strong>📅 Waktu Pelaksanaan:</strong> {new Date(proposal.WaktuPelaksanan).toLocaleDateString('id-ID', { 
+                day: '2-digit', 
+                month: 'long', 
+                year: 'numeric' 
+              })}</p>
+              <p><strong>👥 Jumlah Peserta:</strong> {proposal.JumlahPeserta} orang</p>
+              <p><strong>📊 Level Tingkatan:</strong> {proposal.LevelTingkatan}</p>
+              <p><strong>💰 Total Biaya:</strong> Rp {proposal.TotalUsulan?.toLocaleString('id-ID')}</p>
             </div>
             <div className="proposal-actions">
               <button 
                 className="btn-confirm"
                 onClick={() => onConfirmToUser(proposal.id)}
               >
-                Konfirmasi ke User
+                <i className="fas fa-check-circle"></i> Konfirmasi ke User
               </button>
               <button 
                 className="btn-detail"
                 onClick={() => onViewDetail(proposal.id)}
               >
-                Detail
+                <i className="fas fa-eye"></i> Detail
               </button>
             </div>
           </div>
@@ -60,7 +68,7 @@ const ApprovedProposals = ({ proposals, onConfirmToUser, onViewDetail }) => {
 
       {approvedProposals.length === 0 && (
         <div className="empty-state">
-          <div className="empty-icon">-</div>
+          <div className="empty-icon">📭</div>
           <h3>Tidak Ada Usulan Disetujui</h3>
           <p>Belum ada usulan yang disetujui superadmin untuk dikonfirmasi ke user.</p>
         </div>

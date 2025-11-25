@@ -221,7 +221,8 @@ const AdminDashboard = ({ user, onLogout }) => {
   };
 
   const handleAddUser = () => {
-    console.log('Add user');
+    console.log('Navigasi ke halaman buat user baru - Admin');
+    setActiveMenu('user-create');
   };
 
   const handleEditUser = (userId) => {
