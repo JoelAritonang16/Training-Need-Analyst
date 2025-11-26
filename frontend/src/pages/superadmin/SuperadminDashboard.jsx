@@ -408,7 +408,6 @@ const SuperadminDashboard = ({ user, onLogout, onUserUpdate }) => {
         return (
           <UserManagement 
             users={users}
-            onAddUser={handleAddUser}
             onEditUser={handleStartEditUser}
             onDeleteUser={handleDeleteUser}
             onToggleStatus={handleToggleUserStatus}

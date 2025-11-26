@@ -36,6 +36,7 @@ const UserManagement = ({
 
   // UI state
   const [searchQuery, setSearchQuery] = useState('');
+  const [roleFilter, setRoleFilter] = useState('all'); // all | user | admin
   const [compactMode, setCompactMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [currentPage, setCurrentPage] = useState(1);
@@ -56,6 +57,9 @@ const UserManagement = ({
     userId: null,
     isBulk: false
   });
+
+  // Simple view detail modal state
+  const [detailUser, setDetailUser] = useState(null);
 
   useEffect(() => {
     fetchUsers();
@@ -343,11 +347,16 @@ const UserManagement = ({
     }
   };
 
-  // Filter users based on search query only
+  // Filter users based on search query + role
   const filteredUsers = userList.filter(u => {
-    return [u.username, u.email, u.unit, u?.divisi?.nama, u?.branch?.nama, u?.anakPerusahaan?.nama]
+    const matchesSearch = [u.username, u.email, u.unit, u?.divisi?.nama, u?.branch?.nama, u?.anakPerusahaan?.nama]
       .filter(Boolean)
       .some(val => String(val).toLowerCase().includes(searchQuery.toLowerCase()));
+
+    const matchesRole =
+      roleFilter === 'all' ? true : (u.role || '').toLowerCase() === roleFilter.toLowerCase();
+
+    return matchesSearch && matchesRole;
   });
 
   // Sort users
@@ -371,159 +380,162 @@ const UserManagement = ({
   const pagedUsers = sortedUsers.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.max(1, Math.ceil(sortedUsers.length / itemsPerPage));
 
-  // ...
-
   return (
     <div className="users-container">
       <PageHeader 
-        title="Manajemen Pengguna"
-        subtitle="Kelola data pengguna dalam sistem"
+        title="Manajemen User"
+        subtitle="Kelola akun USER dan ADMIN dalam sistem"
         actionButton={
           <button 
-            className="btn btn-primary" 
+            className="um-btn um-btn-primary"
             onClick={handleAddUser}
             disabled={loading}
-            style={{
-              padding: '8px 16px',
-              borderRadius: '6px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              fontWeight: 500
-            }}
           >
-            <i className="fas fa-plus"></i>
-            <span>Tambah Pengguna</span>
+            <span className="um-btn-icon">+</span>
+            <span>Add New User</span>
           </button>
         }
       />
-      
-      <div className="filters-section" style={{
-        backgroundColor: '#fff',
-        borderRadius: '8px',
-        padding: '16px',
-        marginBottom: '24px',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-      }}>
-        <div className="filters" style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-          gap: '16px',
-          alignItems: 'end'
-        }}>
-          <div className="search-container" style={{
-            position: 'relative',
-            width: '100%',
-            maxWidth: '500px',
-            margin: '0 auto'
-          }}>
-            <i className="fas fa-search" style={{
-              position: 'absolute',
-              left: '12px',
-              top: '50%',
-              transform: 'translateY(-50%)',
-              color: '#6b7280',
-              zIndex: 1
-            }}></i>
+
+      {/* Top toolbar: filters + search */}
+      <div className="um-toolbar">
+        <div className="um-toolbar-left">
+          <div className="um-filter-group">
+            <label className="um-filter-label">Role</label>
+            <select
+              className="um-select"
+              value={roleFilter}
+              onChange={e => {
+                setRoleFilter(e.target.value);
+                setCurrentPage(1);
+              }}
+              disabled={loading}
+            >
+              <option value="all">All Role</option>
+              <option value="user">USER</option>
+              <option value="admin">ADMIN</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="um-toolbar-right">
+          <div className="um-search">
+            <span className="um-search-icon">
+              <i className="fas fa-search" />
+            </span>
             <input
               type="text"
-              placeholder="Cari pengguna..."
+              placeholder="Name or ID"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              disabled={loading}
-              style={{
-                padding: '10px 16px 10px 40px',
-                borderRadius: '8px',
-                border: '1px solid #d1d5db',
-                fontSize: '0.9rem',
-                width: '100%',
-                boxSizing: 'border-box',
-                backgroundColor: '#f8fafc',
-                ':hover': {
-                  borderColor: '#9ca3af',
-                  backgroundColor: '#fff'
-                },
-                ':focus': {
-                  outline: 'none',
-                  borderColor: '#3b82f6',
-                  boxShadow: '0 0 0 3px rgba(59, 130, 246, 0.1)',
-                  backgroundColor: '#fff'
-                }
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1);
               }}
+              disabled={loading}
             />
           </div>
         </div>
       </div>
 
-      <div className="content-section">
-        <div className={`user-list ${compactMode ? 'compact' : ''}`}>
-          {pagedUsers.length > 0 ? (
-            pagedUsers.map(user => (
-              <div key={user.id} className="user-item-card">
-                <div className={`avatar role-${user.role}`}>
-                  {user.username?.charAt(0)?.toUpperCase()}
-                </div>
-                <div className="user-meta">
-                  <div className="top-line">
-                    <strong className="username">{user.username}</strong>
-                    <span className={`role-badge ${user.role}`}>
-                      {user.role}
-                    </span>
-                    <span className="status-dot" data-status={user.status}></span>
-                  </div>
-                  <div className="sub-line">
-                    <span className="email">{user.email || 'Tidak ada email'}</span>
-                  </div>
-                  <div className="sub-line">
-                    <span>
-                      {user.role === 'user' ? 'Divisi' : 'Anak Perusahaan'}:{' '}
-                      {user.role === 'user'
-                        ? user.divisi?.nama || 'Belum dipilih'
-                        : user.anakPerusahaan?.nama || 'Belum dipilih'}
-                    </span>
-                    <span> | Branch: {user.branch?.nama || 'Belum dipilih'}</span>
-                  </div>
-                </div>
-                <div className="user-actions">
-                  <button
-                    className="btn-ghost"
-                    onClick={() => onEditUser ? onEditUser(user) : handleEditUser(user)}
-                    disabled={loading}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    className="btn-danger"
-                    onClick={() => handleDeleteUser(user.id)}
-                    disabled={loading}
-                  >
-                    Hapus
-                  </button>
-                </div>
-              </div>
-            ))
-          ) : (
-            <div className="empty-state">
-              <div>
-                {currentUserRole === 'admin'
-                  ? 'Belum ada pengguna yang dibuat untuk branch Anda. Mulai dengan menambahkan pengguna pertama.'
-                  : 'Tidak ada pengguna ditemukan'}
-              </div>
-              <button
-                className="btn-primary"
-                style={{ marginTop: '12px' }}
-                onClick={handleAddUser}
-                disabled={loading}
-              >
-                + Tambah Pengguna
-              </button>
-            </div>
-          )}
+      {/* Table */}
+      <div className="um-table-card">
+        <div className="um-table-scroll">
+          <table className="um-table">
+            <thead>
+              <tr>
+                <th>Full Name &amp; ID</th>
+                <th>Role User</th>
+                <th>Email</th>
+                <th>Unit / Divisi</th>
+                <th>Branch</th>
+                <th>Status</th>
+                <th className="um-col-actions">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pagedUsers.length > 0 ? (
+                pagedUsers.map(user => {
+                  const roleLabel = (user.role || '').toLowerCase() === 'admin' ? 'ADMIN' : 'USER';
+                  const isActive = String(user.status || '').toLowerCase() === 'active' || user.status === true;
+                  return (
+                    <tr key={user.id}>
+                      <td>
+                        <div className="um-user-cell">
+                          <div className="um-avatar">
+                            {user.username?.charAt(0)?.toUpperCase() || '?'}
+                          </div>
+                          <div className="um-user-meta">
+                            <div className="um-user-name">{user.username || '-'}</div>
+                            <div className="um-user-id">
+                              {user.unit || `ID: ${user.id || '-'}`}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <span className={`um-role-pill um-role-${roleLabel.toLowerCase()}`}>
+                          {roleLabel}
+                        </span>
+                      </td>
+                      <td>{user.email || '-'}</td>
+                      <td>{user.role === 'user' ? (user.divisi?.nama || '-') : (user.anakPerusahaan?.nama || '-')}</td>
+                      <td>{user.branch?.nama || '-'}</td>
+                      <td>
+                        <span className={`um-status-pill ${isActive ? 'active' : 'inactive'}`}>
+                          {isActive ? 'Active' : 'Inactive'}
+                        </span>
+                      </td>
+                      <td className="um-col-actions">
+                        <div className="um-actions">
+                          <button
+                            type="button"
+                            className="um-icon-btn"
+                            title="View details"
+                            onClick={() => setDetailUser(user)}
+                          >
+                            <i className="fas fa-eye" />
+                          </button>
+                          <button
+                            type="button"
+                            className="um-icon-btn"
+                            title="Edit user"
+                            onClick={() => onEditUser ? onEditUser(user) : handleEditUser(user)}
+                            disabled={loading}
+                          >
+                            <i className="fas fa-pen" />
+                          </button>
+                          <button
+                            type="button"
+                            className="um-icon-btn um-icon-delete"
+                            title="Delete user"
+                            onClick={() => handleDeleteUser(user.id)}
+                            disabled={loading}
+                          >
+                            <i className="fas fa-trash" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              ) : (
+                <tr>
+                  <td colSpan={8}>
+                    <div className="um-empty-state">
+                      {currentUserRole === 'admin'
+                        ? 'Belum ada pengguna yang dibuat untuk branch Anda. Mulai dengan menambahkan pengguna pertama.'
+                        : 'Tidak ada pengguna ditemukan. Coba ubah filter atau tambahkan user baru.'}
+                    </div>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="pagination">
+          <div className="um-pagination">
             <button 
               onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
               disabled={currentPage === 1 || loading}
@@ -566,6 +578,54 @@ const UserManagement = ({
         onClose={() => setAlertModal({ ...alertModal, open: false })}
         onConfirm={() => setAlertModal({ ...alertModal, open: false })}
       />
+
+      {/* Simple view detail modal */}
+      {detailUser && (
+        <div className="um-detail-backdrop" onClick={() => setDetailUser(null)}>
+          <div className="um-detail-modal" onClick={e => e.stopPropagation()}>
+            <div className="um-detail-header">
+              <div className="um-avatar lg">
+                {detailUser.username?.charAt(0)?.toUpperCase() || '?'}
+              </div>
+              <div>
+                <h3>{detailUser.username}</h3>
+                <p>{detailUser.email || 'Tidak ada email'}</p>
+              </div>
+            </div>
+            <div className="um-detail-body">
+              <div className="um-detail-row">
+                <span className="label">Role</span>
+                <span className="value">{(detailUser.role || '').toUpperCase()}</span>
+              </div>
+              <div className="um-detail-row">
+                <span className="label">Unit/Divisi</span>
+                <span className="value">
+                  {detailUser.role === 'user'
+                    ? detailUser.divisi?.nama || '-'
+                    : detailUser.anakPerusahaan?.nama || '-'}
+                </span>
+              </div>
+              <div className="um-detail-row">
+                <span className="label">Branch</span>
+                <span className="value">{detailUser.branch?.nama || '-'}</span>
+              </div>
+              <div className="um-detail-row">
+                <span className="label">Status</span>
+                <span className="value">
+                  {String(detailUser.status || '').toLowerCase() === 'active' || detailUser.status === true
+                    ? 'Active'
+                    : 'Inactive'}
+                </span>
+              </div>
+            </div>
+            <div className="um-detail-footer">
+              <button type="button" className="um-btn um-btn-secondary" onClick={() => setDetailUser(null)}>
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
