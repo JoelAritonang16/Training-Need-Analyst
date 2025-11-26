@@ -8,7 +8,7 @@
 /* Let main-content adapt based on sidebar sibling state */
 .main-content {
   flex: 1;
-  padding: 20px;
+  padding: 24px 32px; /* lebih lebar secara horizontal */
   transition: margin-left 0.3s ease, box-shadow 0.3s ease;
   overflow-y: auto;
 }
@@ -58,7 +58,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin: -20px -20px 30px -20px;
+  margin: -24px -32px 30px -32px; /* sesuaikan dengan padding main-content */
   padding: 20px 40px;
   background: linear-gradient(120deg, #1e5a8e 0%, #2980b9 100%);
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);

@@ -348,16 +348,20 @@ const AnakPerusahaanManagement = () => {
                 <td>
                   <div className="action-buttons">
                     <button 
-                      className="btn-edit"
+                      type="button"
+                      className="icon-circle-btn"
+                      title="Edit anak perusahaan"
                       onClick={() => handleEditAnakPerusahaan(anakPerusahaan)}
                     >
-                      Edit
+                      <i className="fas fa-pen" />
                     </button>
                     <button 
-                      className="btn-delete"
+                      type="button"
+                      className="icon-circle-btn icon-circle-btn--danger"
+                      title="Hapus anak perusahaan"
                       onClick={() => handleDeleteAnakPerusahaan(anakPerusahaan.id)}
                     >
-                      Hapus
+                      <i className="fas fa-trash" />
                     </button>
                   </div>
                 </td>

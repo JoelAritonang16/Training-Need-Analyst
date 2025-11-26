@@ -228,22 +228,26 @@ const DivisiManagement = () => {
                     <td>{item.id}</td>
                     <td>{item.nama}</td>
                     <td>{new Date(item.created_at).toLocaleDateString('id-ID')}</td>
-                    <td>
-                      <button 
-                        className="btn-edit"
-                        onClick={() => handleEdit(item)}
-                        disabled={isLoading}
-                      >
-                        Edit
-                      </button>
-                      <button 
-                        className="btn-delete"
-                        onClick={() => handleDelete(item.id)}
-                        disabled={isLoading}
-                      >
-                        Hapus
-                      </button>
-                    </td>
+                <td>
+                  <button 
+                    type="button"
+                    className="icon-circle-btn"
+                    title="Edit divisi"
+                    onClick={() => handleEdit(item)}
+                    disabled={isLoading}
+                  >
+                    <i className="fas fa-pen" />
+                  </button>
+                  <button 
+                    type="button"
+                    className="icon-circle-btn icon-circle-btn--danger"
+                    title="Hapus divisi"
+                    onClick={() => handleDelete(item.id)}
+                    disabled={isLoading}
+                  >
+                    <i className="fas fa-trash" />
+                  </button>
+                </td>
                   </tr>
                 ))}
               </tbody>

@@ -489,7 +489,7 @@ const UserManagement = ({
                         <div className="um-actions">
                           <button
                             type="button"
-                            className="um-icon-btn"
+                            className="um-icon-btn icon-circle-btn"
                             title="View details"
                             onClick={() => setDetailUser(user)}
                           >
@@ -497,7 +497,7 @@ const UserManagement = ({
                           </button>
                           <button
                             type="button"
-                            className="um-icon-btn"
+                            className="um-icon-btn icon-circle-btn"
                             title="Edit user"
                             onClick={() => onEditUser ? onEditUser(user) : handleEditUser(user)}
                             disabled={loading}
@@ -506,7 +506,7 @@ const UserManagement = ({
                           </button>
                           <button
                             type="button"
-                            className="um-icon-btn um-icon-delete"
+                            className="um-icon-btn um-icon-delete icon-circle-btn icon-circle-btn--danger"
                             title="Delete user"
                             onClick={() => handleDeleteUser(user.id)}
                             disabled={loading}

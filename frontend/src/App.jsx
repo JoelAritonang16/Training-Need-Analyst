@@ -21,18 +21,14 @@ function App() {
 
   const checkAuth = async () => {
     try {
-      console.log('=== CHECKING AUTH ===');
       const token = localStorage.getItem('token');
-      console.log('Token in localStorage:', token ? 'exists' : 'not found');
       
       if (!token) {
-        console.log('No token found, user not authenticated');
         setUser(null);
         setLoading(false);
         return;
       }
 
-      console.log('Checking auth with token:', token);
       const response = await fetch('http://localhost:5000/api/auth/check', {
         method: 'GET',
         headers: {
@@ -42,23 +38,17 @@ function App() {
         credentials: 'include'
       });
       
-      console.log('Auth check response status:', response.status);
-      
       if (response.ok) {
         const data = await response.json();
-        console.log('Auth check response data:', data);
         
         if (data.success) {
-          console.log('User authenticated:', data.user.username);
           setUser(data.user);
         } else {
-          console.log('Auth check failed, clearing token');
           localStorage.removeItem('token');
           localStorage.removeItem('user');
           setUser(null);
         }
       } else {
-        console.log('Auth check failed with status:', response.status);
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         setUser(null);
@@ -70,28 +60,19 @@ function App() {
       setUser(null);
     } finally {
       setLoading(false);
-      console.log('=== AUTH CHECK END ===');
     }
   };
 
   const handleLoginSuccess = (userData, token) => { 
-    console.log('=== LOGIN SUCCESS HANDLER ===');
-    console.log('User data:', userData);
-    console.log('Token:', token);
-    
     if (token) {
       localStorage.setItem('token', token);
-      console.log('Token stored in localStorage');
     }
     
     setUser(userData);
-    console.log('User state updated');
-    console.log('=== LOGIN SUCCESS HANDLER END ===');
   };
   
   const actuallyLogout = async () => {
     try {
-      console.log('=== LOGOUT ===');
       const token = localStorage.getItem('token');
       if (token) {
         await fetch('http://localhost:5000/api/auth/logout', {
@@ -109,15 +90,8 @@ function App() {
       // Clear localStorage
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      
-      // Clear user state - INI YANG PENTING!
       setUser(null);
-      
-      // Close modal
       setShowLogoutConfirm(false);
-      
-      console.log('Logged out successfully');
-      console.log('=== LOGOUT END ===');
     }
   };
 
@@ -145,7 +119,6 @@ function App() {
 
   const renderDashboard = () => {
     const role = (user?.role || '').toLowerCase();
-    console.log('Rendering dashboard for role:', role);
     
     if (role === 'admin') return <AdminDashboard user={user} onLogout={handleLogout} onUserUpdate={handleUserUpdate} />;
     if (role === 'superadmin') return <SuperadminDashboard user={user} onLogout={handleLogout} onUserUpdate={handleUserUpdate} />;
