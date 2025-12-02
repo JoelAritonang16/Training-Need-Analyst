@@ -183,7 +183,7 @@ const AdminDashboardOverview = ({ users, proposals, user, onNavigate }) => {
           <div className="stat-icon"><LuFileText size={18} /></div>
           <div className="stat-content">
             <h3>{totalDrafts}</h3>
-            <p>Draft TNA 2026</p>
+            <p>Draft TNA</p>
             <small>{user?.branch?.nama || 'N/A'}</small>
           </div>
         </div>
@@ -245,7 +245,7 @@ const AdminDashboardOverview = ({ users, proposals, user, onNavigate }) => {
 
           {/* Draft Status Donut Chart */}
           <div className="chart-card">
-            <h4>Status Draft TNA 2026</h4>
+            <h4>Status Draft TNA</h4>
             <ResponsiveContainer width="100%" height={280}>
               <PieChart>
                 <Pie

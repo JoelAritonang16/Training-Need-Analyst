@@ -518,6 +518,27 @@
   font-weight: 500;
 }
 
+.evaluation-display {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #86efac;
+}
+
+.evaluation-display h4 {
+  margin: 0 0 8px 0;
+  color: #166534;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.evaluation-display p {
+  margin: 0;
+  color: #166534;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
 .implementation-status-badge {
   padding: 8px 16px;
   border-radius: 20px;

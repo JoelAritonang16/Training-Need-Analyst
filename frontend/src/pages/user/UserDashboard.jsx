@@ -81,8 +81,9 @@ const UserDashboard = ({ user, onLogout, onUserUpdate, proposals = [] }) => {
           <TrainingProposalCreate 
             user={user}
             onSuccess={() => {
-              setActiveMenu('proposal-list');
-              // Refresh proposals list
+              // Redirect ke dashboard utama setelah konfirmasi
+              setActiveMenu('dashboard');
+              // Refresh data jika perlu
             }}
           />
         );

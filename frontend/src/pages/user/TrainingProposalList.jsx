@@ -3,6 +3,7 @@ import { useDatabaseData } from '../../components/DatabaseDataProvider';
 import { trainingProposalAPI, updateImplementationStatusAPI } from '../../utils/api';
 import AlertModal from '../../components/AlertModal';
 import ConfirmModal from '../../components/ConfirmModal';
+import EvaluationModal from '../../components/EvaluationModal';
 import './TrainingProposalList.css';
 
 const TrainingProposalList = ({ onCreateNew, onEdit, onViewDetail }) => {
@@ -25,6 +26,7 @@ const TrainingProposalList = ({ onCreateNew, onEdit, onViewDetail }) => {
     type: 'info'
   });
   const [confirmModal, setConfirmModal] = useState(null);
+  const [evaluationModal, setEvaluationModal] = useState(null);
   const [isUpdatingImplementation, setIsUpdatingImplementation] = useState(false);
   const itemsPerPage = 6;
 
@@ -115,29 +117,29 @@ const TrainingProposalList = ({ onCreateNew, onEdit, onViewDetail }) => {
   };
 
   const handleConfirmRealisasi = (proposal) => {
-    setConfirmModal({
+    setEvaluationModal({
       open: true,
       title: 'Konfirmasi Realisasi',
-      message: 'Apakah Anda yakin proposal ini sudah direalisasikan? Setelah dikonfirmasi, draft TNA akan otomatis dibuat dan dapat dilihat oleh admin dan superadmin.',
-      onConfirm: async () => {
+      message: 'Silakan isi evaluasi realisasi sebelum mengkonfirmasi. Setelah dikonfirmasi, draft TNA akan otomatis dibuat dan dapat dilihat oleh admin dan superadmin.',
+      onConfirm: async (evaluasiRealisasi) => {
         setIsUpdatingImplementation(true);
         try {
-          const result = await updateImplementationStatusAPI(proposal.id, 'SUDAH_IMPLEMENTASI');
+          const result = await updateImplementationStatusAPI(proposal.id, 'SUDAH_IMPLEMENTASI', evaluasiRealisasi);
           if (result.success) {
             refreshData(); // Refresh data untuk update status
-            setConfirmModal(null);
+            setEvaluationModal(null);
             setAlertModal({
               open: true,
               type: 'success',
               title: 'Berhasil Dikonfirmasi!',
-              message: 'Proposal telah dikonfirmasi sebagai sudah direalisasikan. Draft TNA telah otomatis dibuat dan dapat dilihat oleh admin dan superadmin di halaman Draft TNA 2026.'
+              message: 'Proposal telah dikonfirmasi sebagai sudah direalisasikan. Draft TNA telah otomatis dibuat dan dapat dilihat oleh admin dan superadmin di halaman Draft TNA.'
             });
           } else {
             throw new Error(result.message || 'Gagal mengupdate status implementasi');
           }
         } catch (err) {
           console.error('Error updating implementation status:', err);
-          setConfirmModal(null);
+          setEvaluationModal(null);
           setAlertModal({
             open: true,
             type: 'error',
@@ -148,7 +150,7 @@ const TrainingProposalList = ({ onCreateNew, onEdit, onViewDetail }) => {
           setIsUpdatingImplementation(false);
         }
       },
-      onCancel: () => setConfirmModal(null)
+      onCancel: () => setEvaluationModal(null)
     });
   };
 
@@ -559,6 +561,17 @@ const TrainingProposalList = ({ onCreateNew, onEdit, onViewDetail }) => {
           cancelText="Batal"
           onConfirm={confirmModal.onConfirm}
           onCancel={confirmModal.onCancel}
+        />
+      )}
+      {evaluationModal && evaluationModal.open && (
+        <EvaluationModal
+          open={evaluationModal.open}
+          title={evaluationModal.title}
+          message={evaluationModal.message}
+          confirmText={evaluationModal.confirmText}
+          cancelText={evaluationModal.cancelText}
+          onConfirm={evaluationModal.onConfirm}
+          onCancel={evaluationModal.onCancel}
         />
       )}
     </div>

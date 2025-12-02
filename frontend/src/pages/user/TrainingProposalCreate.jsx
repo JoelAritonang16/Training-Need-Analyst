@@ -2,12 +2,13 @@ import React from 'react';
 import TrainingProposalForm from './TrainingProposalForm';
 import './TrainingProposalCreate.css';
 
-const TrainingProposalCreate = () => {
+const TrainingProposalCreate = ({ onSuccess, user }) => {
   const handleSuccess = (proposal) => {
-    // Redirect to proposal list or show success message
+    // Redirect to dashboard utama setelah konfirmasi
     console.log('Proposal created successfully:', proposal);
-    // You can add navigation logic here
-    // window.location.href = '/training-proposals';
+    if (onSuccess) {
+      onSuccess(proposal);
+    }
   };
 
   return (

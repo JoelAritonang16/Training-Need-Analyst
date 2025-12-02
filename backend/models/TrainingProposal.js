@@ -101,6 +101,31 @@ const TrainingProposal = (sequelize, Sequelize) => {
         },
         comment: 'ID proposal asli jika ini adalah revisi (untuk tracking)'
       },
+      Jenis: {
+        type: DataTypes.ENUM('Pelatihan', 'Workshop', 'Sertifikasi'),
+        allowNull: true,
+        comment: 'Jenis pelatihan'
+      },
+      ProgramInisiatifStrategis: {
+        type: DataTypes.STRING(255),
+        allowNull: true,
+        comment: 'Program Inisiatif Strategis'
+      },
+      ClusterUtama: {
+        type: DataTypes.STRING(255),
+        allowNull: true,
+        comment: 'Cluster Utama'
+      },
+      ClusterKecil: {
+        type: DataTypes.STRING(255),
+        allowNull: true,
+        comment: 'Cluster Kecil'
+      },
+      evaluasiRealisasi: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+        comment: 'Evaluasi realisasi proposal yang diisi saat konfirmasi realisasi'
+      },
     },
     {
       tableName: "training_proposals",

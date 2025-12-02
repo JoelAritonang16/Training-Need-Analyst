@@ -645,6 +645,19 @@ const SuperadminDashboard = ({ user, onLogout, onUserUpdate }) => {
                 </div>
               </div>
 
+              {/* Evaluasi Realisasi - hanya untuk proposal yang sudah direalisasikan */}
+              {selectedProposal.implementasiStatus === 'SUDAH_IMPLEMENTASI' && selectedProposal.evaluasiRealisasi && (
+                <>
+                  <div className="modal-divider"></div>
+                  <div className="modal-evaluation-section">
+                    <h3 className="modal-section-title">Evaluasi Realisasi</h3>
+                    <div className="modal-evaluation-content">
+                      <p>{selectedProposal.evaluasiRealisasi}</p>
+                    </div>
+                  </div>
+                </>
+              )}
+
               <div className="modal-divider"></div>
 
               <div className="modal-costs-list">

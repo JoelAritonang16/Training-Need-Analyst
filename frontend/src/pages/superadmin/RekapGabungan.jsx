@@ -387,7 +387,7 @@ const RekapGabungan = () => {
           <div className="stat-icon"><LuFileText size={18} /></div>
           <div className="stat-content">
             <h3>{dashboardData?.totalDrafts || 0}</h3>
-            <p>Draft TNA 2026</p>
+            <p>Draft TNA</p>
             <small>Filter: {getFilterLabel()}</small>
           </div>
         </div>
@@ -586,7 +586,7 @@ const RekapGabungan = () => {
           {/* Draft Status Chart - Style seperti referensi */}
           {draftStatusData.length > 0 && (
             <div className="chart-card-donut">
-              <h4 className="chart-title-donut">STATUS DRAFT TNA 2026</h4>
+              <h4 className="chart-title-donut">STATUS DRAFT TNA</h4>
               <div className="chart-donut-wrapper">
                 <div className="chart-donut-visualization">
                   <ResponsiveContainer width="100%" height={250}>

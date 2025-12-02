@@ -811,6 +811,33 @@
   text-align: right;
 }
 
+.modal-section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 12px 0;
+}
+
+.modal-evaluation-section {
+  padding: 16px 0;
+}
+
+.modal-evaluation-content {
+  background: #f9f9f9;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 8px;
+}
+
+.modal-evaluation-content p {
+  margin: 0;
+  color: #555;
+  font-size: 14px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
 .modal-divider {
   height: 2px;
   background: linear-gradient(90deg, #e2e8f0 0%, #cbd5e1 50%, #e2e8f0 100%);

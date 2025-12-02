@@ -1,7 +1,7 @@
 import React from 'react';
 import './ApprovedProposals.css';
 
-const ApprovedProposals = ({ proposals, onConfirmToUser, onViewDetail }) => {
+const ApprovedProposals = ({ proposals, onViewDetail }) => {
   // Proposal yang sudah disetujui superadmin dan perlu dikonfirmasi ke user
   const approvedProposals = proposals.filter(p => p.status === 'APPROVE_SUPERADMIN');
 
@@ -9,7 +9,7 @@ const ApprovedProposals = ({ proposals, onConfirmToUser, onViewDetail }) => {
     <div className="proposals-container">
       <div className="content-header">
         <h2>Usulan yang Disetujui Superadmin</h2>
-        <p>Usulan yang telah disetujui superadmin dan perlu dikonfirmasi ke user</p>
+        <p>Usulan yang telah disetujui superadmin</p>
       </div>
       
       <div className="proposals-grid">
@@ -50,12 +50,6 @@ const ApprovedProposals = ({ proposals, onConfirmToUser, onViewDetail }) => {
             </div>
             <div className="proposal-actions">
               <button 
-                className="btn-confirm"
-                onClick={() => onConfirmToUser(proposal.id)}
-              >
-                <i className="fas fa-check-circle"></i> Konfirmasi ke User
-              </button>
-              <button 
                 className="btn-detail"
                 onClick={() => onViewDetail(proposal.id)}
               >
@@ -70,7 +64,7 @@ const ApprovedProposals = ({ proposals, onConfirmToUser, onViewDetail }) => {
         <div className="empty-state">
           <div className="empty-icon">📭</div>
           <h3>Tidak Ada Usulan Disetujui</h3>
-          <p>Belum ada usulan yang disetujui superadmin untuk dikonfirmasi ke user.</p>
+          <p>Belum ada usulan yang disetujui superadmin.</p>
         </div>
       )}
     </div>

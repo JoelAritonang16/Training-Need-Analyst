@@ -1,5 +1,5 @@
-import { DraftTNA2026, Branch, Divisi, User, Notification } from "../models/index.js";
-import { Sequelize } from "sequelize";
+import { DraftTNA2026, Branch, Divisi, User, Notification, TrainingProposal } from "../models/index.js";
+import { Sequelize, Op } from "sequelize";
 import sequelize from "../db/db.js";
 
 const draftTNA2026Controller = {
@@ -139,9 +139,80 @@ const draftTNA2026Controller = {
         });
       }
 
+      // Cari proposal terkait untuk mendapatkan evaluasi realisasi
+      // Draft dibuat dari proposal yang sudah direalisasikan, jadi cari proposal dengan:
+      // - uraian yang sama
+      // - waktuPelaksanaan yang sama (dibandingkan berdasarkan tanggal saja)
+      // - branchId yang sama
+      // - status SUDAH_IMPLEMENTASI
+      let evaluasiRealisasi = null;
+      try {
+        // Format waktu pelaksanaan untuk perbandingan (hanya tanggal, tanpa waktu)
+        const draftWaktuPelaksanaan = new Date(draft.waktuPelaksanaan);
+        const draftDateStart = new Date(draftWaktuPelaksanaan);
+        draftDateStart.setHours(0, 0, 0, 0);
+        const draftDateEnd = new Date(draftWaktuPelaksanaan);
+        draftDateEnd.setHours(23, 59, 59, 999);
+        
+        // Cari proposal dengan uraian dan waktu pelaksanaan yang sama
+        const relatedProposal = await TrainingProposal.findOne({
+          where: {
+            branchId: draft.branchId,
+            implementasiStatus: 'SUDAH_IMPLEMENTASI',
+            Uraian: draft.uraian,
+            WaktuPelaksanan: {
+              [Op.between]: [draftDateStart, draftDateEnd]
+            }
+          },
+          attributes: ['id', 'evaluasiRealisasi'],
+          order: [['updated_at', 'DESC']],
+          limit: 1
+        });
+
+        if (relatedProposal && relatedProposal.evaluasiRealisasi) {
+          evaluasiRealisasi = relatedProposal.evaluasiRealisasi;
+        } else {
+          // Jika tidak ditemukan dengan uraian header, coba cari dari items
+          const { TrainingProposalItem } = require('../models/index.js');
+          const relatedProposalFromItem = await TrainingProposal.findOne({
+            include: [
+              {
+                model: TrainingProposalItem,
+                as: 'items',
+                where: {
+                  Uraian: draft.uraian,
+                  WaktuPelaksanan: {
+                    [Op.between]: [draftDateStart, draftDateEnd]
+                  }
+                },
+                attributes: []
+              }
+            ],
+            where: {
+              branchId: draft.branchId,
+              implementasiStatus: 'SUDAH_IMPLEMENTASI'
+            },
+            attributes: ['id', 'evaluasiRealisasi'],
+            order: [['updated_at', 'DESC']],
+            limit: 1
+          });
+
+          if (relatedProposalFromItem && relatedProposalFromItem.evaluasiRealisasi) {
+            evaluasiRealisasi = relatedProposalFromItem.evaluasiRealisasi;
+          }
+        }
+      } catch (evalError) {
+        console.warn('Error fetching evaluation from proposal:', evalError);
+        // Continue without evaluation if there's an error
+      }
+
+      // Convert draft to plain object and add evaluation
+      const draftData = draft.toJSON ? draft.toJSON() : draft;
+      draftData.evaluasiRealisasi = evaluasiRealisasi;
+
       res.json({
         success: true,
-        draft: draft,
+        draft: draftData,
       });
     } catch (error) {
       console.error("Get draft by ID error:", error);

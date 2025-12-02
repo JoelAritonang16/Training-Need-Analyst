@@ -337,7 +337,7 @@ const UserDraftTNA = ({ user, onNavigate }) => {
     <div className="user-draft-tna-container">
       <div className="content-header">
         <div>
-          <h2>Draft TNA 2026</h2>
+          <h2>Draft TNA</h2>
           <p>Kelola draft Training Need Analysis Anda</p>
         </div>
         <button className="btn-create" onClick={handleCreate}>
@@ -430,7 +430,7 @@ const UserDraftTNA = ({ user, onNavigate }) => {
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3>
-                {isViewMode ? 'Detail Draft TNA 2026' : isEditMode ? 'Edit Draft TNA 2026' : 'Buat Draft TNA 2026'}
+                {isViewMode ? 'Detail Draft TNA' : isEditMode ? 'Edit Draft TNA' : 'Buat Draft TNA'}
               </h3>
               <button className="modal-close" onClick={() => setIsModalOpen(false)}>×</button>
             </div>

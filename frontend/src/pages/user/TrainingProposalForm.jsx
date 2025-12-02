@@ -16,7 +16,11 @@ const TrainingProposalForm = ({ user, proposal = null, onSuccess }) => {
     BebanTransportasi: proposal?.BebanTransportasi || '',
     BebanAkomodasi: proposal?.BebanAkomodasi || '',
     BebanUangSaku: proposal?.BebanUangSaku || '',
-    TotalUsulan: proposal?.TotalUsulan || ''
+    TotalUsulan: proposal?.TotalUsulan || '',
+    Jenis: proposal?.Jenis || '',
+    ProgramInisiatifStrategis: proposal?.ProgramInisiatifStrategis || '',
+    ClusterUtama: proposal?.ClusterUtama || '',
+    ClusterKecil: proposal?.ClusterKecil || ''
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -36,6 +40,10 @@ const TrainingProposalForm = ({ user, proposal = null, onSuccess }) => {
         BebanTransportasi: it.BebanTransportasi ?? '',
         BebanAkomodasi: it.BebanAkomodasi ?? '',
         BebanUangSaku: it.BebanUangSaku ?? '',
+        Jenis: it.Jenis || '',
+        ProgramInisiatifStrategis: it.ProgramInisiatifStrategis || '',
+        ClusterUtama: it.ClusterUtama || '',
+        ClusterKecil: it.ClusterKecil || '',
       }));
     }
     if (proposal) {
@@ -49,6 +57,10 @@ const TrainingProposalForm = ({ user, proposal = null, onSuccess }) => {
         BebanTransportasi: proposal.BebanTransportasi ?? '',
         BebanAkomodasi: proposal.BebanAkomodasi ?? '',
         BebanUangSaku: proposal.BebanUangSaku ?? '',
+        Jenis: proposal.Jenis || '',
+        ProgramInisiatifStrategis: proposal.ProgramInisiatifStrategis || '',
+        ClusterUtama: proposal.ClusterUtama || '',
+        ClusterKecil: proposal.ClusterKecil || '',
       }];
     }
     return [makeEmptyItem()];
@@ -97,7 +109,9 @@ const TrainingProposalForm = ({ user, proposal = null, onSuccess }) => {
     return errors;
   };
 
-  const addItem = () => setItems(prev => [...prev, makeEmptyItem()]);
+  const addItem = () => {
+    setItems(prev => [...prev, makeEmptyItem()]);
+  };
   const removeItem = (idx) => setItems(prev => prev.filter((_, i) => i !== idx));
 
   // Handler untuk submit form
@@ -138,6 +152,10 @@ const TrainingProposalForm = ({ user, proposal = null, onSuccess }) => {
           BebanAkomodasi: r.BebanAkomodasi === '' ? null : parseFloat(r.BebanAkomodasi),
           BebanUangSaku: r.BebanUangSaku === '' ? null : parseFloat(r.BebanUangSaku),
           TotalUsulan: rowTotal(r),
+          Jenis: r.Jenis || null,
+          ProgramInisiatifStrategis: r.ProgramInisiatifStrategis || null,
+          ClusterUtama: r.ClusterUtama || null,
+          ClusterKecil: r.ClusterKecil || null,
         }));
 
       const proposalData = {
@@ -152,6 +170,10 @@ const TrainingProposalForm = ({ user, proposal = null, onSuccess }) => {
         BebanAkomodasi: formData.BebanAkomodasi || 0,
         BebanUangSaku: formData.BebanUangSaku || 0,
         TotalUsulan: grandTotal,
+        Jenis: formData.Jenis || null,
+        ProgramInisiatifStrategis: formData.ProgramInisiatifStrategis || null,
+        ClusterUtama: formData.ClusterUtama || null,
+        ClusterKecil: formData.ClusterKecil || null,
         items: normalizedItems,
       };
 
@@ -180,7 +202,11 @@ const TrainingProposalForm = ({ user, proposal = null, onSuccess }) => {
           message: proposal ? 'Usulan pelatihan berhasil diupdate!' : 'Usulan pelatihan berhasil diajukan!',
           onClose: () => {
             setAlertModal(null);
-            if (onSuccess) {
+            // Jika create proposal baru, redirect ke dashboard
+            if (!proposal && onSuccess) {
+              onSuccess(result.proposal);
+            } else if (proposal && onSuccess) {
+              // Jika update, tetap panggil onSuccess untuk callback
               onSuccess(result.proposal);
             }
           }
@@ -200,7 +226,11 @@ const TrainingProposalForm = ({ user, proposal = null, onSuccess }) => {
               BebanTransportasi: '',
               BebanAkomodasi: '',
               BebanUangSaku: '',
-              TotalUsulan: ''
+              TotalUsulan: '',
+              Jenis: '',
+              ProgramInisiatifStrategis: '',
+              ClusterUtama: '',
+              ClusterKecil: ''
             });
             setItems([makeEmptyItem()]);
             setError('');
@@ -239,7 +269,11 @@ const TrainingProposalForm = ({ user, proposal = null, onSuccess }) => {
         BebanTransportasi: '',
         BebanAkomodasi: '',
         BebanUangSaku: '',
-        TotalUsulan: ''
+        TotalUsulan: '',
+        Jenis: '',
+        ProgramInisiatifStrategis: '',
+        ClusterUtama: '',
+        ClusterKecil: ''
       });
     }
     setError('');

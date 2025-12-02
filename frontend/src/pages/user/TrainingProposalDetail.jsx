@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { trainingProposalAPI, updateImplementationStatusAPI } from '../../utils/api';
 import AlertModal from '../../components/AlertModal';
 import ConfirmModal from '../../components/ConfirmModal';
+import EvaluationModal from '../../components/EvaluationModal';
 import './TrainingProposalDetail.css';
 
 const TrainingProposalDetail = ({ proposalId, onEdit, onBack }) => {
@@ -16,6 +17,7 @@ const TrainingProposalDetail = ({ proposalId, onEdit, onBack }) => {
     type: 'info'
   });
   const [confirmModal, setConfirmModal] = useState(null);
+  const [evaluationModal, setEvaluationModal] = useState(null);
   const [isUpdatingImplementation, setIsUpdatingImplementation] = useState(false);
 
   useEffect(() => {
@@ -125,17 +127,17 @@ const TrainingProposalDetail = ({ proposalId, onEdit, onBack }) => {
   const handleUpdateImplementationStatus = async (newStatus) => {
     if (!proposal) return;
     
-    // Konfirmasi jika mengubah ke SUDAH_IMPLEMENTASI
+    // Tampilkan modal evaluasi jika mengubah ke SUDAH_IMPLEMENTASI
     if (newStatus === 'SUDAH_IMPLEMENTASI' && proposal.implementasiStatus !== 'SUDAH_IMPLEMENTASI') {
-      setConfirmModal({
+      setEvaluationModal({
         open: true,
         title: 'Konfirmasi Realisasi',
-        message: 'Apakah Anda yakin proposal ini sudah direalisasikan? Setelah dikonfirmasi, draft TNA akan otomatis dibuat dan dapat dilihat oleh admin dan superadmin.',
-        onConfirm: async () => {
-          await updateImplementationStatus(newStatus);
-          setConfirmModal(null);
+        message: 'Silakan isi evaluasi realisasi sebelum mengkonfirmasi. Setelah dikonfirmasi, draft TNA akan otomatis dibuat dan dapat dilihat oleh admin dan superadmin.',
+        onConfirm: async (evaluasiRealisasi) => {
+          await updateImplementationStatus(newStatus, evaluasiRealisasi);
+          setEvaluationModal(null);
         },
-        onCancel: () => setConfirmModal(null)
+        onCancel: () => setEvaluationModal(null)
       });
       return;
     }
@@ -143,12 +145,12 @@ const TrainingProposalDetail = ({ proposalId, onEdit, onBack }) => {
     await updateImplementationStatus(newStatus);
   };
 
-  const updateImplementationStatus = async (newStatus) => {
+  const updateImplementationStatus = async (newStatus, evaluasiRealisasi = null) => {
     if (!proposal) return;
     
     setIsUpdatingImplementation(true);
     try {
-      const result = await updateImplementationStatusAPI(proposal.id, newStatus);
+      const result = await updateImplementationStatusAPI(proposal.id, newStatus, evaluasiRealisasi);
       if (result.success) {
         // Refresh proposal data untuk mendapatkan data terbaru
         await fetchProposal();
@@ -159,7 +161,7 @@ const TrainingProposalDetail = ({ proposalId, onEdit, onBack }) => {
             open: true,
             type: 'success',
             title: 'Berhasil Dikonfirmasi!',
-            message: `Proposal telah dikonfirmasi sebagai sudah direalisasikan. Draft TNA telah otomatis dibuat dan dapat dilihat oleh admin dan superadmin di halaman Draft TNA 2026.`
+            message: `Proposal telah dikonfirmasi sebagai sudah direalisasikan. Draft TNA telah otomatis dibuat dan dapat dilihat oleh admin dan superadmin di halaman Draft TNA.`
           });
         } else {
           setAlertModal({
@@ -265,6 +267,28 @@ const TrainingProposalDetail = ({ proposalId, onEdit, onBack }) => {
 
       <div className="detail-content">
         <div className="detail-section">
+          <h3>Klasifikasi Usulan</h3>
+          <div className="detail-grid">
+            <div className="detail-item">
+              <label>Jenis</label>
+              <p>{proposal.Jenis || '-'}</p>
+            </div>
+            <div className="detail-item">
+              <label>Program Inisiatif Strategis</label>
+              <p>{proposal.ProgramInisiatifStrategis || '-'}</p>
+            </div>
+            <div className="detail-item">
+              <label>Cluster Utama</label>
+              <p>{proposal.ClusterUtama || '-'}</p>
+            </div>
+            <div className="detail-item">
+              <label>Cluster Kecil</label>
+              <p>{proposal.ClusterKecil || '-'}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="detail-section">
           <h3>Informasi Pelatihan</h3>
           <div className="detail-grid">
             <div className="detail-item">
@@ -320,6 +344,12 @@ const TrainingProposalDetail = ({ proposalId, onEdit, onBack }) => {
                   <div className="implementation-success-message">
                     <p>✓ Proposal ini telah dikonfirmasi sebagai sudah direalisasikan</p>
                     <p>✓ Draft TNA telah otomatis dibuat dan dapat dilihat oleh admin dan superadmin</p>
+                    {proposal.evaluasiRealisasi && (
+                      <div className="evaluation-display">
+                        <h4>Evaluasi Realisasi:</h4>
+                        <p>{proposal.evaluasiRealisasi}</p>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -437,6 +467,18 @@ const TrainingProposalDetail = ({ proposalId, onEdit, onBack }) => {
           cancelText="Batal"
           onConfirm={confirmModal.onConfirm}
           onCancel={confirmModal.onCancel}
+        />
+      )}
+      {/* Evaluation Modal */}
+      {evaluationModal && evaluationModal.open && (
+        <EvaluationModal
+          open={evaluationModal.open}
+          title={evaluationModal.title}
+          message={evaluationModal.message}
+          confirmText={evaluationModal.confirmText}
+          cancelText={evaluationModal.cancelText}
+          onConfirm={evaluationModal.onConfirm}
+          onCancel={evaluationModal.onCancel}
         />
       )}
     </div>

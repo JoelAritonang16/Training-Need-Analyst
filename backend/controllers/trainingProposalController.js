@@ -29,7 +29,7 @@ const createDraftAndRealisasiFromProposal = async (proposalInstance) => {
           include: [{
             model: TrainingProposalItem,
             as: 'items',
-            attributes: ['id', 'Uraian', 'WaktuPelaksanan', 'JumlahPeserta', 'JumlahHariPesertaPelatihan', 'LevelTingkatan', 'Beban', 'BebanTransportasi', 'BebanAkomodasi', 'BebanUangSaku', 'TotalUsulan']
+            attributes: ['id', 'Uraian', 'WaktuPelaksanan', 'JumlahPeserta', 'JumlahHariPesertaPelatihan', 'LevelTingkatan', 'Beban', 'BebanTransportasi', 'BebanAkomodasi', 'BebanUangSaku', 'TotalUsulan', 'Jenis', 'ProgramInisiatifStrategis', 'ClusterUtama', 'ClusterKecil']
           }]
         });
         if (proposalWithItems && proposalWithItems.items) {
@@ -408,7 +408,22 @@ const trainingProposalController = {
       
       const proposals = await TrainingProposal.findAll({ 
         where: whereClause,
-        include: [{ model: TrainingProposalItem, as: 'items' }]
+        include: [{ 
+          model: TrainingProposalItem, 
+          as: 'items',
+          attributes: ['id', 'Uraian', 'WaktuPelaksanan', 'JumlahPeserta', 'JumlahHariPesertaPelatihan', 'LevelTingkatan', 'Beban', 'BebanTransportasi', 'BebanAkomodasi', 'BebanUangSaku', 'TotalUsulan', 'Jenis', 'ProgramInisiatifStrategis', 'ClusterUtama', 'ClusterKecil']
+        }]
+      });
+
+      console.log(`[Export] Found ${proposals.length} proposals for export`);
+      proposals.forEach((p, idx) => {
+        if (p.items && p.items.length > 0) {
+          console.log(`[Export] Proposal ${idx + 1} (ID: ${p.id}) has ${p.items.length} items`);
+          p.items.forEach((item, itemIdx) => {
+            const itemData = item.toJSON ? item.toJSON() : item;
+            console.log(`[Export]   Item ${itemIdx + 1}: Jenis=${itemData.Jenis}, Program=${itemData.ProgramInisiatifStrategis}, ClusterUtama=${itemData.ClusterUtama}, ClusterKecil=${itemData.ClusterKecil}`);
+          });
+        }
       });
 
       const wb = new ExcelJS.Workbook();
@@ -422,10 +437,14 @@ const trainingProposalController = {
         'JUMLAH PESERTA (ORG)',
         'JUMLAH HARI PELAKSANAAN PELATIHAN',
         'LEVEL TINGKATAN (STRUKTURAL/NON STRUKTURAL)',
-        'BEBAN DIKLAT / ORG (Rp.)',
-        'BEBAN TRANSPORTASI DIKLAT / ORG (Rp.)',
-        'BEBAN AKOMODASI DIKLAT / ORG (Rp.)',
-        'BEBAN UANG SAKU DIKLAT / ORG (Rp.)',
+        'JENIS',
+        'PROGRAM INISiatif STRATEGIS',
+        'CLUSTER UTAMA',
+        'CLUSTER KECIL',
+        'BIAYA BEBAN DIKLAT (Rp.)',
+        'BIAYA TRANSPORTASI DIKLAT (Rp.)',
+        'BIAYA AKOMODASI DIKLAT (Rp.)',
+        'BEBAN UANG SAKU DIKLAT (Rp.)',
         'TOTAL USULAN BIAYA DIKLAT (Rp.)',
       ];
       ws.addRow(headers);
@@ -437,49 +456,68 @@ const trainingProposalController = {
       });
 
       // Column widths
-      const widths = [6, 60, 22, 22, 28, 35, 22, 28, 28, 28, 30];
+      const widths = [6, 60, 22, 22, 28, 35, 15, 30, 20, 20, 22, 28, 28, 28, 30];
       widths.forEach((w, i) => (ws.getColumn(i + 1).width = w));
 
       // Data rows: one row per item
       let no = 1;
       proposals.forEach((p) => {
-        const items = Array.isArray(p.items) && p.items.length ? p.items : [
+        // Convert proposal to plain object if needed
+        const proposalData = p.toJSON ? p.toJSON() : p;
+        
+        const items = Array.isArray(proposalData.items) && proposalData.items.length 
+          ? proposalData.items.map(item => item.toJSON ? item.toJSON() : item)
+          : [
           // Backward compatibility: use header-level fields if items absent
           {
-            Uraian: p.Uraian,
-            WaktuPelaksanan: p.WaktuPelaksanan,
-            JumlahPeserta: p.JumlahPeserta,
-            JumlahHariPesertaPelatihan: p.JumlahHariPesertaPelatihan,
-            LevelTingkatan: p.LevelTingkatan,
-            Beban: p.Beban,
-            BebanTransportasi: p.BebanTransportasi,
-            BebanAkomodasi: p.BebanAkomodasi,
-            BebanUangSaku: p.BebanUangSaku,
-            TotalUsulan: p.TotalUsulan,
+                Uraian: proposalData.Uraian,
+                WaktuPelaksanan: proposalData.WaktuPelaksanan,
+                JumlahPeserta: proposalData.JumlahPeserta,
+                JumlahHariPesertaPelatihan: proposalData.JumlahHariPesertaPelatihan,
+                LevelTingkatan: proposalData.LevelTingkatan,
+                Beban: proposalData.Beban,
+                BebanTransportasi: proposalData.BebanTransportasi,
+                BebanAkomodasi: proposalData.BebanAkomodasi,
+                BebanUangSaku: proposalData.BebanUangSaku,
+                TotalUsulan: proposalData.TotalUsulan,
+                Jenis: proposalData.Jenis || null,
+                ProgramInisiatifStrategis: proposalData.ProgramInisiatifStrategis || null,
+                ClusterUtama: proposalData.ClusterUtama || null,
+                ClusterKecil: proposalData.ClusterKecil || null,
           }
         ];
         items.forEach((it) => {
-          const bulan = it.WaktuPelaksanan ? new Date(it.WaktuPelaksanan).toLocaleString('id-ID', { month: 'long', year: 'numeric' }) : '';
+          // Convert Sequelize model to plain object if needed
+          const itemData = it.toJSON ? it.toJSON() : it;
+          
+          const bulan = itemData.WaktuPelaksanan ? new Date(itemData.WaktuPelaksanan).toLocaleString('id-ID', { month: 'long', year: 'numeric' }) : '';
           const row = ws.addRow([
             no++,
-            it.Uraian || '',
+            itemData.Uraian || '',
             bulan,
-            it.JumlahPeserta || 0,
-            it.JumlahHariPesertaPelatihan || 0,
-            it.LevelTingkatan || '',
-            it.Beban || 0,
-            it.BebanTransportasi || 0,
-            it.BebanAkomodasi || 0,
-            it.BebanUangSaku || 0,
-            (it.TotalUsulan != null ? it.TotalUsulan : ((it.Beban||0)+(it.BebanTransportasi||0)+(it.BebanAkomodasi||0)+(it.BebanUangSaku||0))) || 0,
+            itemData.JumlahPeserta || 0,
+            itemData.JumlahHariPesertaPelatihan || 0,
+            itemData.LevelTingkatan || '',
+            itemData.Jenis || '',
+            itemData.ProgramInisiatifStrategis || '',
+            itemData.ClusterUtama || '',
+            itemData.ClusterKecil || '',
+            itemData.Beban || 0,
+            itemData.BebanTransportasi || 0,
+            itemData.BebanAkomodasi || 0,
+            itemData.BebanUangSaku || 0,
+            (itemData.TotalUsulan != null ? itemData.TotalUsulan : ((itemData.Beban||0)+(itemData.BebanTransportasi||0)+(itemData.BebanAkomodasi||0)+(itemData.BebanUangSaku||0))) || 0,
           ]);
           row.eachCell((cell, col) => {
             cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
-            if (col >= 7 && col <= 11) {
+            if (col >= 11 && col <= 15) {
               cell.numFmt = '#,##0';
             }
             if (col === 1 || col === 4 || col === 5) {
               cell.alignment = { horizontal: 'center', vertical: 'middle' };
+            } else if (col >= 7 && col <= 10) {
+              // Kolom klasifikasi: center alignment
+              cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
             } else {
               cell.alignment = { vertical: 'top', wrapText: true };
             }
@@ -495,18 +533,22 @@ const trainingProposalController = {
         0,
         0,
         '',
-        { formula: `SUM(G2:G${ws.lastRow.number})` },
-        { formula: `SUM(H2:H${ws.lastRow.number})` },
-        { formula: `SUM(I2:I${ws.lastRow.number})` },
-        { formula: `SUM(J2:J${ws.lastRow.number})` },
-        { formula: `SUM(K2:K${ws.lastRow.number})` },
+        '',
+        '',
+        '',
+        '',
+        { formula: `SUM(K2:K${ws.lastRow.number})` }, // BIAYA BEBAN
+        { formula: `SUM(L2:L${ws.lastRow.number})` }, // BIAYA TRANSPORTASI
+        { formula: `SUM(M2:M${ws.lastRow.number})` }, // BIAYA AKOMODASI
+        { formula: `SUM(N2:N${ws.lastRow.number})` }, // BEBAN UANG SAKU
+        { formula: `SUM(O2:O${ws.lastRow.number})` }, // TOTAL
       ]);
       lastRow.eachCell((cell, col) => {
         cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF00' } }; // yellow
         cell.font = { bold: col === 2 };
         cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
-        if ([7,8,9,10,11].includes(col)) cell.numFmt = '#,##0';
-        if ([3,4,5].includes(col)) cell.alignment = { horizontal: 'center' };
+        if ([11,12,13,14,15].includes(col)) cell.numFmt = '#,##0';
+        if ([4,5].includes(col)) cell.alignment = { horizontal: 'center' };
       });
 
       const fileName = `training_proposals_${new Date().toISOString().slice(0, 10)}.xlsx`;
@@ -525,7 +567,13 @@ const trainingProposalController = {
     try {
       const proposalId = req.params.id;
       const { id: currentUserId, role: currentUserRole } = req.user;
-      const p = await TrainingProposal.findByPk(proposalId, { include: [{ model: TrainingProposalItem, as: 'items' }] });
+      const p = await TrainingProposal.findByPk(proposalId, { 
+        include: [{ 
+          model: TrainingProposalItem, 
+          as: 'items',
+          attributes: ['id', 'Uraian', 'WaktuPelaksanan', 'JumlahPeserta', 'JumlahHariPesertaPelatihan', 'LevelTingkatan', 'Beban', 'BebanTransportasi', 'BebanAkomodasi', 'BebanUangSaku', 'TotalUsulan', 'Jenis', 'ProgramInisiatifStrategis', 'ClusterUtama', 'ClusterKecil']
+        }] 
+      });
       if (!p) return res.status(404).json({ success: false, message: 'Usulan tidak ditemukan' });
       if (currentUserRole === 'user' && p.userId !== currentUserId) {
         return res.status(403).json({ success: false, message: 'Akses ditolak' });
@@ -534,7 +582,7 @@ const trainingProposalController = {
       const wb = new ExcelJS.Workbook();
       const ws = wb.addWorksheet('Usulan Pelatihan');
       const headers = [
-        'NO','URAIAN','WAKTU PELAKSANAAN (BULAN)','JUMLAH PESERTA (ORG)','JUMLAH HARI PELAKSANAAN PELATIHAN','LEVEL TINGKATAN (STRUKTURAL/NON STRUKTURAL)','BEBAN DIKLAT / ORG (Rp.)','BEBAN TRANSPORTASI DIKLAT / ORG (Rp.)','BEBAN AKOMODASI DIKLAT / ORG (Rp.)','BEBAN UANG SAKU DIKLAT / ORG (Rp.)','TOTAL USULAN BIAYA DIKLAT (Rp.)']
+        'NO','URAIAN','WAKTU PELAKSANAAN (BULAN)','JUMLAH PESERTA (ORG)','JUMLAH HARI PELAKSANAAN PELATIHAN','LEVEL TINGKATAN (STRUKTURAL/NON STRUKTURAL)','JENIS','PROGRAM INISiatif STRATEGIS','CLUSTER UTAMA','CLUSTER KECIL','BIAYA BEBAN DIKLAT (Rp.)','BIAYA TRANSPORTASI DIKLAT (Rp.)','BIAYA AKOMODASI DIKLAT (Rp.)','BEBAN UANG SAKU DIKLAT (Rp.)','TOTAL USULAN BIAYA DIKLAT (Rp.)']
       ws.addRow(headers);
       ws.getRow(1).eachCell((cell)=>{
         cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF007ACC' } };
@@ -542,52 +590,74 @@ const trainingProposalController = {
         cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
         cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
       });
-      const widths = [6,60,22,22,28,35,22,28,28,28,30];
+      const widths = [6,60,22,22,28,35,15,30,20,20,22,28,28,28,30];
       widths.forEach((w,i)=>ws.getColumn(i+1).width=w);
 
-      const items = Array.isArray(p.items) && p.items.length ? p.items : [{
-        Uraian: p.Uraian,
-        WaktuPelaksanan: p.WaktuPelaksanan,
-        JumlahPeserta: p.JumlahPeserta,
-        JumlahHariPesertaPelatihan: p.JumlahHariPesertaPelatihan,
-        LevelTingkatan: p.LevelTingkatan,
-        Beban: p.Beban,
-        BebanTransportasi: p.BebanTransportasi,
-        BebanAkomodasi: p.BebanAkomodasi,
-        BebanUangSaku: p.BebanUangSaku,
-        TotalUsulan: p.TotalUsulan,
+      // Convert proposal to plain object if needed
+      const proposalData = p.toJSON ? p.toJSON() : p;
+      
+      const items = Array.isArray(proposalData.items) && proposalData.items.length 
+        ? proposalData.items.map(item => item.toJSON ? item.toJSON() : item)
+        : [{
+            Uraian: proposalData.Uraian,
+            WaktuPelaksanan: proposalData.WaktuPelaksanan,
+            JumlahPeserta: proposalData.JumlahPeserta,
+            JumlahHariPesertaPelatihan: proposalData.JumlahHariPesertaPelatihan,
+            LevelTingkatan: proposalData.LevelTingkatan,
+            Beban: proposalData.Beban,
+            BebanTransportasi: proposalData.BebanTransportasi,
+            BebanAkomodasi: proposalData.BebanAkomodasi,
+            BebanUangSaku: proposalData.BebanUangSaku,
+            TotalUsulan: proposalData.TotalUsulan,
+            Jenis: proposalData.Jenis || null,
+            ProgramInisiatifStrategis: proposalData.ProgramInisiatifStrategis || null,
+            ClusterUtama: proposalData.ClusterUtama || null,
+            ClusterKecil: proposalData.ClusterKecil || null,
       }];
       let idx = 1;
       items.forEach((it) => {
-        const bulan = it.WaktuPelaksanan ? new Date(it.WaktuPelaksanan).toLocaleString('id-ID', { month: 'long', year: 'numeric' }) : '';
+        // Convert item to plain object if needed
+        const itemData = it.toJSON ? it.toJSON() : it;
+        
+        const bulan = itemData.WaktuPelaksanan ? new Date(itemData.WaktuPelaksanan).toLocaleString('id-ID', { month: 'long', year: 'numeric' }) : '';
         const row = ws.addRow([
           idx++,
-          it.Uraian || '',
+          itemData.Uraian || '',
           bulan,
-          it.JumlahPeserta || 0,
-          it.JumlahHariPesertaPelatihan || 0,
-          it.LevelTingkatan || '',
-          it.Beban || 0,
-          it.BebanTransportasi || 0,
-          it.BebanAkomodasi || 0,
-          it.BebanUangSaku || 0,
-          (it.TotalUsulan != null ? it.TotalUsulan : ((it.Beban||0)+(it.BebanTransportasi||0)+(it.BebanAkomodasi||0)+(it.BebanUangSaku||0))) || 0,
+          itemData.JumlahPeserta || 0,
+          itemData.JumlahHariPesertaPelatihan || 0,
+          itemData.LevelTingkatan || '',
+          itemData.Jenis || '',
+          itemData.ProgramInisiatifStrategis || '',
+          itemData.ClusterUtama || '',
+          itemData.ClusterKecil || '',
+          itemData.Beban || 0,
+          itemData.BebanTransportasi || 0,
+          itemData.BebanAkomodasi || 0,
+          itemData.BebanUangSaku || 0,
+          (itemData.TotalUsulan != null ? itemData.TotalUsulan : ((itemData.Beban||0)+(itemData.BebanTransportasi||0)+(itemData.BebanAkomodasi||0)+(itemData.BebanUangSaku||0))) || 0,
         ]);
         row.eachCell((cell, col)=>{
           cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
-          if (col >= 7 && col <= 11) cell.numFmt = '#,##0';
-          if (col === 1 || col === 4 || col === 5) cell.alignment = { horizontal: 'center', vertical: 'middle' };
-          else cell.alignment = { vertical: 'top', wrapText: true };
+          if (col >= 11 && col <= 15) cell.numFmt = '#,##0';
+          if (col === 1 || col === 4 || col === 5) {
+            cell.alignment = { horizontal: 'center', vertical: 'middle' };
+          } else if (col >= 7 && col <= 10) {
+            // Kolom klasifikasi: center alignment
+            cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+          } else {
+            cell.alignment = { vertical: 'top', wrapText: true };
+          }
         });
       });
 
       const last = ws.lastRow.number;
-      const total = ws.addRow(['','Total Biaya','',0,0,'', {formula:`SUM(G2:G${last})`},{formula:`SUM(H2:H${last})`},{formula:`SUM(I2:I${last})`},{formula:`SUM(J2:J${last})`},{formula:`SUM(K2:K${last})`}]);
+      const total = ws.addRow(['','Total Biaya','',0,0,'','','','','', {formula:`SUM(K2:K${last})`},{formula:`SUM(L2:L${last})`},{formula:`SUM(M2:M${last})`},{formula:`SUM(N2:N${last})`},{formula:`SUM(O2:O${last})`}]);
       total.eachCell((cell,col)=>{
         cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF00' } };
         cell.font = { bold: col===2 };
         cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
-        if ([7,8,9,10,11].includes(col)) cell.numFmt = '#,##0';
+        if ([11,12,13,14,15].includes(col)) cell.numFmt = '#,##0';
       });
 
       const fileName = `training_proposal_${p.id}.xlsx`;
@@ -620,6 +690,10 @@ const trainingProposalController = {
         BebanAkomodasi,
         BebanUangSaku,
         TotalUsulan,
+        Jenis,
+        ProgramInisiatifStrategis,
+        ClusterUtama,
+        ClusterKecil,
         items,
       } = req.body;
 
@@ -668,6 +742,10 @@ const trainingProposalController = {
         BebanAkomodasi,
         BebanUangSaku,
         TotalUsulan,
+        Jenis: Jenis || null,
+        ProgramInisiatifStrategis: ProgramInisiatifStrategis || null,
+        ClusterUtama: ClusterUtama || null,
+        ClusterKecil: ClusterKecil || null,
         userId,
         branchId: branchId, // Auto-assign branchId from user
         status: 'MENUNGGU' // Explicitly set status to MENUNGGU for new proposals
@@ -692,7 +770,7 @@ const trainingProposalController = {
             const AkomVal = parseFloat(it.BebanAkomodasi) || 0;
             const SakuVal = parseFloat(it.BebanUangSaku) || 0;
             const total = it.TotalUsulan != null ? parseFloat(it.TotalUsulan) : (BebanVal + TransVal + AkomVal + SakuVal);
-            return {
+            const itemData = {
               proposalId: newProposal.id,
               Uraian: it.Uraian,
               WaktuPelaksanan: it.WaktuPelaksanan || null,
@@ -704,11 +782,19 @@ const trainingProposalController = {
               BebanAkomodasi: AkomVal,
               BebanUangSaku: SakuVal,
               TotalUsulan: total,
+              Jenis: (it.Jenis && it.Jenis.trim() !== '') ? it.Jenis.trim() : null,
+              ProgramInisiatifStrategis: (it.ProgramInisiatifStrategis && it.ProgramInisiatifStrategis.trim() !== '') ? it.ProgramInisiatifStrategis.trim() : null,
+              ClusterUtama: (it.ClusterUtama && it.ClusterUtama.trim() !== '') ? it.ClusterUtama.trim() : null,
+              ClusterKecil: (it.ClusterKecil && it.ClusterKecil.trim() !== '') ? it.ClusterKecil.trim() : null,
             };
+            console.log(`[Create] Item classification: Jenis=${itemData.Jenis}, Program=${itemData.ProgramInisiatifStrategis}, ClusterUtama=${itemData.ClusterUtama}, ClusterKecil=${itemData.ClusterKecil}`);
+            return itemData;
           });
+        console.log(`[Create] Creating ${itemsToCreate.length} items with classification data`);
         await TrainingProposalItem.bulkCreate(itemsToCreate);
         const grandTotal = itemsToCreate.reduce((acc, it) => acc + (it.TotalUsulan || 0), 0);
         await newProposal.update({ TotalUsulan: grandTotal });
+        console.log(`[Create] Items created successfully with classification data`);
       }
       
       console.log('Proposal berhasil dibuat:', newProposal);
@@ -851,6 +937,10 @@ const trainingProposalController = {
               BebanAkomodasi: AkomVal,
               BebanUangSaku: SakuVal,
               TotalUsulan: total,
+              Jenis: (it.Jenis && it.Jenis.trim() !== '') ? it.Jenis.trim() : null,
+              ProgramInisiatifStrategis: (it.ProgramInisiatifStrategis && it.ProgramInisiatifStrategis.trim() !== '') ? it.ProgramInisiatifStrategis.trim() : null,
+              ClusterUtama: (it.ClusterUtama && it.ClusterUtama.trim() !== '') ? it.ClusterUtama.trim() : null,
+              ClusterKecil: (it.ClusterKecil && it.ClusterKecil.trim() !== '') ? it.ClusterKecil.trim() : null,
             };
           });
         if (itemsToCreate.length) await TrainingProposalItem.bulkCreate(itemsToCreate);
@@ -926,7 +1016,7 @@ const trainingProposalController = {
           {
             model: TrainingProposalItem,
             as: 'items',
-            attributes: ['id', 'Uraian', 'WaktuPelaksanan', 'JumlahPeserta', 'JumlahHariPesertaPelatihan', 'LevelTingkatan', 'Beban', 'BebanTransportasi', 'BebanAkomodasi', 'BebanUangSaku', 'TotalUsulan']
+            attributes: ['id', 'Uraian', 'WaktuPelaksanan', 'JumlahPeserta', 'JumlahHariPesertaPelatihan', 'LevelTingkatan', 'Beban', 'BebanTransportasi', 'BebanAkomodasi', 'BebanUangSaku', 'TotalUsulan', 'Jenis', 'ProgramInisiatifStrategis', 'ClusterUtama', 'ClusterKecil']
           },
           {
             model: User,
@@ -1007,7 +1097,7 @@ const trainingProposalController = {
           {
             model: TrainingProposalItem,
             as: 'items',
-            attributes: ['id', 'Uraian', 'WaktuPelaksanan', 'JumlahPeserta', 'JumlahHariPesertaPelatihan', 'LevelTingkatan', 'Beban', 'BebanTransportasi', 'BebanAkomodasi', 'BebanUangSaku', 'TotalUsulan']
+            attributes: ['id', 'Uraian', 'WaktuPelaksanan', 'JumlahPeserta', 'JumlahHariPesertaPelatihan', 'LevelTingkatan', 'Beban', 'BebanTransportasi', 'BebanAkomodasi', 'BebanUangSaku', 'TotalUsulan', 'Jenis', 'ProgramInisiatifStrategis', 'ClusterUtama', 'ClusterKecil']
           }
         ]
       });
@@ -1111,7 +1201,7 @@ const trainingProposalController = {
           {
             model: TrainingProposalItem,
             as: 'items',
-            attributes: ['id', 'Uraian', 'WaktuPelaksanan', 'JumlahPeserta', 'JumlahHariPesertaPelatihan', 'LevelTingkatan', 'Beban', 'BebanTransportasi', 'BebanAkomodasi', 'BebanUangSaku', 'TotalUsulan']
+            attributes: ['id', 'Uraian', 'WaktuPelaksanan', 'JumlahPeserta', 'JumlahHariPesertaPelatihan', 'LevelTingkatan', 'Beban', 'BebanTransportasi', 'BebanAkomodasi', 'BebanUangSaku', 'TotalUsulan', 'Jenis', 'ProgramInisiatifStrategis', 'ClusterUtama', 'ClusterKecil']
           }
         ]
       });
@@ -1255,6 +1345,10 @@ const trainingProposalController = {
       // Define fields to export
       const headers = [
         "ID",
+        "Jenis",
+        "ProgramInisiatifStrategis",
+        "ClusterUtama",
+        "ClusterKecil",
         "Uraian",
         "WaktuPelaksanan",
         "JumlahPeserta",
@@ -1283,6 +1377,10 @@ const trainingProposalController = {
 
       const rows = proposals.map((p) => [
         p.id,
+        p.Jenis || "",
+        p.ProgramInisiatifStrategis || "",
+        p.ClusterUtama || "",
+        p.ClusterKecil || "",
         p.Uraian,
         p.WaktuPelaksanan ? new Date(p.WaktuPelaksanan).toISOString() : "",
         p.JumlahPeserta,
@@ -1398,7 +1496,7 @@ const trainingProposalController = {
   async updateImplementationStatus(req, res) {
     try {
       const proposalId = req.params.id;
-      const { implementasiStatus } = req.body;
+      const { implementasiStatus, evaluasiRealisasi } = req.body;
       const { id: currentUserId, role: currentUserRole } = req.user;
 
       // Validasi implementasiStatus
@@ -1408,6 +1506,16 @@ const trainingProposalController = {
           success: false,
           message: "Status implementasi tidak valid",
         });
+      }
+
+      // Validasi: jika status SUDAH_IMPLEMENTASI, evaluasiRealisasi wajib diisi
+      if (implementasiStatus === 'SUDAH_IMPLEMENTASI') {
+        if (!evaluasiRealisasi || evaluasiRealisasi.trim() === '') {
+          return res.status(400).json({
+            success: false,
+            message: "Evaluasi Realisasi wajib diisi sebelum mengkonfirmasi realisasi",
+          });
+        }
       }
 
       // Cek apakah proposal ada dengan include user, branch, dan items untuk membuat draft
@@ -1426,7 +1534,7 @@ const trainingProposalController = {
           {
             model: TrainingProposalItem,
             as: 'items',
-            attributes: ['id', 'Uraian', 'WaktuPelaksanan', 'JumlahPeserta', 'JumlahHariPesertaPelatihan', 'LevelTingkatan', 'Beban', 'BebanTransportasi', 'BebanAkomodasi', 'BebanUangSaku', 'TotalUsulan']
+            attributes: ['id', 'Uraian', 'WaktuPelaksanan', 'JumlahPeserta', 'JumlahHariPesertaPelatihan', 'LevelTingkatan', 'Beban', 'BebanTransportasi', 'BebanAkomodasi', 'BebanUangSaku', 'TotalUsulan', 'Jenis', 'ProgramInisiatifStrategis', 'ClusterUtama', 'ClusterKecil']
           }
         ]
       });
@@ -1457,8 +1565,16 @@ const trainingProposalController = {
       // Get old status
       const oldStatus = proposal.implementasiStatus;
       
-      // Update status implementasi
-      await proposal.update({ implementasiStatus });
+      // Prepare update data
+      const updateData = { implementasiStatus };
+      
+      // Jika status SUDAH_IMPLEMENTASI, simpan evaluasiRealisasi
+      if (implementasiStatus === 'SUDAH_IMPLEMENTASI' && evaluasiRealisasi) {
+        updateData.evaluasiRealisasi = evaluasiRealisasi.trim();
+      }
+      
+      // Update status implementasi dan evaluasi
+      await proposal.update(updateData);
 
       console.log(`Status implementasi proposal ${proposalId} diupdate menjadi ${implementasiStatus}`);
 
@@ -1480,7 +1596,7 @@ const trainingProposalController = {
             {
               model: TrainingProposalItem,
               as: 'items',
-              attributes: ['id', 'Uraian', 'WaktuPelaksanan', 'JumlahPeserta', 'JumlahHariPesertaPelatihan', 'LevelTingkatan', 'Beban', 'BebanTransportasi', 'BebanAkomodasi', 'BebanUangSaku', 'TotalUsulan']
+              attributes: ['id', 'Uraian', 'WaktuPelaksanan', 'JumlahPeserta', 'JumlahHariPesertaPelatihan', 'LevelTingkatan', 'Beban', 'BebanTransportasi', 'BebanAkomodasi', 'BebanUangSaku', 'TotalUsulan', 'Jenis', 'ProgramInisiatifStrategis', 'ClusterUtama', 'ClusterKecil']
             }
           ]
         });

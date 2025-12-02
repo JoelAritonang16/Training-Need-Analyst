@@ -80,7 +80,7 @@ const DashboardOverview = ({ user, proposals, onNavigate }) => {
       {/* Modern Header Banner */}
       <div className="dashboard-header-banner">
         <h1>Dashboard User</h1>
-        <p>Selamat datang di panel dashboard user - Kelola usulan pelatihan dan draft TNA 2026 Anda</p>
+        <p>Selamat datang di panel dashboard user - Kelola usulan pelatihan dan draft TNA Anda</p>
       </div>
 
       {/* Metric Cards with Icons */}
@@ -134,7 +134,7 @@ const DashboardOverview = ({ user, proposals, onNavigate }) => {
           <div className="stat-icon"><LuFileText size={20} /></div>
           <div className="stat-content">
             <h3>{totalDrafts}</h3>
-            <p>Draft TNA 2026</p>
+            <p>Draft TNA</p>
             <small>Divisi: {user?.divisi?.nama || 'N/A'}</small>
           </div>
         </div>
@@ -188,7 +188,7 @@ const DashboardOverview = ({ user, proposals, onNavigate }) => {
           {/* Draft Status Donut Chart */}
           {totalDrafts > 0 && (
             <div className="chart-card">
-              <h4>Status Draft TNA 2026</h4>
+              <h4>Status Draft TNA</h4>
               <ResponsiveContainer width="100%" height={280}>
                 <PieChart>
                   <Pie

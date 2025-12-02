@@ -6,6 +6,10 @@ const emptyRow = () => ({
   JumlahPeserta: '',
   JumlahHariPesertaPelatihan: '',
   LevelTingkatan: 'NON STRUKTURAL',
+  Jenis: '',
+  ProgramInisiatifStrategis: '',
+  ClusterUtama: '',
+  ClusterKecil: '',
   Beban: '',
   BebanTransportasi: '',
   BebanAkomodasi: '',
@@ -49,9 +53,13 @@ const TrainingProposalItemsTable = ({ items, onChange, onAdd, onRemove }) => {
               <th>Jlh Peserta</th>
               <th>Jlh Hari</th>
               <th>Level</th>
-              <th>Beban</th>
-              <th>Transport</th>
-              <th>Akomodasi</th>
+              <th>Jenis</th>
+              <th>Program Inisiatif Strategis</th>
+              <th>Cluster Utama</th>
+              <th>Cluster Kecil</th>
+              <th>Biaya Beban</th>
+              <th>Biaya Transport</th>
+              <th>Biaya Akomodasi</th>
               <th>Uang Saku</th>
               <th>Total</th>
               <th></th>
@@ -70,6 +78,53 @@ const TrainingProposalItemsTable = ({ items, onChange, onAdd, onRemove }) => {
                   <select value={row.LevelTingkatan} onChange={(e) => update(idx, 'LevelTingkatan', e.target.value)}>
                     <option value="NON STRUKTURAL">NON STRUKTURAL</option>
                     <option value="STRUKTURAL">STRUKTURAL</option>
+                  </select>
+                </td>
+                <td>
+                  <select value={row.Jenis || ''} onChange={(e) => update(idx, 'Jenis', e.target.value)}>
+                    <option value="">-- Pilih --</option>
+                    <option value="Pelatihan">Pelatihan</option>
+                    <option value="Workshop">Workshop</option>
+                    <option value="Sertifikasi">Sertifikasi</option>
+                  </select>
+                </td>
+                <td>
+                  <select value={row.ProgramInisiatifStrategis || ''} onChange={(e) => update(idx, 'ProgramInisiatifStrategis', e.target.value)}>
+                    <option value="">-- Pilih --</option>
+                    <option value="Standarisasi Operasi">Standarisasi Operasi</option>
+                    <option value="Knowledge">Knowledge</option>
+                    <option value="Keuangan">Keuangan</option>
+                    <option value="Manajemen Risiko">Manajemen Risiko</option>
+                  </select>
+                </td>
+                <td>
+                  <select value={row.ClusterUtama || ''} onChange={(e) => update(idx, 'ClusterUtama', e.target.value)}>
+                    <option value="">-- Pilih --</option>
+                    <option value="Operasional">Operasional</option>
+                    <option value="Leadership">Leadership</option>
+                    <option value="Knowledge">Knowledge</option>
+                    <option value="Keuangan">Keuangan</option>
+                    <option value="Manajemen Risiko">Manajemen Risiko</option>
+                    <option value="Audit">Audit</option>
+                  </select>
+                </td>
+                <td>
+                  <select value={row.ClusterKecil || ''} onChange={(e) => update(idx, 'ClusterKecil', e.target.value)}>
+                    <option value="">-- Pilih --</option>
+                    <option value="HSSE">HSSE</option>
+                    <option value="IT">IT</option>
+                    <option value="Keuangan">Keuangan</option>
+                    <option value="Komersil">Komersil</option>
+                    <option value="Leadership">Leadership</option>
+                    <option value="Operasional">Operasional</option>
+                    <option value="Risiko">Risiko</option>
+                    <option value="SDM">SDM</option>
+                    <option value="Sistem Manajemen">Sistem Manajemen</option>
+                    <option value="SPI">SPI</option>
+                    <option value="Umum">Umum</option>
+                    <option value="Hukum">Hukum</option>
+                    <option value="Komunikasi">Komunikasi</option>
+                    <option value="Pengadaan">Pengadaan</option>
                   </select>
                 </td>
                 <td><input type="number" value={row.Beban} onChange={(e) => update(idx, 'Beban', e.target.value)} min="0" /></td>
@@ -92,7 +147,7 @@ const TrainingProposalItemsTable = ({ items, onChange, onAdd, onRemove }) => {
 
           <tfoot>
             <tr>
-              <td colSpan={10} style={{ textAlign: 'right', fontWeight: 'bold' }}>Total Usulan</td>
+              <td colSpan={14} style={{ textAlign: 'right', fontWeight: 'bold' }}>Total Usulan</td>
               <td style={{ textAlign: 'right', fontWeight: 'bold', color: '#0077b6' }}>
                 Rp {grandTotal.toLocaleString('id-ID')}
               </td>

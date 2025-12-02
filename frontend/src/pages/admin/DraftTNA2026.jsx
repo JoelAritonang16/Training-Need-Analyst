@@ -75,8 +75,19 @@ const DraftTNA2026 = ({ user, currentUserRole, onNavigate }) => {
     }
   };
 
-  const handleView = (draft) => {
+  const handleView = async (draft) => {
+    try {
+      // Fetch draft detail untuk mendapatkan evaluasi realisasi
+      const result = await draftTNA2026API.getById(draft.id);
+      if (result.success && result.draft) {
+        setSelectedDraft(result.draft);
+      } else {
+        setSelectedDraft(draft);
+      }
+    } catch (err) {
+      console.error('Error fetching draft details:', err);
     setSelectedDraft(draft);
+    }
     setIsEditMode(false);
     setIsModalOpen(true);
   };
@@ -236,8 +247,8 @@ const DraftTNA2026 = ({ user, currentUserRole, onNavigate }) => {
     <div className="draft-container">
       <div className="content-header">
         <div>
-          <h2>Draft TNA 2026</h2>
-          <p>Manajemen draft usulan Training Need Analysis 2026</p>
+          <h2>Draft TNA</h2>
+          <p>Manajemen draft usulan Training Need Analysis</p>
         </div>
         {currentUserRole === 'superadmin' && (
           <button className="btn-create" onClick={handleCreate}>
@@ -250,7 +261,7 @@ const DraftTNA2026 = ({ user, currentUserRole, onNavigate }) => {
       {drafts.length === 0 ? (
         <div className="empty-state">
           <LuFileText size={48} />
-          <p>Tidak ada draft TNA 2026</p>
+          <p>Tidak ada draft TNA</p>
         </div>
       ) : (
         <div className="draft-table-container">
@@ -401,20 +412,33 @@ const DraftModal = ({ draft, isEditMode, isSuperadmin, isAdmin, branches, divisi
     });
   };
 
-  const formatCurrency = (value) => {
-    if (!value && value !== 0) return '0';
+  // Format currency untuk display (Rp 1.500.000)
+  const formatCurrencyDisplay = (value) => {
+    if (value === null || value === undefined || value === '') return 'Rp 0';
     const numValue = parseFloat(value) || 0;
-    if (numValue === 0) return '0';
-    
-    // Convert to millions (Juta) for display in input fields
-    const inMillions = numValue / 1000000;
-    
-    // Format with 2 decimal places if needed, otherwise no decimals
-    const formatted = inMillions % 1 === 0 
-      ? inMillions.toLocaleString('id-ID', { maximumFractionDigits: 0 })
-      : inMillions.toLocaleString('id-ID', { maximumFractionDigits: 2, minimumFractionDigits: 2 });
-    
-    return `${formatted} Juta`;
+    if (numValue === 0) return 'Rp 0';
+    // Pastikan format selalu lengkap dengan toLocaleString
+    const formatted = numValue.toLocaleString('id-ID', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    });
+    return `Rp ${formatted}`;
+  };
+
+  // Format currency untuk input (tanpa Rp, hanya angka)
+  const formatCurrencyInput = (value) => {
+    if (!value && value !== 0) return '';
+    const numValue = parseFloat(value) || 0;
+    if (numValue === 0) return '';
+    return numValue.toLocaleString('id-ID');
+  };
+
+  // Parse currency dari string ke number
+  const parseCurrency = (value) => {
+    if (!value) return 0;
+    // Hapus semua karakter non-digit kecuali koma dan titik
+    const cleaned = value.toString().replace(/[^\d]/g, '');
+    return parseFloat(cleaned) || 0;
   };
 
   const handleSubmit = (e) => {
@@ -441,57 +465,49 @@ const DraftModal = ({ draft, isEditMode, isSuperadmin, isAdmin, branches, divisi
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h3>{isViewOnly ? 'Detail Draft TNA 2026' : isEditMode ? 'Edit Draft TNA 2026' : 'Buat Draft TNA 2026'}</h3>
+          <h3>{isViewOnly ? 'Detail Draft TNA' : isEditMode ? 'Edit Draft TNA' : 'Buat Draft TNA'}</h3>
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
         <form onSubmit={handleSubmit}>
-          <div className="form-grid">
-            <div className="form-group">
+          <div className="form-grid-ultra-compact">
+            {/* Row 1: Branch, Divisi, Uraian (full width) */}
+            <div className="form-group form-span-1">
               <label>Branch *</label>
-              <select
-                name="branchId"
-                value={formData.branchId}
-                onChange={handleChange}
-                required
-                disabled={isViewOnly}
-              >
-                <option value="">Pilih Branch</option>
-                {branches.map(b => (
-                  <option key={b.id} value={b.id}>{b.nama}</option>
-                ))}
-              </select>
+              <input
+                type="text"
+                value={draft?.branch?.nama || branches.find(b => b.id === formData.branchId)?.nama || ''}
+                readOnly
+                disabled
+                className="readonly-field"
+              />
             </div>
 
-            <div className="form-group">
+            <div className="form-group form-span-1">
               <label>Divisi</label>
-              <select
-                name="divisiId"
-                value={formData.divisiId}
-                onChange={handleChange}
-                disabled={isViewOnly}
-              >
-                <option value="">Pilih Divisi (Opsional)</option>
-                {divisi.map(d => (
-                  <option key={d.id} value={d.id}>{d.nama}</option>
-                ))}
-              </select>
+              <input
+                type="text"
+                value={draft?.divisi?.nama || divisi.find(d => d.id === formData.divisiId)?.nama || '-'}
+                readOnly
+                disabled
+                className="readonly-field"
+              />
             </div>
 
-            <div className="form-group form-full-width">
+            <div className="form-group form-span-2">
               <label>Uraian *</label>
-              <textarea
+              <input
+                type="text"
                 name="uraian"
                 value={formData.uraian}
                 onChange={handleChange}
                 required
                 disabled={isViewOnly}
-                rows={1}
+                placeholder="Masukkan uraian"
               />
             </div>
 
-            <hr className="form-section-divider" />
-
-            <div className="form-group form-span-2">
+            {/* Row 2: Waktu, Peserta, Hari, Level */}
+            <div className="form-group form-span-1">
               <label>Waktu Pelaksanaan *</label>
               <input
                 type="date"
@@ -503,7 +519,7 @@ const DraftModal = ({ draft, isEditMode, isSuperadmin, isAdmin, branches, divisi
               />
             </div>
 
-            <div className="form-group">
+            <div className="form-group form-span-1">
               <label>Jumlah Peserta *</label>
               <input
                 type="text"
@@ -514,13 +530,12 @@ const DraftModal = ({ draft, isEditMode, isSuperadmin, isAdmin, branches, divisi
                   handleChange({ target: { name: 'jumlahPeserta', value: numericValue } });
                 }}
                 required
-                min="1"
                 disabled={isViewOnly}
                 placeholder="0"
               />
             </div>
 
-            <div className="form-group">
+            <div className="form-group form-span-1">
               <label>Jumlah Hari *</label>
               <input
                 type="text"
@@ -531,13 +546,12 @@ const DraftModal = ({ draft, isEditMode, isSuperadmin, isAdmin, branches, divisi
                   handleChange({ target: { name: 'jumlahHari', value: numericValue } });
                 }}
                 required
-                min="1"
                 disabled={isViewOnly}
                 placeholder="0"
               />
             </div>
 
-            <div className="form-group">
+            <div className="form-group form-span-1">
               <label>Level Tingkatan *</label>
               <select
                 name="levelTingkatan"
@@ -551,18 +565,17 @@ const DraftModal = ({ draft, isEditMode, isSuperadmin, isAdmin, branches, divisi
               </select>
             </div>
 
-            <hr className="form-section-divider" />
-
-            <div className="form-group">
-              <label>Beban (Rp) *</label>
+            {/* Row 3: Biaya - Beban, Transportasi, Akomodasi, Uang Saku */}
+            <div className="form-group form-span-1">
+              <label>Beban *</label>
               <input
                 type="text"
                 name="beban"
-                value={isViewOnly || focusedField !== 'beban' ? formatCurrency(formData.beban) : (formData.beban || '')}
+                value={isViewOnly || focusedField !== 'beban' ? formatCurrencyDisplay(formData.beban) : formatCurrencyInput(formData.beban)}
                 onChange={(e) => {
-                  const numericValue = e.target.value.replace(/[^\d]/g, '');
+                  const parsed = parseCurrency(e.target.value);
                   setFormData(prev => {
-                    const newData = { ...prev, beban: numericValue || 0 };
+                    const newData = { ...prev, beban: parsed };
                     const beban = parseFloat(newData.beban) || 0;
                     const transportasi = parseFloat(newData.bebanTransportasi) || 0;
                     const akomodasi = parseFloat(newData.bebanAkomodasi) || 0;
@@ -574,26 +587,26 @@ const DraftModal = ({ draft, isEditMode, isSuperadmin, isAdmin, branches, divisi
                 onFocus={() => setFocusedField('beban')}
                 onBlur={() => {
                   setFocusedField(null);
-                  if (!isViewOnly) {
-                    setFormData(prev => ({ ...prev, beban: prev.beban || '0' }));
+                  if (!isViewOnly && formData.beban) {
+                    setFormData(prev => ({ ...prev, beban: parseFloat(prev.beban) || 0 }));
                   }
                 }}
                 required
                 disabled={isViewOnly}
-                placeholder="0"
+                placeholder="Rp 0"
               />
             </div>
 
-            <div className="form-group">
-              <label>Transportasi (Rp) *</label>
+            <div className="form-group form-span-1">
+              <label>Transportasi *</label>
               <input
                 type="text"
                 name="bebanTransportasi"
-                value={isViewOnly || focusedField !== 'bebanTransportasi' ? formatCurrency(formData.bebanTransportasi) : (formData.bebanTransportasi || '')}
+                value={isViewOnly || focusedField !== 'bebanTransportasi' ? formatCurrencyDisplay(formData.bebanTransportasi) : formatCurrencyInput(formData.bebanTransportasi)}
                 onChange={(e) => {
-                  const numericValue = e.target.value.replace(/[^\d]/g, '');
+                  const parsed = parseCurrency(e.target.value);
                   setFormData(prev => {
-                    const newData = { ...prev, bebanTransportasi: numericValue || 0 };
+                    const newData = { ...prev, bebanTransportasi: parsed };
                     const beban = parseFloat(newData.beban) || 0;
                     const transportasi = parseFloat(newData.bebanTransportasi) || 0;
                     const akomodasi = parseFloat(newData.bebanAkomodasi) || 0;
@@ -605,26 +618,26 @@ const DraftModal = ({ draft, isEditMode, isSuperadmin, isAdmin, branches, divisi
                 onFocus={() => setFocusedField('bebanTransportasi')}
                 onBlur={() => {
                   setFocusedField(null);
-                  if (!isViewOnly) {
-                    setFormData(prev => ({ ...prev, bebanTransportasi: prev.bebanTransportasi || '0' }));
+                  if (!isViewOnly && formData.bebanTransportasi) {
+                    setFormData(prev => ({ ...prev, bebanTransportasi: parseFloat(prev.bebanTransportasi) || 0 }));
                   }
                 }}
                 required
                 disabled={isViewOnly}
-                placeholder="0"
+                placeholder="Rp 0"
               />
             </div>
 
-            <div className="form-group">
-              <label>Akomodasi (Rp) *</label>
+            <div className="form-group form-span-1">
+              <label>Akomodasi *</label>
               <input
                 type="text"
                 name="bebanAkomodasi"
-                value={isViewOnly || focusedField !== 'bebanAkomodasi' ? formatCurrency(formData.bebanAkomodasi) : (formData.bebanAkomodasi || '')}
+                value={isViewOnly || focusedField !== 'bebanAkomodasi' ? formatCurrencyDisplay(formData.bebanAkomodasi) : formatCurrencyInput(formData.bebanAkomodasi)}
                 onChange={(e) => {
-                  const numericValue = e.target.value.replace(/[^\d]/g, '');
+                  const parsed = parseCurrency(e.target.value);
                   setFormData(prev => {
-                    const newData = { ...prev, bebanAkomodasi: numericValue || 0 };
+                    const newData = { ...prev, bebanAkomodasi: parsed };
                     const beban = parseFloat(newData.beban) || 0;
                     const transportasi = parseFloat(newData.bebanTransportasi) || 0;
                     const akomodasi = parseFloat(newData.bebanAkomodasi) || 0;
@@ -636,26 +649,26 @@ const DraftModal = ({ draft, isEditMode, isSuperadmin, isAdmin, branches, divisi
                 onFocus={() => setFocusedField('bebanAkomodasi')}
                 onBlur={() => {
                   setFocusedField(null);
-                  if (!isViewOnly) {
-                    setFormData(prev => ({ ...prev, bebanAkomodasi: prev.bebanAkomodasi || '0' }));
+                  if (!isViewOnly && formData.bebanAkomodasi) {
+                    setFormData(prev => ({ ...prev, bebanAkomodasi: parseFloat(prev.bebanAkomodasi) || 0 }));
                   }
                 }}
                 required
                 disabled={isViewOnly}
-                placeholder="0"
+                placeholder="Rp 0"
               />
             </div>
 
-            <div className="form-group">
-              <label>Uang Saku (Rp) *</label>
+            <div className="form-group form-span-1">
+              <label>Uang Saku *</label>
               <input
                 type="text"
                 name="bebanUangSaku"
-                value={isViewOnly || focusedField !== 'bebanUangSaku' ? formatCurrency(formData.bebanUangSaku) : (formData.bebanUangSaku || '')}
+                value={isViewOnly || focusedField !== 'bebanUangSaku' ? formatCurrencyDisplay(formData.bebanUangSaku) : formatCurrencyInput(formData.bebanUangSaku)}
                 onChange={(e) => {
-                  const numericValue = e.target.value.replace(/[^\d]/g, '');
+                  const parsed = parseCurrency(e.target.value);
                   setFormData(prev => {
-                    const newData = { ...prev, bebanUangSaku: numericValue || 0 };
+                    const newData = { ...prev, bebanUangSaku: parsed };
                     const beban = parseFloat(newData.beban) || 0;
                     const transportasi = parseFloat(newData.bebanTransportasi) || 0;
                     const akomodasi = parseFloat(newData.bebanAkomodasi) || 0;
@@ -667,39 +680,19 @@ const DraftModal = ({ draft, isEditMode, isSuperadmin, isAdmin, branches, divisi
                 onFocus={() => setFocusedField('bebanUangSaku')}
                 onBlur={() => {
                   setFocusedField(null);
-                  if (!isViewOnly) {
-                    setFormData(prev => ({ ...prev, bebanUangSaku: prev.bebanUangSaku || '0' }));
+                  if (!isViewOnly && formData.bebanUangSaku) {
+                    setFormData(prev => ({ ...prev, bebanUangSaku: parseFloat(prev.bebanUangSaku) || 0 }));
                   }
                 }}
                 required
                 disabled={isViewOnly}
-                placeholder="0"
+                placeholder="Rp 0"
               />
             </div>
 
-            <div className="form-group form-span-2">
-              <label>Total Usulan (Rp) *</label>
-              <input
-                type="text"
-                name="totalUsulan"
-                value={formatCurrency(formData.totalUsulan)}
-                onChange={handleChange}
-                required
-                disabled={true}
-                readOnly
-                style={{ 
-                  fontSize: '0.8rem',
-                  fontWeight: '700',
-                  background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
-                  borderColor: '#fbbf24',
-                  color: '#92400e',
-                  textAlign: 'left'
-                }}
-              />
-            </div>
-
+            {/* Status untuk Superadmin */}
             {isSuperadmin && (
-              <div className="form-group">
+              <div className="form-group form-span-1">
                 <label>Status</label>
                 <select
                   name="status"
@@ -715,15 +708,39 @@ const DraftModal = ({ draft, isEditMode, isSuperadmin, isAdmin, branches, divisi
             )}
           </div>
 
+          {/* Evaluasi Realisasi - Full Width untuk Admin/Superadmin */}
+          {(isAdmin || isSuperadmin) && draft?.evaluasiRealisasi && (
+            <div className="evaluation-section-compact">
+              <div className="form-section-divider-compact"></div>
+              <div className="form-group form-full-width">
+                <label className="evaluation-label">
+                  <span className="evaluation-icon">📝</span>
+                  Evaluasi Realisasi
+                </label>
+                <div className="evaluation-display-box">
+                  <p className="evaluation-text">{draft.evaluasiRealisasi}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="modal-actions">
-            <button type="button" className="btn-cancel" onClick={onClose}>
-              {isViewOnly ? 'Tutup' : 'Batal'}
-            </button>
-            {!isViewOnly && (
-              <button type="submit" className="btn-save">
-                {isEditMode ? 'Update' : 'Simpan'}
+            <div className="modal-actions-left">
+              <span className="total-usulan-footer">
+                <span className="total-label-footer">Total Usulan:</span>
+                <span className="total-value-footer">{formatCurrencyDisplay(formData.totalUsulan)}</span>
+              </span>
+            </div>
+            <div className="modal-actions-right">
+              <button type="button" className="btn-cancel" onClick={onClose}>
+                {isViewOnly ? 'Tutup' : 'Batal'}
               </button>
-            )}
+              {!isViewOnly && (
+                <button type="submit" className="btn-save">
+                  {isEditMode ? 'Update' : 'Simpan'}
+                </button>
+              )}
+            </div>
           </div>
         </form>
       </div>

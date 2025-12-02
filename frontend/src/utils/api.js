@@ -520,11 +520,15 @@ export const notificationAPI = {
 };
 
 // Training Proposal Status Update API
-export const updateImplementationStatusAPI = async (proposalId, implementasiStatus) => {
+export const updateImplementationStatusAPI = async (proposalId, implementasiStatus, evaluasiRealisasi = null) => {
   console.log('Updating implementation status:', proposalId, implementasiStatus);
+  const body = { implementasiStatus };
+  if (evaluasiRealisasi) {
+    body.evaluasiRealisasi = evaluasiRealisasi;
+  }
   return apiCall(`/api/training-proposals/${proposalId}/implementation-status`, {
     method: 'PATCH',
-    body: JSON.stringify({ implementasiStatus })
+    body: JSON.stringify(body)
   });
 };
 
