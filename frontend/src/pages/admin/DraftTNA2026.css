@@ -456,10 +456,10 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 16px;
+  padding: 8px 12px;
   border-bottom: 1px solid #e5e7eb;
   background: linear-gradient(135deg, #f8fbff 0%, #ffffff 100%);
-  border-radius: 12px 12px 0 0;
+  border-radius: 10px 10px 0 0;
   position: sticky;
   top: 0;
   z-index: 10;
@@ -469,7 +469,7 @@
 
 .modal-header h3 {
   margin: 0;
-  font-size: 1rem;
+  font-size: 14px;
   font-weight: 700;
   color: #1e293b;
   background: linear-gradient(135deg, #0271B6 0%, #1e5a8e 100%);
@@ -501,7 +501,7 @@
 }
 
 .modal-content form {
-  padding: 12px 16px;
+  padding: 8px 12px;
   background: white;
   position: relative;
   z-index: 1;
@@ -512,19 +512,21 @@
   min-height: 0;
 }
 
-.form-grid {
+/* Compact Layout - 2 Column Split */
+.form-layout-compact {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
   padding: 0;
 }
 
-.form-grid::before {
-  display: none;
+.form-column {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
-.form-section-divider {
-  grid-column: 1 / -1;
+.form-section-divider-compact {
   height: 1px;
   background: linear-gradient(90deg, transparent, #e2e8f0, transparent);
   margin: 4px 0;
@@ -538,15 +540,36 @@
 }
 
 .form-group.form-full-width {
-  grid-column: 1 / -1;
+  width: 100%;
 }
 
-.form-group.form-span-2 {
-  grid-column: span 2;
+/* Responsive - Stack columns on mobile */
+@media (max-width: 768px) {
+  .form-layout-compact {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  
+  .form-column {
+    gap: 6px;
+  }
+  
+  .total-usulan-badge {
+    margin-top: 4px;
+    padding: 6px 10px;
+  }
+  
+  .total-usulan-badge .total-label {
+    font-size: 10px;
+  }
+  
+  .total-usulan-badge .total-value {
+    font-size: 12px;
+  }
 }
 
 /* Responsive untuk field yang perlu lebih lebar */
-@media (max-width: 768px) {
+@media (max-width: 480px) {
   .form-grid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -584,17 +607,17 @@
 .form-group input,
 .form-group select,
 .form-group textarea {
-  padding: 6px 10px;
-  border: 1.5px solid #e2e8f0;
-  border-radius: 6px;
-  font-size: 0.75rem;
+  padding: 5px 8px;
+  border: 1px solid #e2e8f0;
+  border-radius: 5px;
+  font-size: 12px;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   background: #ffffff;
   text-align: left;
   font-weight: 500;
-  color: #1e293b;
+  color: #0f172a;
   width: 100%;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .form-group input[type="number"],
@@ -640,7 +663,6 @@
   text-align: left;
   resize: none;
   min-height: 40px;
-  max-height: 40px;
   font-family: inherit;
   line-height: 1.3;
   overflow-y: auto;
@@ -651,10 +673,9 @@
 .form-group textarea:focus {
   outline: none;
   border-color: #0271B6;
-  box-shadow: 0 0 0 3px rgba(2, 113, 182, 0.08), 0 2px 8px rgba(2, 113, 182, 0.12);
-  transform: translateY(-1px);
+  box-shadow: 0 0 0 3px rgba(2, 113, 182, 0.1), 0 2px 4px rgba(0, 0, 0, 0.05);
   background: #ffffff;
-  border-width: 1.5px;
+  border-width: 1px;
 }
 
 /* Pastikan textarea tidak bisa di-resize */
@@ -680,13 +701,62 @@
   border-color: #e2e8f0;
 }
 
-.form-group input[readonly] {
+.evaluation-label {
+  font-weight: 600;
+  color: #64748b;
+  margin-bottom: 4px;
+  display: block;
+  font-size: 11px;
+}
+
+.evaluation-display-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 5px;
+  padding: 6px 10px;
+  margin-top: 3px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.evaluation-display-box p {
+  margin: 0;
+  color: #0f172a;
+  font-size: 12px;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  font-weight: 400;
+}
+
+/* Total Usulan Badge - Compact & Elegant */
+.total-usulan-badge {
+  margin-top: 4px;
+  padding: 6px 10px;
   background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-  border-color: #fbbf24;
+  border: 1px solid #fbbf24;
+  border-radius: 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 1px 3px rgba(251, 191, 36, 0.2);
+}
+
+.total-usulan-badge .total-label {
+  font-size: 10px;
+  font-weight: 600;
   color: #92400e;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.total-usulan-badge .total-value {
+  font-size: 12px;
   font-weight: 700;
-  text-align: left;
-  font-size: 0.9rem;
+  color: #78350f;
+}
+
+.evaluation-section-compact {
+  margin-top: 8px;
+  padding-top: 8px;
 }
 
 .modal-actions {
@@ -708,14 +778,14 @@
 
 .btn-cancel,
 .btn-save {
-  padding: 6px 14px;
+  padding: 5px 12px;
   border: none;
-  border-radius: 6px;
+  border-radius: 5px;
   font-weight: 600;
-  font-size: 0.75rem;
+  font-size: 12px;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  min-width: 80px;
+  min-width: 70px;
 }
 
 .btn-cancel {
