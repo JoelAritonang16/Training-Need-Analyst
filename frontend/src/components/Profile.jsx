@@ -66,48 +66,29 @@ const Profile = ({ user: userProp, proposals = [], onUpdateProfile }) => {
   // Handle loading state
   const safeUser = getSafeUser(userProp);
   if (!userProp || !safeUser) {
-    console.log('Loading user data...');
     return <div className="profile-container">Memuat data pengguna...</div>;
   }
-  
-  console.log('Rendering with profileData:', profileData);
-  console.log('Is editing:', isEditing);
-  console.log('Safe user data:', safeUser);
 
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
-    if (!file.type.startsWith('image/')) {
-      setErrorMessage('Hanya file gambar yang diperbolehkan!');
-      setShowError(true);
-      return;
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-      setErrorMessage('Ukuran file maksimal 5MB!');
-      setShowError(true);
-      return;
-    }
-    
-    // Langsung upload tanpa konfirmasi
     await handleUploadFile(file);
   };
 
   const handleUploadFile = async (file) => {
     if (!file) return;
 
-    // Validasi ukuran file (maks 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      setErrorMessage('Ukuran file terlalu besar. Maksimal 5MB');
-      setShowError(true);
-      return;
-    }
-
     // Validasi tipe file
     const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
     if (!validTypes.includes(file.type.toLowerCase())) {
       setErrorMessage('Format file tidak didukung. Gunakan format JPG, JPEG, PNG, atau WebP');
+      setShowError(true);
+      return;
+    }
+
+    // Validasi ukuran file (maks 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setErrorMessage('Ukuran file terlalu besar. Maksimal 5MB');
       setShowError(true);
       return;
     }

@@ -58,89 +58,72 @@ const SuperAdminDashboardOverview = ({ users, proposals, auditLogs, onNavigate }
   useEffect(() => {
     fetchDashboardData();
     
-    // Auto-refresh dashboard data setiap 5 detik untuk mendapatkan data terbaru
-    // Ini memastikan data draft dan realisasi langsung muncul setelah user konfirmasi realisasi
-    const intervalId = setInterval(() => {
-      fetchDashboardData();
-    }, 5000); // Refresh setiap 5 detik
-    
-    return () => clearInterval(intervalId); // Cleanup interval on unmount
   }, [proposals]); // Re-fetch when proposals change
 
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
       
-      console.log('SuperAdminDashboardOverview: Fetching dashboard data...');
-      console.log('SuperAdminDashboardOverview: Current proposals count:', proposals?.length || 0);
-      
       // Fetch drafts
       try {
         const draftsResult = await draftTNA2026API.getAll();
         if (draftsResult.success) {
-          console.log('SuperAdminDashboardOverview: Drafts fetched:', draftsResult.drafts?.length || 0);
           setDrafts(draftsResult.drafts || []);
         }
       } catch (err) {
-        console.warn('SuperAdminDashboardOverview: Error fetching drafts:', err);
+        // Error fetching drafts
       }
 
       // Fetch tempat diklat realisasi
       try {
         const realisasiResult = await tempatDiklatRealisasiAPI.getAll();
         if (realisasiResult.success) {
-          console.log('SuperAdminDashboardOverview: Realisasi data fetched:', realisasiResult.data?.length || 0);
           setRealisasiData(realisasiResult.data || []);
         }
       } catch (err) {
-        console.warn('SuperAdminDashboardOverview: Error fetching realisasi:', err);
+        // Error fetching realisasi
       }
 
       // Fetch rekap per bulan
       try {
         const rekapResult = await tempatDiklatRealisasiAPI.getRekapPerBulan(new Date().getFullYear());
         if (rekapResult.success) {
-          console.log('SuperAdminDashboardOverview: Rekap per bulan fetched:', rekapResult.rekap?.length || 0);
           setRekapPerBulan(rekapResult.rekap || []);
         }
       } catch (err) {
-        console.warn('SuperAdminDashboardOverview: Error fetching rekap per bulan:', err);
+        // Error fetching rekap per bulan
       }
 
       // Fetch rekap gabungan (20 cabang + 18 divisi) - might take longer
       try {
         const rekapGabunganResult = await draftTNA2026API.getRekapGabungan();
         if (rekapGabunganResult.success) {
-          console.log('SuperAdminDashboardOverview: Rekap gabungan fetched');
           setRekapGabungan(rekapGabunganResult.rekap);
         }
       } catch (err) {
-        console.warn('SuperAdminDashboardOverview: Error fetching rekap gabungan:', err);
+        // Error fetching rekap gabungan
       }
 
       // Fetch divisi list
       try {
         const divisiResult = await divisiAPI.getAll();
         if (divisiResult.success) {
-          console.log('SuperAdminDashboardOverview: Divisi list fetched:', divisiResult.divisi?.length || 0);
           setDivisiList(divisiResult.divisi || []);
         }
       } catch (err) {
-        console.warn('SuperAdminDashboardOverview: Error fetching divisi:', err);
+        // Error fetching divisi
       }
 
       // Fetch branch list
       try {
         const branchResult = await branchAPI.getAll();
         if (branchResult.success) {
-          console.log('SuperAdminDashboardOverview: Branch list fetched:', branchResult.branch?.length || 0);
           setBranchList(branchResult.branch || []);
         }
       } catch (err) {
-        console.warn('SuperAdminDashboardOverview: Error fetching branch:', err);
+        // Error fetching branch
       }
     } catch (error) {
-      console.error('SuperAdminDashboardOverview: Error fetching dashboard data:', error);
       // Don't throw - let component continue rendering
     } finally {
       setLoading(false);

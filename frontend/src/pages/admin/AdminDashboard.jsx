@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Sidebar from '../../components/Sidebar.jsx';
 import AdminDashboardOverview from './AdminDashboardOverview.jsx';
 import UserManagement from './UserManagement.jsx';
@@ -35,48 +35,30 @@ const AdminDashboard = ({ user, onLogout }) => {
     type: 'info' // 'success', 'error', 'warning', 'info'
   });
 
-  // Fetch proposals from database
-  useEffect(() => {
-    fetchProposals();
-    
-    // Auto-refresh proposals setiap 5 detik untuk mendapatkan data terbaru
-    // Ini memastikan data langsung muncul setelah user submit proposal
-    const intervalId = setInterval(() => {
-      fetchProposals();
-    }, 5000); // Refresh setiap 5 detik
-    
-    return () => clearInterval(intervalId); // Cleanup interval on unmount
-  }, []);
-
-  const fetchProposals = async () => {
+  const fetchProposals = useCallback(async () => {
     try {
-      console.log('AdminDashboard: Fetching proposals from database...');
       const data = await trainingProposalAPI.getAll();
       
       if (data.success) {
-        console.log('AdminDashboard: Proposals fetched:', data.proposals);
         setProposals(data.proposals || []);
-      } else {
-        console.error('AdminDashboard: Failed to fetch proposals:', data.message);
       }
     } catch (err) {
-      console.error('AdminDashboard: Error fetching proposals:', err);
-      
       // Handle timeout errors gracefully
       if (err.isTimeout || err.name === 'TimeoutError' || err.message?.includes('timeout')) {
-        console.error('Request timeout: Server tidak merespons. Silakan coba lagi.');
         return;
       }
       
       // Handle network errors
       if (err.isNetworkError || err.name === 'NetworkError') {
-        console.error('Tidak dapat terhubung ke server. Pastikan server backend berjalan.');
         return;
       }
-      
-      console.error('Error:', err.message || 'Terjadi kesalahan saat mengambil data');
     }
-  };
+  }, []);
+
+  // Fetch proposals from database
+  useEffect(() => {
+    fetchProposals();
+  }, [fetchProposals]);
 
   const handleMenuChange = (menuId) => {
     setActiveMenu(menuId);
@@ -84,13 +66,10 @@ const AdminDashboard = ({ user, onLogout }) => {
 
   const handleUpdateProfile = (updatedUser) => {
     // Update user data in parent component if needed
-    console.log('Profile updated:', updatedUser);
-    // You might want to update the user in your global state here
   };
 
   const handleApproveProposal = async (proposalId) => {
     try {
-      console.log('AdminDashboard: Approving proposal:', proposalId);
       
       // Call API to update status to APPROVE_ADMIN
       const data = await updateProposalStatusAPI(proposalId, 'APPROVE_ADMIN');
@@ -113,8 +92,6 @@ const AdminDashboard = ({ user, onLogout }) => {
         });
       }
     } catch (error) {
-      console.error('AdminDashboard: Error approving proposal:', error);
-      
       // Handle timeout errors gracefully
       let errorMessage = error.message || 'Terjadi kesalahan saat menyetujui proposal';
       if (error.isTimeout || error.name === 'TimeoutError' || error.message?.includes('timeout')) {
@@ -144,8 +121,6 @@ const AdminDashboard = ({ user, onLogout }) => {
     }
     
     try {
-      console.log('AdminDashboard: Rejecting proposal:', proposalId, 'Reason:', alasan);
-      
       const data = await updateProposalStatusAPI(proposalId, 'DITOLAK', alasan);
       
       if (data.success) {
@@ -166,8 +141,6 @@ const AdminDashboard = ({ user, onLogout }) => {
         });
       }
     } catch (error) {
-      console.error('AdminDashboard: Error rejecting proposal:', error);
-      
       // Handle timeout errors gracefully
       let errorMessage = error.message || 'Terjadi kesalahan saat menolak proposal';
       if (error.isTimeout || error.name === 'TimeoutError' || error.message?.includes('timeout')) {
@@ -188,8 +161,6 @@ const AdminDashboard = ({ user, onLogout }) => {
   const handleConfirmToUser = async (proposalId) => {
     // Admin konfirmasi ke user bahwa proposal sudah disetujui
     try {
-      console.log('AdminDashboard: Confirming to User:', proposalId);
-      
       // Update status ke APPROVE_ADMIN untuk menandai sudah dikonfirmasi ke user
       const data = await updateProposalStatusAPI(proposalId, 'APPROVE_ADMIN');
       
@@ -210,7 +181,6 @@ const AdminDashboard = ({ user, onLogout }) => {
         });
       }
     } catch (error) {
-      console.error('AdminDashboard: Error confirming to user:', error);
       setAlertModal({
         open: true,
         title: 'Terjadi Kesalahan',
@@ -221,12 +191,11 @@ const AdminDashboard = ({ user, onLogout }) => {
   };
 
   const handleAddUser = () => {
-    console.log('Navigasi ke halaman buat user baru - Admin');
     setActiveMenu('user-create');
   };
 
   const handleEditUser = (userId) => {
-    console.log('Edit user:', userId);
+    // Edit user
   };
 
   const handleDeleteUser = (userId) => {
@@ -253,7 +222,7 @@ const AdminDashboard = ({ user, onLogout }) => {
           proposal = data.proposal;
         }
       } catch (error) {
-        console.error('Error fetching proposal details:', error);
+        // Error fetching proposal details
       }
     }
     
@@ -324,7 +293,6 @@ const AdminDashboard = ({ user, onLogout }) => {
   };
 
   const handleGenerateReport = (reportType, dateRange) => {
-    console.log('Generate report:', reportType, dateRange);
   };
 
   const renderContent = () => {

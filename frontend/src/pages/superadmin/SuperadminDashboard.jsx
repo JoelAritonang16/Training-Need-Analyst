@@ -34,8 +34,6 @@ const SuperadminDashboard = ({ user, onLogout, onUserUpdate }) => {
   
   // Handler untuk update profil
   const handleUserUpdate = (updatedUserData) => {
-    console.log('Updating user data in SuperadminDashboard:', updatedUserData);
-    
     // Update state lokal dengan data terbaru
     setCurrentUser(prev => ({
       ...prev,
@@ -69,17 +67,13 @@ const SuperadminDashboard = ({ user, onLogout, onUserUpdate }) => {
   // Fetch proposals function - harus dideklarasikan sebelum useEffect yang menggunakannya
   const fetchProposals = async (filters = {}) => {
     try {
-      console.log('SuperadminDashboard: Fetching proposals from database with filters:', filters);
       const data = await trainingProposalAPI.getAll(filters);
       
       if (data.success) {
-        console.log('SuperadminDashboard: Proposals fetched:', data.proposals?.length || 0, 'proposals');
         setProposals(data.proposals || []);
-      } else {
-        console.error('SuperadminDashboard: Failed to fetch proposals:', data.message);
       }
     } catch (err) {
-      console.error('SuperadminDashboard: Error fetching proposals:', err);
+      // Error fetching proposals
     }
   };
 
@@ -94,7 +88,6 @@ const SuperadminDashboard = ({ user, onLogout, onUserUpdate }) => {
         headers['Authorization'] = `Bearer ${token}`;
       }
       
-      console.log('SuperadminDashboard: Fetching users from database...');
       const response = await fetch(`http://localhost:5000/api/users?currentUserRole=superadmin`, {
         method: 'GET',
         headers: headers,
@@ -103,13 +96,10 @@ const SuperadminDashboard = ({ user, onLogout, onUserUpdate }) => {
       
       const data = await response.json();
       if (data.success) {
-        console.log('SuperadminDashboard: Users fetched:', data.users?.length || 0, 'users');
         setUsers(data.users || []);
-      } else {
-        console.error('SuperadminDashboard: Failed to fetch users:', data.message);
       }
     } catch (error) {
-      console.error('SuperadminDashboard: Error fetching users:', error);
+      // Error fetching users
     }
   };
   
@@ -122,14 +112,6 @@ const SuperadminDashboard = ({ user, onLogout, onUserUpdate }) => {
   useEffect(() => {
     fetchProposals();
     fetchUsers();
-    
-    // Auto-refresh proposals setiap 5 detik untuk mendapatkan data terbaru
-    // Ini memastikan data langsung muncul setelah user submit proposal
-    const intervalId = setInterval(() => {
-      fetchProposals(proposalFilters);
-    }, 5000); // Refresh setiap 5 detik
-    
-    return () => clearInterval(intervalId); // Cleanup interval on unmount
   }, [proposalFilters]);
 
   const [auditLogs, setAuditLogs] = useState([
@@ -145,8 +127,6 @@ const SuperadminDashboard = ({ user, onLogout, onUserUpdate }) => {
 
   const handleFinalApprove = async (proposalId) => {
     try {
-      console.log('SuperadminDashboard: Final approving proposal:', proposalId);
-      
       const data = await updateProposalStatusAPI(proposalId, 'APPROVE_SUPERADMIN');
       
       if (data.success) {
@@ -177,7 +157,6 @@ const SuperadminDashboard = ({ user, onLogout, onUserUpdate }) => {
         });
       }
     } catch (error) {
-      console.error('SuperadminDashboard: Error final approving proposal:', error);
       setAlertModal({
         open: true,
         title: 'Terjadi Kesalahan',
@@ -264,7 +243,6 @@ const SuperadminDashboard = ({ user, onLogout, onUserUpdate }) => {
       createdAt: new Date().toISOString()
     };
     setUsers(prev => [...prev, newUser]);
-    console.log('User added:', newUser);
   };
 
   const handleStartEditUser = (user) => {
@@ -284,7 +262,7 @@ const SuperadminDashboard = ({ user, onLogout, onUserUpdate }) => {
           proposal = data.proposal;
         }
       } catch (error) {
-        console.error('Error fetching proposal details:', error);
+        // Error fetching proposal details
       }
     }
     

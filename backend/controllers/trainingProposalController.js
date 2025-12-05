@@ -36,10 +36,9 @@ const createDraftAndRealisasiFromProposal = async (proposalInstance) => {
           proposal.items = proposalWithItems.items.map(item => 
             typeof item.toJSON === "function" ? item.toJSON() : item
           );
-          console.log(`[Draft Sync] Items loaded for proposal ${proposal.id}: ${proposal.items.length} items`);
         }
       } catch (loadError) {
-        console.warn(`[Draft Sync] Could not load items for proposal ${proposal.id}:`, loadError.message);
+        // Could not load items
       }
     }
 
@@ -100,7 +99,6 @@ const createDraftAndRealisasiFromProposal = async (proposalInstance) => {
         bebanUangSaku = proposal.items.reduce((sum, item) => sum + (parseFloat(item.BebanUangSaku) || 0), 0);
         totalUsulan = proposal.items.reduce((sum, item) => sum + (parseFloat(item.TotalUsulan) || 0), 0);
         
-        console.log(`[Draft Sync] Menggunakan data dari ${proposal.items.length} items untuk draft`);
       }
       
       await DraftTNA2026.create({
@@ -121,11 +119,6 @@ const createDraftAndRealisasiFromProposal = async (proposalInstance) => {
         createdBy: proposal.userId,
       });
       draftCreated = true;
-      console.log(
-        `[Draft Sync] Draft TNA otomatis dibuat dari proposal ${proposal.id} dengan total: Rp ${totalUsulan.toLocaleString('id-ID')}`
-      );
-    } else {
-      console.log(`[Draft Sync] Draft sudah ada untuk proposal ${proposal.id}, tidak dibuat duplikat`);
     }
 
     // Sinkronisasi Tempat Diklat Realisasi
@@ -165,7 +158,6 @@ const createDraftAndRealisasiFromProposal = async (proposalInstance) => {
                 ? `${existingRealisasi.keterangan}\n- ${itemUraian}`
                 : itemUraian,
             });
-            console.log(`[Draft Sync] Realisasi diupdate untuk branch ${branchIdForDraft}, bulan ${bulan}/${tahun}`);
           } else {
             await TempatDiklatRealisasi.create({
               branchId: branchIdForDraft,
@@ -179,7 +171,6 @@ const createDraftAndRealisasiFromProposal = async (proposalInstance) => {
               keterangan: itemUraian,
               createdBy: proposal.userId,
             });
-            console.log(`[Draft Sync] Realisasi baru dibuat untuk branch ${branchIdForDraft}, bulan ${bulan}/${tahun}`);
           }
         }
       } else {
@@ -207,7 +198,6 @@ const createDraftAndRealisasiFromProposal = async (proposalInstance) => {
               ? `${existingRealisasi.keterangan}\n- ${proposal.Uraian}`
               : proposal.Uraian,
           });
-          console.log(`[Draft Sync] Realisasi diupdate untuk branch ${branchIdForDraft}, bulan ${bulan}/${tahun}`);
         } else {
           await TempatDiklatRealisasi.create({
             branchId: branchIdForDraft,
@@ -221,7 +211,6 @@ const createDraftAndRealisasiFromProposal = async (proposalInstance) => {
             keterangan: proposal.Uraian,
             createdBy: proposal.userId,
           });
-          console.log(`[Draft Sync] Realisasi baru dibuat untuk branch ${branchIdForDraft}, bulan ${bulan}/${tahun}`);
         }
       }
     } catch (realisasiError) {
@@ -249,11 +238,6 @@ const trainingProposalController = {
       const { id: currentUserId, role: currentUserRole } = req.user;
       const { branchId, divisiId, status } = req.query; // Query params for filtering
 
-      console.log('=== GET ALL PROPOSALS ===');
-      console.log('Current User Role:', currentUserRole);
-      console.log('Current User ID:', currentUserId);
-      console.log('Query params:', { branchId, divisiId, status });
-
       let whereClause = {};
 
       // Filter berdasarkan role
@@ -268,7 +252,6 @@ const trainingProposalController = {
         // Try to get from req.user first (should be set by middleware)
         if (req.user && req.user.branchId) {
           adminBranchId = req.user.branchId;
-          console.log('Admin branchId from req.user:', adminBranchId);
         } else {
           // Fallback: Query database to get admin's branchId
           const admin = await User.findByPk(currentUserId, {
@@ -276,15 +259,12 @@ const trainingProposalController = {
           });
           if (admin && admin.branchId) {
             adminBranchId = admin.branchId;
-            console.log('Admin branchId from database:', adminBranchId);
           }
         }
         
         if (adminBranchId) {
           whereClause.branchId = Number(adminBranchId);
-          console.log('Admin filtering by branchId:', whereClause.branchId);
         } else {
-          console.log('Admin branchId not found, returning empty list');
           return res.json({
             success: true,
             proposals: []
@@ -297,11 +277,9 @@ const trainingProposalController = {
       if (currentUserRole === "superadmin") {
         if (branchId) {
           whereClause.branchId = Number(branchId);
-          console.log('Superadmin filtering by branchId:', whereClause.branchId);
         }
         if (status) {
           whereClause.status = status;
-          console.log('Superadmin filtering by status:', whereClause.status);
         }
         // Note: divisiId filter will be handled after query in JavaScript (because it's nested in user)
       }
@@ -336,8 +314,6 @@ const trainingProposalController = {
         }
       ];
 
-      console.log('Final whereClause:', JSON.stringify(whereClause, null, 2));
-
       let proposals = await TrainingProposal.findAll({
         where: whereClause,
         include: includeArray,
@@ -352,10 +328,7 @@ const trainingProposalController = {
           const userDivisiId = p.user?.divisiId ? Number(p.user.divisiId) : null;
           return userDivisiId === divisiIdNum;
         });
-        console.log('After divisiId filter:', proposals.length, 'proposals');
       }
-
-      console.log('Found proposals:', proposals.length);
 
       res.json({
         success: true,
@@ -415,16 +388,6 @@ const trainingProposalController = {
         }]
       });
 
-      console.log(`[Export] Found ${proposals.length} proposals for export`);
-      proposals.forEach((p, idx) => {
-        if (p.items && p.items.length > 0) {
-          console.log(`[Export] Proposal ${idx + 1} (ID: ${p.id}) has ${p.items.length} items`);
-          p.items.forEach((item, itemIdx) => {
-            const itemData = item.toJSON ? item.toJSON() : item;
-            console.log(`[Export]   Item ${itemIdx + 1}: Jenis=${itemData.Jenis}, Program=${itemData.ProgramInisiatifStrategis}, ClusterUtama=${itemData.ClusterUtama}, ClusterKecil=${itemData.ClusterKecil}`);
-          });
-        }
-      });
 
       const wb = new ExcelJS.Workbook();
       const ws = wb.addWorksheet('Usulan Pelatihan');
@@ -674,10 +637,6 @@ const trainingProposalController = {
   // Create new proposal (supports items[])
   async createProposal(req, res) {
     try {
-      console.log('=== CREATE PROPOSAL DEBUG ===');
-      console.log('Request body:', req.body);
-      console.log('Request user:', req.user);
-      console.log('Request headers:', req.headers);
       
       const {
         Uraian,
@@ -699,7 +658,6 @@ const trainingProposalController = {
 
       // Asumsi id user pembuat didapat dari middleware otentikasi
       const { id: userId } = req.user;
-      console.log('User ID from auth:', userId);
 
       // Get user's branchId to auto-assign to proposal
       const user = await User.findByPk(userId, {
@@ -714,7 +672,6 @@ const trainingProposalController = {
       }
       
       const branchId = user.branchId;
-      console.log('User branchId for proposal:', branchId);
 
       // Jika items ada, validasi minimal satu item dengan uraian
       if (Array.isArray(items) && items.length > 0) {
@@ -751,14 +708,8 @@ const trainingProposalController = {
         status: 'MENUNGGU' // Explicitly set status to MENUNGGU for new proposals
       };
       
-      console.log('Data yang akan disimpan:', proposalData);
-      console.log('Status proposal: MENUNGGU (menunggu review admin)');
-      
       // Simpan proposal langsung ke database
       const newProposal = await TrainingProposal.create(proposalData);
-      
-      console.log('Proposal berhasil disimpan ke database dengan ID:', newProposal.id);
-      console.log('Status proposal:', newProposal.status);
 
       // Jika items ada: simpan item dan hitung total proposal
       if (Array.isArray(items) && items.length > 0) {
@@ -787,17 +738,12 @@ const trainingProposalController = {
               ClusterUtama: (it.ClusterUtama && it.ClusterUtama.trim() !== '') ? it.ClusterUtama.trim() : null,
               ClusterKecil: (it.ClusterKecil && it.ClusterKecil.trim() !== '') ? it.ClusterKecil.trim() : null,
             };
-            console.log(`[Create] Item classification: Jenis=${itemData.Jenis}, Program=${itemData.ProgramInisiatifStrategis}, ClusterUtama=${itemData.ClusterUtama}, ClusterKecil=${itemData.ClusterKecil}`);
             return itemData;
           });
-        console.log(`[Create] Creating ${itemsToCreate.length} items with classification data`);
         await TrainingProposalItem.bulkCreate(itemsToCreate);
         const grandTotal = itemsToCreate.reduce((acc, it) => acc + (it.TotalUsulan || 0), 0);
         await newProposal.update({ TotalUsulan: grandTotal });
-        console.log(`[Create] Items created successfully with classification data`);
       }
-      
-      console.log('Proposal berhasil dibuat:', newProposal);
 
       // Kirim notifikasi ke admin dari branch yang sama bahwa ada proposal baru
       const adminUsers = await User.findAll({
@@ -817,7 +763,6 @@ const trainingProposalController = {
           message: `Proposal baru dari ${user.fullName || user.username || 'User'} menunggu review admin.`
         });
       }
-      console.log(`Notifikasi dikirim ke ${adminUsers.length} admin untuk proposal baru`);
 
       res.status(201).json({
         success: true,
@@ -908,7 +853,6 @@ const trainingProposalController = {
           });
         }
         
-        console.log(`Notifikasi revisi dikirim ke ${adminUsers.length} admin dan ${superadmins.length} superadmin`);
       }
 
       // Lakukan update untuk header
@@ -1066,11 +1010,6 @@ const trainingProposalController = {
       const { status, alasan } = req.body;
       const { id: currentUserId, role: currentUserRole } = req.user;
 
-      console.log('=== UPDATE PROPOSAL STATUS ===');
-      console.log('Proposal ID:', proposalId);
-      console.log('New Status:', status);
-      console.log('Reason:', alasan);
-      console.log('Current User:', currentUserId, currentUserRole);
 
       // Validasi status
       const validStatuses = ['MENUNGGU', 'APPROVE_ADMIN', 'APPROVE_SUPERADMIN', 'DITOLAK'];
@@ -1224,7 +1163,6 @@ const trainingProposalController = {
             message: `Proposal dari ${proposal.user?.fullName || proposal.user?.username || 'User'} (Branch: ${proposal.branch?.nama || 'N/A'}) telah di-approve oleh admin dan menunggu approval superadmin.`
           });
         }
-        console.log(`Notifikasi dikirim ke ${superadmins.length} superadmin`);
       }
 
       // 2. Superadmin approve → notifikasi ke admin → admin konfirmasi ke user
@@ -1249,7 +1187,6 @@ const trainingProposalController = {
           });
         }
 
-        console.log(`Notifikasi dikirim ke ${adminUsers.length} admin untuk konfirmasi ke user`);
       }
 
       // 3. Admin konfirmasi ke user (setelah superadmin approve)
@@ -1263,28 +1200,13 @@ const trainingProposalController = {
           title: 'Request Anda Diterima',
           message: `Request Anda telah diterima dan disetujui. Proposal siap untuk dilaksanakan.`
         });
-        console.log('Notifikasi konfirmasi dikirim ke user');
         
         // Buat draft TNA dan realisasi setelah admin konfirmasi ke user
         // Ini memastikan data masuk ke draft di Superadmin Dashboard
         try {
           // Proposal sudah di-reload di atas dengan include user, branch, dan items
-          console.log(`[Admin Konfirmasi] Membuat draft dari proposal ${proposal.id} setelah admin konfirmasi ke user`);
-          console.log(`[Admin Konfirmasi] Proposal memiliki ${proposal.items?.length || 0} items`);
-          console.log(`[Admin Konfirmasi] Proposal TotalUsulan: Rp ${(proposal.TotalUsulan || 0).toLocaleString('id-ID')}`);
-          
           const draftResult = await createDraftAndRealisasiFromProposal(proposal);
-          if (draftResult.draftCreated) {
-            console.log(`[Admin Konfirmasi] ✅ Draft TNA berhasil dibuat dari proposal ${proposal.id}`);
-            console.log(`[Admin Konfirmasi] Branch ID: ${draftResult.branchId}`);
-          } else {
-            console.log(`[Admin Konfirmasi] ⚠️ Draft TNA tidak dibuat: ${draftResult.reason || 'unknown reason'}`);
-            if (draftResult.error) {
-              console.error(`[Admin Konfirmasi] Error details:`, draftResult.error);
-            }
-          }
         } catch (draftError) {
-          console.error(`[Admin Konfirmasi] Error creating draft after admin confirmation:`, draftError);
           // Jangan gagalkan update status jika draft creation gagal
         }
       }
@@ -1298,7 +1220,6 @@ const trainingProposalController = {
           title: 'Proposal Anda Ditolak - Perlu Revisi',
           message: `Proposal Anda telah ditolak oleh admin. Alasan: ${alasan.trim()}\n\nSilakan lakukan revisi sesuai feedback dan submit ulang proposal.`
         });
-        console.log('Notifikasi penolakan dari admin dikirim langsung ke user dengan pesan revisi');
       }
 
       // 5. Superadmin reject → langsung notifikasi ke user dengan pesan (user bisa revisi)
@@ -1310,10 +1231,7 @@ const trainingProposalController = {
           title: 'Proposal Anda Ditolak - Perlu Revisi',
           message: `Proposal Anda telah ditolak oleh superadmin. Alasan: ${alasan.trim()}\n\nSilakan lakukan revisi sesuai feedback dan submit ulang proposal.`
         });
-        console.log('Notifikasi penolakan dari superadmin dikirim langsung ke user dengan pesan revisi');
       }
-
-      console.log('Proposal status updated successfully');
 
       res.json({
         success: true,
@@ -1576,7 +1494,6 @@ const trainingProposalController = {
       // Update status implementasi dan evaluasi
       await proposal.update(updateData);
 
-      console.log(`Status implementasi proposal ${proposalId} diupdate menjadi ${implementasiStatus}`);
 
       // Auto-create Draft TNA dan Tempat Diklat Realisasi jika status berubah menjadi SUDAH_IMPLEMENTASI
       if (implementasiStatus === 'SUDAH_IMPLEMENTASI' && oldStatus !== 'SUDAH_IMPLEMENTASI') {
@@ -1601,15 +1518,8 @@ const trainingProposalController = {
           ]
         });
         
-        console.log(`[Realisasi] Membuat draft dan realisasi dari proposal ${proposalId} yang sudah direalisasikan`);
-        console.log(`[Realisasi] Proposal memiliki ${proposal.items?.length || 0} items`);
-        console.log(`[Realisasi] Proposal branchId: ${proposal.branchId}, userId: ${proposal.userId}`);
-        console.log(`[Realisasi] Proposal TotalUsulan: Rp ${(proposal.TotalUsulan || 0).toLocaleString('id-ID')}`);
-        
         const syncResult = await createDraftAndRealisasiFromProposal(proposal);
         if (syncResult?.draftCreated) {
-          console.log(`[Realisasi] ✅ Draft TNA berhasil dibuat dari proposal ${proposalId}`);
-          console.log(`[Realisasi] Branch ID: ${syncResult.branchId}`);
         } else {
           console.log(`[Realisasi] ⚠️ Draft TNA tidak dibuat: ${syncResult?.reason || 'unknown reason'}`);
           if (syncResult?.error) {
@@ -1617,10 +1527,6 @@ const trainingProposalController = {
           }
         }
         
-        // Log untuk realisasi juga
-        if (syncResult?.branchId) {
-          console.log(`[Realisasi] Data realisasi diupdate untuk branch ${syncResult.branchId}`);
-        }
       }
 
       res.json({
@@ -1641,16 +1547,11 @@ const trainingProposalController = {
   // Get reports data (approved and implemented proposals)
   async getReportsData(req, res) {
     try {
-      console.log('[Reports] getReportsData called');
       const { role: currentUserRole } = req.user;
       const { branchId, divisiId } = req.query;
 
-      console.log('[Reports] User role:', currentUserRole);
-      console.log('[Reports] Filters:', { branchId, divisiId });
-
       // Hanya superadmin yang bisa akses laporan
       if (currentUserRole !== "superadmin") {
-        console.log('[Reports] Access denied - not superadmin');
         return res.status(403).json({
           success: false,
           message: "Akses ditolak: Hanya superadmin yang dapat mengakses laporan",
@@ -1709,8 +1610,6 @@ const trainingProposalController = {
         });
       }
 
-      console.log(`[Reports] Found ${reports.length} reports${branchId ? ` (filtered by branchId: ${branchId})` : ''}${divisiId ? ` (filtered by divisiId: ${divisiId})` : ''}`);
-      
       // Convert to plain objects for JSON response
       const reportsData = reports.map(r => {
         const plain = r.toJSON ? r.toJSON() : r;
@@ -1912,7 +1811,6 @@ export const syncDraftsFromRealizedProposals = async () => {
       }
     }
 
-    console.log(`[Draft Sync] Sinkronisasi selesai. ${createdCount} draft baru dipastikan dari ${realizedProposals.length} proposal terealisasi.`);
   } catch (error) {
     console.error('[Draft Sync] Gagal sinkronisasi draft dari proposal terealisasi:', error);
   }

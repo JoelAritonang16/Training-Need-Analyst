@@ -121,10 +121,6 @@ const TrainingProposalForm = ({ user, proposal = null, onSuccess }) => {
     setError('');
 
     try {
-      console.log('=== FORM SUBMISSION START ===');
-      console.log('User:', user);
-      console.log('Token:', localStorage.getItem('token'));
-      console.log('Form data:', formData);
 
       // Validasi form
       const validationErrors = validateForm();
@@ -185,17 +181,12 @@ const TrainingProposalForm = ({ user, proposal = null, onSuccess }) => {
         throw new Error('Anda belum login. Silakan login terlebih dahulu.');
       }
 
-      console.log('Calling API...');
-      
       // Panggil API sesuai dengan proposal (create atau update)
       const result = proposal 
         ? await trainingProposalAPI.update(proposal.id, proposalData)
         : await trainingProposalAPI.create(proposalData);
       
-      console.log('API Response:', result);
-      
       if (result && result.success) {
-        console.log('Success! Proposal created/updated:', result.proposal);
         setAlertModal({
           type: 'success',
           title: 'Berhasil',

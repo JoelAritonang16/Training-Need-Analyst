@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { draftTNA2026API, branchAPI, divisiAPI } from '../../utils/api';
 import { LuFileText, LuPencil, LuTrash2, LuEye, LuPlus } from 'react-icons/lu';
 import AlertModal from '../../components/AlertModal';
@@ -25,22 +25,7 @@ const DraftTNA2026 = ({ user, currentUserRole, onNavigate }) => {
     draftId: null
   });
 
-  useEffect(() => {
-    fetchDrafts();
-    if (currentUserRole === 'superadmin') {
-      fetchBranchesAndDivisi();
-    }
-    
-    // Auto-refresh drafts setiap 5 detik untuk mendapatkan data terbaru
-    // Ini memastikan data draft langsung muncul setelah user konfirmasi realisasi
-    const intervalId = setInterval(() => {
-      fetchDrafts();
-    }, 5000); // Refresh setiap 5 detik
-    
-    return () => clearInterval(intervalId); // Cleanup interval on unmount
-  }, [currentUserRole]);
-
-  const fetchDrafts = async () => {
+  const fetchDrafts = useCallback(async () => {
     try {
       setLoading(true);
       const result = await draftTNA2026API.getAll();
@@ -50,14 +35,13 @@ const DraftTNA2026 = ({ user, currentUserRole, onNavigate }) => {
         setError(result.message || 'Gagal memuat data draft');
       }
     } catch (err) {
-      console.error('Error fetching drafts:', err);
       setError(err.message || 'Terjadi kesalahan saat mengambil data');
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const fetchBranchesAndDivisi = async () => {
+  const fetchBranchesAndDivisi = useCallback(async () => {
     try {
       const [branchResult, divisiResult] = await Promise.all([
         branchAPI.getAll(),
@@ -71,9 +55,16 @@ const DraftTNA2026 = ({ user, currentUserRole, onNavigate }) => {
         setDivisi(divisiResult.divisi || []);
       }
     } catch (error) {
-      console.error('Error fetching branches and divisi:', error);
+      // Error fetching branches and divisi
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchDrafts();
+    if (currentUserRole === 'superadmin') {
+      fetchBranchesAndDivisi();
+    }
+  }, [currentUserRole, fetchDrafts, fetchBranchesAndDivisi]);
 
   const handleView = async (draft) => {
     try {
@@ -85,8 +76,7 @@ const DraftTNA2026 = ({ user, currentUserRole, onNavigate }) => {
         setSelectedDraft(draft);
       }
     } catch (err) {
-      console.error('Error fetching draft details:', err);
-    setSelectedDraft(draft);
+      setSelectedDraft(draft);
     }
     setIsEditMode(false);
     setIsModalOpen(true);
@@ -146,7 +136,6 @@ const DraftTNA2026 = ({ user, currentUserRole, onNavigate }) => {
         });
       }
     } catch (error) {
-      console.error('Error deleting draft:', error);
       setAlertModal({
         open: true,
         title: 'Terjadi Kesalahan',
@@ -201,7 +190,6 @@ const DraftTNA2026 = ({ user, currentUserRole, onNavigate }) => {
         });
       }
     } catch (error) {
-      console.error('Error saving draft:', error);
       setAlertModal({
         open: true,
         title: 'Terjadi Kesalahan',
@@ -394,6 +382,15 @@ const DraftModal = ({ draft, isEditMode, isSuperadmin, isAdmin, branches, divisi
   
   const [focusedField, setFocusedField] = useState(null);
 
+  // Helper function to calculate total
+  const calculateTotal = useCallback((data) => {
+    const beban = parseFloat(data.beban) || 0;
+    const transportasi = parseFloat(data.bebanTransportasi) || 0;
+    const akomodasi = parseFloat(data.bebanAkomodasi) || 0;
+    const uangSaku = parseFloat(data.bebanUangSaku) || 0;
+    return beban + transportasi + akomodasi + uangSaku;
+  }, []);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => {
@@ -401,11 +398,7 @@ const DraftModal = ({ draft, isEditMode, isSuperadmin, isAdmin, branches, divisi
       
       // Auto-calculate totalUsulan
       if (['beban', 'bebanTransportasi', 'bebanAkomodasi', 'bebanUangSaku'].includes(name)) {
-        const beban = parseFloat(newData.beban) || 0;
-        const transportasi = parseFloat(newData.bebanTransportasi) || 0;
-        const akomodasi = parseFloat(newData.bebanAkomodasi) || 0;
-        const uangSaku = parseFloat(newData.bebanUangSaku) || 0;
-        newData.totalUsulan = beban + transportasi + akomodasi + uangSaku;
+        newData.totalUsulan = calculateTotal(newData);
       }
       
       return newData;
@@ -607,11 +600,7 @@ const DraftModal = ({ draft, isEditMode, isSuperadmin, isAdmin, branches, divisi
                   const parsed = parseCurrency(e.target.value);
                   setFormData(prev => {
                     const newData = { ...prev, bebanTransportasi: parsed };
-                    const beban = parseFloat(newData.beban) || 0;
-                    const transportasi = parseFloat(newData.bebanTransportasi) || 0;
-                    const akomodasi = parseFloat(newData.bebanAkomodasi) || 0;
-                    const uangSaku = parseFloat(newData.bebanUangSaku) || 0;
-                    newData.totalUsulan = beban + transportasi + akomodasi + uangSaku;
+                    newData.totalUsulan = calculateTotal(newData);
                     return newData;
                   });
                 }}
@@ -638,11 +627,7 @@ const DraftModal = ({ draft, isEditMode, isSuperadmin, isAdmin, branches, divisi
                   const parsed = parseCurrency(e.target.value);
                   setFormData(prev => {
                     const newData = { ...prev, bebanAkomodasi: parsed };
-                    const beban = parseFloat(newData.beban) || 0;
-                    const transportasi = parseFloat(newData.bebanTransportasi) || 0;
-                    const akomodasi = parseFloat(newData.bebanAkomodasi) || 0;
-                    const uangSaku = parseFloat(newData.bebanUangSaku) || 0;
-                    newData.totalUsulan = beban + transportasi + akomodasi + uangSaku;
+                    newData.totalUsulan = calculateTotal(newData);
                     return newData;
                   });
                 }}
@@ -669,11 +654,7 @@ const DraftModal = ({ draft, isEditMode, isSuperadmin, isAdmin, branches, divisi
                   const parsed = parseCurrency(e.target.value);
                   setFormData(prev => {
                     const newData = { ...prev, bebanUangSaku: parsed };
-                    const beban = parseFloat(newData.beban) || 0;
-                    const transportasi = parseFloat(newData.bebanTransportasi) || 0;
-                    const akomodasi = parseFloat(newData.bebanAkomodasi) || 0;
-                    const uangSaku = parseFloat(newData.bebanUangSaku) || 0;
-                    newData.totalUsulan = beban + transportasi + akomodasi + uangSaku;
+                    newData.totalUsulan = calculateTotal(newData);
                     return newData;
                   });
                 }}

@@ -24,19 +24,9 @@ const SuperadminReports = () => {
     type: 'info'
   });
 
-  // Auto-refresh interval (30 seconds)
-  const REFRESH_INTERVAL = 30000;
-
   useEffect(() => {
     fetchBranchAndDivisi();
     fetchReports();
-    
-    // Set up auto-refresh
-    const interval = setInterval(() => {
-      fetchReports(true); // Silent refresh
-    }, REFRESH_INTERVAL);
-
-    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {

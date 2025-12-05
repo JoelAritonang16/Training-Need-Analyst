@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { trainingProposalAPI } from '../utils/api';
 
 const DatabaseDataContext = createContext();
@@ -16,31 +16,21 @@ export const DatabaseDataProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const fetchProposals = async () => {
+  const fetchProposals = useCallback(async () => {
     try {
-      console.log('=== DatabaseDataProvider: fetchProposals START ===');
       setIsLoading(true);
       setError(null);
 
       // Check if user is logged in
       const token = localStorage.getItem('token');
-      console.log('Token from localStorage:', token);
       if (!token) {
         throw new Error('Anda belum login. Silakan login terlebih dahulu.');
       }
 
-      console.log('Calling trainingProposalAPI.getAll()...');
       const data = await trainingProposalAPI.getAll();
-      console.log('API Response:', data);
-      
       const proposalsData = data.proposals || data.data || [];
-      console.log('Setting proposals:', proposalsData);
       setProposals(proposalsData);
-      
-      console.log('=== DatabaseDataProvider: fetchProposals SUCCESS ===');
     } catch (err) {
-      console.error('=== DatabaseDataProvider: fetchProposals ERROR ===', err);
-      
       // Set appropriate error message
       if (err.message.includes('login')) {
         setError(err.message);
@@ -54,29 +44,20 @@ export const DatabaseDataProvider = ({ children }) => {
       setProposals([]);
     } finally {
       setIsLoading(false);
-      console.log('=== DatabaseDataProvider: fetchProposals END ===');
     }
-  };
+  }, []);
 
-  const refreshData = () => {
+  const refreshData = useCallback(() => {
     fetchProposals();
-  };
+  }, [fetchProposals]);
 
   useEffect(() => {
     // Only fetch proposals if user is logged in
     const token = localStorage.getItem('token');
     if (token) {
       fetchProposals();
-      
-      // Auto-refresh proposals setiap 5 detik untuk mendapatkan data terbaru
-      // Ini memastikan data langsung muncul setelah user submit proposal
-      const intervalId = setInterval(() => {
-        fetchProposals();
-      }, 5000); // Refresh setiap 5 detik
-      
-      return () => clearInterval(intervalId); // Cleanup interval on unmount
     }
-  }, []);
+  }, [fetchProposals]);
 
   const value = {
     proposals,

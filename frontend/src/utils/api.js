@@ -2,7 +2,6 @@
 export const API_BASE_URL = process.env.NODE_ENV === 'development' ? 'http://localhost:5000' : '';
 export const getAuthHeaders = () => {
   const token = localStorage.getItem('token');
-  console.log('Getting auth headers, token:', token ? 'exists' : 'not found');
   
   return {
     'Content-Type': 'application/json',
@@ -24,20 +23,11 @@ export const apiCall = async (endpoint, options = {}) => {
     ...fetchOptions
   };
 
-  console.log('[API] Making API call to:', url);
-  console.log('[API] Request config:', {
-    method: config.method || 'GET',
-    headers: { ...config.headers, Authorization: config.headers.Authorization ? 'Bearer ***' : 'none' },
-    hasBody: !!config.body,
-    timeout: timeout
-  });
-
   try {
     // Create AbortController for timeout
     const controller = new AbortController();
     const timeoutId = setTimeout(() => {
       controller.abort();
-      console.warn('[API] Request timeout after', timeout, 'ms for endpoint:', endpoint);
     }, timeout);
 
     const response = await fetch(url, {
@@ -47,16 +37,8 @@ export const apiCall = async (endpoint, options = {}) => {
 
     clearTimeout(timeoutId);
     
-    console.log('[API] Response received:', {
-      status: response.status,
-      statusText: response.statusText,
-      ok: response.ok,
-      url: response.url
-    });
-    
     // Handle 401 Unauthorized
     if (response.status === 401) {
-      console.log('[API] 401 Unauthorized - clearing token');
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       throw new Error('Session expired. Please login again.');
@@ -64,7 +46,6 @@ export const apiCall = async (endpoint, options = {}) => {
 
     // Handle 404 Not Found
     if (response.status === 404) {
-      console.error('[API] 404 Not Found for endpoint:', url);
       throw new Error(`Endpoint tidak ditemukan: ${endpoint}`);
     }
 
@@ -74,9 +55,7 @@ export const apiCall = async (endpoint, options = {}) => {
       try {
         const errorData = await response.json();
         errorMessage = errorData.message || errorData.error || errorMessage;
-        console.error('[API] Error response data:', errorData);
       } catch (parseError) {
-        console.error('[API] Could not parse error response as JSON');
         errorMessage = response.statusText || errorMessage;
       }
       
@@ -84,19 +63,8 @@ export const apiCall = async (endpoint, options = {}) => {
     }
 
     const responseData = await response.json();
-    console.log('[API] Response data received:', {
-      success: responseData.success,
-      hasReports: !!responseData.reports,
-      reportsCount: responseData.reports?.length || 0
-    });
     return responseData;
   } catch (error) {
-    console.error('[API] API call error:', error);
-    console.error('[API] Error details:', {
-      message: error.message,
-      name: error.name,
-      endpoint: url
-    });
     
     // Handle timeout specifically - return user-friendly error
     if (error.name === 'AbortError' || error.message.includes('timeout') || error.message.includes('Timeout')) {
@@ -141,7 +109,6 @@ export const authAPI = {
 
 export const trainingProposalAPI = {
   getAll: async (filters = {}) => {
-    console.log('Fetching all proposals with filters:', filters);
     const queryParams = new URLSearchParams();
     if (filters.branchId) queryParams.append('branchId', filters.branchId);
     if (filters.divisiId) queryParams.append('divisiId', filters.divisiId);
@@ -153,23 +120,18 @@ export const trainingProposalAPI = {
   },
   
   getById: async (id) => {
-    console.log('Fetching proposal by ID:', id);
     return apiCall(`/api/training-proposals/${id}`);
   },
   
   create: async (data) => {
-    console.log('Creating new proposal with data:', data);
-    console.log('Data being sent to API:', JSON.stringify(data, null, 2));
     const result = await apiCall('/api/training-proposals', {
       method: 'POST',
       body: JSON.stringify(data)
     });
-    console.log('API create result:', result);
     return result;
   },
   
   update: async (id, data) => {
-    console.log('Updating proposal:', id, 'with data:', data);
     return apiCall(`/api/training-proposals/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data)
@@ -177,14 +139,12 @@ export const trainingProposalAPI = {
   },
   
   delete: async (id) => {
-    console.log('Deleting proposal:', id);
     return apiCall(`/api/training-proposals/${id}`, {
       method: 'DELETE'
     });
   },
   
   getReportsData: async (filters = {}) => {
-    console.log('Fetching reports data with filters:', filters);
     const queryParams = new URLSearchParams();
     if (filters.branchId) queryParams.append('branchId', filters.branchId);
     if (filters.divisiId) queryParams.append('divisiId', filters.divisiId);
@@ -195,7 +155,6 @@ export const trainingProposalAPI = {
   },
   
   exportReports: async (filters = {}) => {
-    console.log('Exporting reports with filters:', filters);
     const token = localStorage.getItem('token');
     const queryParams = new URLSearchParams();
     if (filters.branchId) queryParams.append('branchId', filters.branchId);
@@ -235,17 +194,14 @@ export const trainingProposalAPI = {
 // Divisi API
 export const divisiAPI = {
   getAll: async () => {
-    console.log('Getting all divisi');
     return apiCall('/api/divisi');
   },
   
   getById: async (id) => {
-    console.log('Getting divisi by ID:', id);
     return apiCall(`/api/divisi/${id}`);
   },
   
   create: async (data) => {
-    console.log('Creating divisi:', data);
     return apiCall('/api/divisi', {
       method: 'POST',
       body: JSON.stringify(data)
@@ -253,7 +209,6 @@ export const divisiAPI = {
   },
   
   update: async (id, data) => {
-    console.log('Updating divisi:', id, data);
     return apiCall(`/api/divisi/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data)
@@ -261,7 +216,6 @@ export const divisiAPI = {
   },
   
   delete: async (id) => {
-    console.log('Deleting divisi:', id);
     return apiCall(`/api/divisi/${id}`, {
       method: 'DELETE'
     });
@@ -271,17 +225,14 @@ export const divisiAPI = {
 // Branch API
 export const branchAPI = {
   getAll: async () => {
-    console.log('Getting all branch');
     return apiCall('/api/branch');
   },
   
   getById: async (id) => {
-    console.log('Getting branch by ID:', id);
     return apiCall(`/api/branch/${id}`);
   },
   
   create: async (data) => {
-    console.log('Creating branch:', data);
     return apiCall('/api/branch', {
       method: 'POST',
       body: JSON.stringify(data)
@@ -289,7 +240,6 @@ export const branchAPI = {
   },
   
   update: async (id, data) => {
-    console.log('Updating branch:', id, data);
     return apiCall(`/api/branch/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data)
@@ -297,7 +247,6 @@ export const branchAPI = {
   },
   
   delete: async (id) => {
-    console.log('Deleting branch:', id);
     return apiCall(`/api/branch/${id}`, {
       method: 'DELETE'
     });
@@ -307,17 +256,14 @@ export const branchAPI = {
 // Anak Perusahaan API
 export const anakPerusahaanAPI = {
   getAll: async () => {
-    console.log('Getting all anak perusahaan');
     return apiCall('/api/anak-perusahaan');
   },
   
   getById: async (id) => {
-    console.log('Getting anak perusahaan by ID:', id);
     return apiCall(`/api/anak-perusahaan/${id}`);
   },
   
   create: async (data) => {
-    console.log('Creating anak perusahaan:', data);
     return apiCall('/api/anak-perusahaan', {
       method: 'POST',
       body: JSON.stringify(data)
@@ -325,7 +271,6 @@ export const anakPerusahaanAPI = {
   },
   
   update: async (id, data) => {
-    console.log('Updating anak perusahaan:', id, data);
     return apiCall(`/api/anak-perusahaan/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data)
@@ -333,26 +278,22 @@ export const anakPerusahaanAPI = {
   },
   
   delete: async (id) => {
-    console.log('Deleting anak perusahaan:', id);
     return apiCall(`/api/anak-perusahaan/${id}`, {
       method: 'DELETE'
     });
   },
   
   getBranches: async (id) => {
-    console.log('Getting branches for anak perusahaan:', id);
     return apiCall(`/api/anak-perusahaan/${id}/branches`);
   },
   
   addBranch: async (id, branchId) => {
-    console.log('Adding branch to anak perusahaan:', id, branchId);
     return apiCall(`/api/anak-perusahaan/${id}/branches`, {
       body: JSON.stringify({ branchId })
     });
   },
   
   removeBranch: async (id, branchId) => {
-    console.log('Removing branch from anak perusahaan:', id, branchId);
     return apiCall(`/api/anak-perusahaan/${id}/branches/${branchId}`, {
       method: 'DELETE'
     });
@@ -362,7 +303,6 @@ export const anakPerusahaanAPI = {
 // User Profile API
 export const userProfileAPI = {
   updateProfile: async (profileData) => {
-    console.log('Updating user profile:', profileData);
     const token = localStorage.getItem('token');
     
     try {
@@ -375,18 +315,14 @@ export const userProfileAPI = {
         credentials: 'include',
         body: JSON.stringify(profileData)
       });
-
-      console.log('Profile update response status:', response.status);
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        console.error('Profile update error:', errorData);
         throw new Error(errorData.message || 'Gagal memperbarui profil');
       }
 
       return await response.json();
     } catch (error) {
-      console.error('Error in updateProfile:', error);
       throw error;
     }
   }
@@ -395,7 +331,6 @@ export const userProfileAPI = {
 // Draft TNA 2026 API
 export const draftTNA2026API = {
   getAll: async (filters = {}) => {
-    console.log('Getting all draft TNA 2026 with filters:', filters);
     const queryParams = new URLSearchParams();
     if (filters.branchId) queryParams.append('branchId', filters.branchId);
     if (filters.divisiId) queryParams.append('divisiId', filters.divisiId);
@@ -445,7 +380,6 @@ export const draftTNA2026API = {
 // Tempat Diklat Realisasi API
 export const tempatDiklatRealisasiAPI = {
   getAll: async (filters = {}) => {
-    console.log('Getting all tempat diklat realisasi with filters:', filters);
     const queryParams = new URLSearchParams();
     if (filters.branchId) queryParams.append('branchId', filters.branchId);
     if (filters.bulan) queryParams.append('bulan', filters.bulan);
@@ -521,7 +455,6 @@ export const notificationAPI = {
 
 // Training Proposal Status Update API
 export const updateImplementationStatusAPI = async (proposalId, implementasiStatus, evaluasiRealisasi = null) => {
-  console.log('Updating implementation status:', proposalId, implementasiStatus);
   const body = { implementasiStatus };
   if (evaluasiRealisasi) {
     body.evaluasiRealisasi = evaluasiRealisasi;
@@ -542,7 +475,6 @@ export const updateProposalStatusAPI = async (proposalId, status, alasan = '') =
 // Demografi API
 export const demografiAPI = {
   getData: async (filters = {}) => {
-    console.log('Getting demografi data with filters:', filters);
     const queryParams = new URLSearchParams();
     if (filters.branchId) queryParams.append('branchId', filters.branchId);
     if (filters.divisiId) queryParams.append('divisiId', filters.divisiId);

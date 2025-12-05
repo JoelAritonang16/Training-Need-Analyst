@@ -9,10 +9,6 @@ const draftTNA2026Controller = {
       const { id: currentUserId, role: currentUserRole } = req.user;
       const { branchId, divisiId } = req.query;
 
-      console.log('=== GET ALL DRAFTS ===');
-      console.log('Current User Role:', currentUserRole);
-      console.log('Query params:', { branchId, divisiId });
-
       let whereClause = {};
 
       // Filter berdasarkan role
@@ -387,7 +383,6 @@ const draftTNA2026Controller = {
           });
         }
 
-        console.log(`Notifikasi Draft TNA ${tahun} dikirim ke ${adminsAndSuperadmins.length} admin/superadmin`);
       }
 
       res.json({
@@ -477,8 +472,6 @@ const draftTNA2026Controller = {
           message: `Draft TNA ${tahun} dari ${branchName}${divisiName ? ` - ${divisiName}` : ''} telah diselesaikan oleh ${creatorName}. Draft telah siap untuk direalisasikan.`
         });
       }
-
-      console.log(`Notifikasi Draft TNA ${tahun} dikirim ke ${adminsAndSuperadmins.length} admin/superadmin`);
 
       res.json({
         success: true,

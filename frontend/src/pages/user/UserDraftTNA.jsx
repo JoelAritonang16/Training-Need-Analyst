@@ -55,7 +55,6 @@ const UserDraftTNA = ({ user, onNavigate }) => {
         setError(result.message || 'Gagal memuat data draft');
       }
     } catch (err) {
-      console.error('Error fetching drafts:', err);
       setError(err.message || 'Terjadi kesalahan saat mengambil data');
     } finally {
       setLoading(false);
@@ -179,7 +178,6 @@ const UserDraftTNA = ({ user, onNavigate }) => {
             });
           }
         } catch (error) {
-          console.error('Error deleting draft:', error);
           setAlertModal({
             open: true,
             title: 'Terjadi Kesalahan',
@@ -227,7 +225,6 @@ const UserDraftTNA = ({ user, onNavigate }) => {
             });
           }
         } catch (error) {
-          console.error('Error submitting draft:', error);
           setAlertModal({
             open: true,
             title: 'Terjadi Kesalahan',
@@ -295,7 +292,6 @@ const UserDraftTNA = ({ user, onNavigate }) => {
         });
       }
     } catch (error) {
-      console.error('Error saving draft:', error);
       setAlertModal({
         open: true,
         title: 'Terjadi Kesalahan',

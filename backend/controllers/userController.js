@@ -10,11 +10,6 @@ const userController = {
     try {
       const { currentUserRole } = req.query;
       
-      console.log('=== GET ALL USERS ===');
-      console.log('Current User Role:', currentUserRole);
-      console.log('Session:', req.session?.user ? { id: req.session.user.id, username: req.session.user.username, branchId: req.session.user.branchId } : 'No session');
-      console.log('Req.user:', req.user ? { id: req.user.id, username: req.user.username, branchId: req.user.branchId } : 'No req.user');
-      
       let whereClause = {};
       
       // Role-based filtering
@@ -53,24 +48,15 @@ const userController = {
           if (currentAdmin) {
             if (currentAdmin.branchId) {
               currentAdminBranchId = currentAdmin.branchId;
-              console.log('GetAllUsers - Admin branchId from database:', currentAdminBranchId, 'Admin:', currentAdmin.username);
-            } else {
-              console.log('GetAllUsers - ERROR: Admin has no branchId. Admin:', currentAdmin.username);
             }
-          } else {
-            console.log('GetAllUsers - ERROR: Admin not found in database. ID:', currentAdminId);
           }
-        } else {
-          console.log('GetAllUsers - ERROR: Could not determine admin ID');
         }
         
         // CRITICAL: Always filter by admin's branchId - if not found, return empty
         if (currentAdminBranchId) {
           // Ensure branchId is a number
           whereClause.branchId = Number(currentAdminBranchId);
-          console.log('GetAllUsers - FINAL: Filtering users by branchId:', whereClause.branchId, '(type:', typeof whereClause.branchId, ')');
         } else {
-          console.log('GetAllUsers - ERROR: Admin branchId not found. Returning empty list');
           // Return empty list if admin branchId is not found
           return res.json({
             success: true,
@@ -80,14 +66,10 @@ const userController = {
       } else if (currentUserRole === 'superadmin') {
         whereClause.role = { [Op.in]: ['user', 'admin'] };
         // Superadmin can see all users, no branch filtering
-        console.log('GetAllUsers - Superadmin: No branch filtering');
       }
-
-      console.log('GetAllUsers - Final whereClause:', JSON.stringify(whereClause, null, 2));
       
       // If admin, ensure branchId filter is set
       if (currentUserRole === 'admin' && !whereClause.branchId) {
-        console.log('GetAllUsers - CRITICAL ERROR: Admin filter but no branchId in whereClause!');
         return res.json({
           success: true,
           users: []
@@ -127,17 +109,10 @@ const userController = {
         const expectedBranchId = Number(whereClause.branchId);
         const filteredUsers = users.filter(u => {
           const userBranchId = Number(u.branchId);
-          const matches = userBranchId === expectedBranchId;
-          if (!matches) {
-            console.log(`GetAllUsers - Filtering out user ${u.username}: branchId ${userBranchId} !== ${expectedBranchId}`);
-          }
-          return matches;
+          return userBranchId === expectedBranchId;
         });
         
         if (filteredUsers.length !== users.length) {
-          console.log('GetAllUsers - WARNING: Found users that do not match branchId filter!');
-          console.log(`  Expected branchId: ${expectedBranchId} (type: ${typeof expectedBranchId})`);
-          console.log(`  Filtered ${users.length} users down to ${filteredUsers.length}`);
           // Use filtered list
           const transformedUsers = filteredUsers.map(user => {
             // Determine unit based on role
