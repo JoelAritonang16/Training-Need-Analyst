@@ -138,13 +138,22 @@ const TrainingProposalList = ({ onCreateNew, onEdit, onViewDetail }) => {
             throw new Error(result.message || 'Gagal mengupdate status implementasi');
           }
         } catch (err) {
-          console.error('Error updating implementation status:', err);
+          let errorMessage = 'Gagal mengupdate status implementasi';
+          
+          if (err?.isTimeout || err?.name === 'TimeoutError') {
+            errorMessage = 'Request timeout: Server tidak merespons. Silakan coba lagi.';
+          } else if (err?.isNetworkError || err?.name === 'NetworkError') {
+            errorMessage = 'Tidak dapat terhubung ke server. Pastikan server backend berjalan.';
+          } else {
+            errorMessage = err.message || errorMessage;
+          }
+          
           setEvaluationModal(null);
           setAlertModal({
             open: true,
             type: 'error',
             title: 'Error',
-            message: err.message || 'Gagal mengupdate status implementasi'
+            message: errorMessage
           });
         } finally {
           setIsUpdatingImplementation(false);

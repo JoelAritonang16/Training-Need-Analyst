@@ -46,15 +46,12 @@ const UserDashboard = ({ user, onLogout, onUserUpdate, proposals = [] }) => {
   };
 
   const handleUpdateProfile = (updatedUserData) => {
-    console.log('Update profile in UserDashboard:', updatedUserData);
-    
     // Update local user state with new profile data
     setCurrentUser(prevUser => {
       const updatedUser = {
         ...prevUser,
         ...updatedUserData
       };
-      console.log('Updated currentUser:', updatedUser);
       return updatedUser;
     });
     

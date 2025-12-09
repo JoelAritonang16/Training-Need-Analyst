@@ -12,9 +12,7 @@ import {
   LuBuilding,
   LuStore,
   LuFactory,
-  LuSettings,
   LuFileBarChart,
-  LuScrollText,
   LuUserCircle,
   LuFileText,
   LuMapPin,
@@ -101,9 +99,7 @@ const Sidebar = ({ user, activeMenu, onMenuChange, onLogout }) => {
         { id: 'tempat-diklat-realisasi', icon: <LuMapPin size={18} />, label: 'Tempat Diklat Realisasi', path: '/tempat-diklat-realisasi' },
         { id: 'rekap-gabungan', icon: <LuBarChart3 size={18} />, label: 'Rekap Gabungan', path: '/rekap-gabungan' },
         { id: 'company-management', icon: <LuBuilding2 size={18} />, label: 'Manajemen Perusahaan', path: '/company-management' },
-        { id: 'system-config', icon: <LuSettings size={18} />, label: 'Konfigurasi Sistem', path: '/system-config' },
         { id: 'reports', icon: <LuFileBarChart size={18} />, label: 'Laporan', path: '/reports' },
-        { id: 'audit-logs', icon: <LuScrollText size={18} />, label: 'Log Audit', path: '/audit-logs' },
         { id: 'profile', icon: <LuUserCircle size={18} />, label: 'Profil', path: '/profile' }
       ]
     };

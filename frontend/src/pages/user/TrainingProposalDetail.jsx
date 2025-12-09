@@ -32,8 +32,17 @@ const TrainingProposalDetail = ({ proposalId, onEdit, onBack }) => {
       const data = await trainingProposalAPI.getById(id);
       setProposal(data.proposal);
     } catch (err) {
-      console.error('Error fetching proposal:', err);
-      setError(err.message);
+      let errorMessage = 'Terjadi kesalahan saat mengambil data proposal';
+      
+      if (err?.isTimeout || err?.name === 'TimeoutError') {
+        errorMessage = 'Request timeout: Server tidak merespons. Silakan coba lagi.';
+      } else if (err?.isNetworkError || err?.name === 'NetworkError') {
+        errorMessage = 'Tidak dapat terhubung ke server. Pastikan server backend berjalan.';
+      } else {
+        errorMessage = err.message || errorMessage;
+      }
+      
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -67,13 +76,22 @@ const TrainingProposalDetail = ({ proposalId, onEdit, onBack }) => {
             }
           }, 2000);
         } catch (err) {
-          console.error('Error deleting proposal:', err);
+          let errorMessage = 'Gagal menghapus usulan pelatihan';
+          
+          if (err?.isTimeout || err?.name === 'TimeoutError') {
+            errorMessage = 'Request timeout: Server tidak merespons. Silakan coba lagi.';
+          } else if (err?.isNetworkError || err?.name === 'NetworkError') {
+            errorMessage = 'Tidak dapat terhubung ke server. Pastikan server backend berjalan.';
+          } else {
+            errorMessage = err.message || errorMessage;
+          }
+          
           setConfirmModal(null);
           setAlertModal({
             open: true,
             type: 'error',
             title: 'Error',
-            message: err.message || 'Gagal menghapus usulan pelatihan'
+            message: errorMessage
           });
         }
       },
@@ -175,12 +193,21 @@ const TrainingProposalDetail = ({ proposalId, onEdit, onBack }) => {
         throw new Error(result.message || 'Gagal mengupdate status implementasi');
       }
     } catch (err) {
-      console.error('Error updating implementation status:', err);
+      let errorMessage = 'Gagal mengupdate status implementasi';
+      
+      if (err?.isTimeout || err?.name === 'TimeoutError') {
+        errorMessage = 'Request timeout: Server tidak merespons. Silakan coba lagi.';
+      } else if (err?.isNetworkError || err?.name === 'NetworkError') {
+        errorMessage = 'Tidak dapat terhubung ke server. Pastikan server backend berjalan.';
+      } else {
+        errorMessage = err.message || errorMessage;
+      }
+      
       setAlertModal({
         open: true,
         type: 'error',
         title: 'Error',
-        message: err.message || 'Gagal mengupdate status implementasi'
+        message: errorMessage
       });
     } finally {
       setIsUpdatingImplementation(false);

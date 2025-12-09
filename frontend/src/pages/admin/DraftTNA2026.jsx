@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { draftTNA2026API, branchAPI, divisiAPI } from '../../utils/api';
-import { LuFileText, LuPencil, LuTrash2, LuEye, LuPlus } from 'react-icons/lu';
+import { LuFileText, LuPencil, LuTrash2, LuEye } from 'react-icons/lu';
 import AlertModal from '../../components/AlertModal';
 import ConfirmModal from '../../components/ConfirmModal';
 import './DraftTNA2026.css';
@@ -147,35 +147,27 @@ const DraftTNA2026 = ({ user, currentUserRole, onNavigate }) => {
     }
   };
 
-  const handleCreate = () => {
-    if (currentUserRole !== 'superadmin') {
+
+  const handleSave = async (draftData) => {
+    // Hanya bisa edit, tidak bisa create (draft dibuat otomatis dari database)
+    if (!isEditMode || !selectedDraft) {
       setAlertModal({
         open: true,
         title: 'Akses Ditolak',
-        message: 'Hanya superadmin yang dapat membuat draft. Draft biasanya dibuat otomatis dari proposal yang sudah direalisasi.',
+        message: 'Draft TNA dibuat otomatis dari proposal yang sudah direalisasikan. Hanya dapat mengedit draft yang sudah ada.',
         type: 'warning'
       });
       return;
     }
-    setSelectedDraft(null);
-    setIsEditMode(false);
-    setIsModalOpen(true);
-  };
 
-  const handleSave = async (draftData) => {
     try {
-      let result;
-      if (isEditMode && selectedDraft) {
-        result = await draftTNA2026API.update(selectedDraft.id, draftData);
-      } else {
-        result = await draftTNA2026API.create(draftData);
-      }
+      const result = await draftTNA2026API.update(selectedDraft.id, draftData);
 
       if (result.success) {
         setAlertModal({
           open: true,
           title: 'Berhasil!',
-          message: isEditMode ? 'Draft berhasil diperbarui.' : 'Draft berhasil dibuat.',
+          message: 'Draft berhasil diperbarui.',
           type: 'success'
         });
         setIsModalOpen(false);
@@ -238,12 +230,6 @@ const DraftTNA2026 = ({ user, currentUserRole, onNavigate }) => {
           <h2>Draft TNA</h2>
           <p>Manajemen draft usulan Training Need Analysis</p>
         </div>
-        {currentUserRole === 'superadmin' && (
-          <button className="btn-create" onClick={handleCreate}>
-            <LuPlus size={18} />
-            Buat Draft Baru
-          </button>
-        )}
       </div>
 
       {drafts.length === 0 ? (
@@ -458,7 +444,7 @@ const DraftModal = ({ draft, isEditMode, isSuperadmin, isAdmin, branches, divisi
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h3>{isViewOnly ? 'Detail Draft TNA' : isEditMode ? 'Edit Draft TNA' : 'Buat Draft TNA'}</h3>
+          <h3>{isViewOnly ? 'Detail Draft TNA' : 'Edit Draft TNA'}</h3>
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
         <form onSubmit={handleSubmit}>
@@ -689,19 +675,71 @@ const DraftModal = ({ draft, isEditMode, isSuperadmin, isAdmin, branches, divisi
             )}
           </div>
 
-          {/* Evaluasi Realisasi - Full Width untuk Admin/Superadmin */}
-          {(isAdmin || isSuperadmin) && draft?.evaluasiRealisasi && (
+          {/* Konfirmasi Realisasi - Full Width untuk Admin/Superadmin */}
+          {(isAdmin || isSuperadmin) && (draft?.evaluasiRealisasi || draft?.relatedProposal) && (
             <div className="evaluation-section-compact">
               <div className="form-section-divider-compact"></div>
-              <div className="form-group form-full-width">
-                <label className="evaluation-label">
-                  <span className="evaluation-icon">📝</span>
-                  Evaluasi Realisasi
-                </label>
-                <div className="evaluation-display-box">
-                  <p className="evaluation-text">{draft.evaluasiRealisasi}</p>
+              
+              {/* Header Section - Informasi Konfirmasi Realisasi */}
+              <div className="confirmation-header-section">
+                <div className="confirmation-header-icon">✅</div>
+                <div className="confirmation-header-content">
+                  <h4 className="confirmation-title">Konfirmasi Realisasi</h4>
+                  <p className="confirmation-subtitle">Draft ini dibuat dari proposal yang telah dikonfirmasi sebagai sudah direalisasikan</p>
                 </div>
               </div>
+
+              {/* Informasi Proposal Terkait */}
+              {draft?.relatedProposal && (
+                <div className="related-proposal-info">
+                  <div className="info-row">
+                    <span className="info-label">Proposal ID:</span>
+                    <span className="info-value">#{draft.relatedProposal.id}</span>
+                  </div>
+                  {draft.relatedProposal.confirmedBy && (
+                    <div className="info-row">
+                      <span className="info-label">Dikonfirmasi Oleh:</span>
+                      <span className="info-value">
+                        {draft.relatedProposal.confirmedBy.fullName || draft.relatedProposal.confirmedBy.username}
+                        {draft.relatedProposal.confirmedBy.email && ` (${draft.relatedProposal.confirmedBy.email})`}
+                      </span>
+                    </div>
+                  )}
+                  {draft.relatedProposal.confirmedAt && (
+                    <div className="info-row">
+                      <span className="info-label">Tanggal Konfirmasi:</span>
+                      <span className="info-value">
+                        {new Date(draft.relatedProposal.confirmedAt).toLocaleString('id-ID', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </span>
+                    </div>
+                  )}
+                  {draft.relatedProposal.status && (
+                    <div className="info-row">
+                      <span className="info-label">Status Proposal:</span>
+                      <span className="info-value status-badge-inline">{draft.relatedProposal.status}</span>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Evaluasi Realisasi */}
+              {draft?.evaluasiRealisasi && (
+                <div className="form-group form-full-width">
+                  <label className="evaluation-label">
+                    <span className="evaluation-icon">📝</span>
+                    Evaluasi Realisasi
+                  </label>
+                  <div className="evaluation-display-box">
+                    <p className="evaluation-text">{draft.evaluasiRealisasi}</p>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

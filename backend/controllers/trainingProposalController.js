@@ -1547,14 +1547,16 @@ const trainingProposalController = {
   // Get reports data (approved and implemented proposals)
   async getReportsData(req, res) {
     try {
-      const { role: currentUserRole } = req.user;
+      const { id: currentUserId, role: currentUserRole } = req.user;
       const { branchId, divisiId } = req.query;
 
-      // Hanya superadmin yang bisa akses laporan
-      if (currentUserRole !== "superadmin") {
+      // Admin dan superadmin bisa akses laporan (read-only untuk admin)
+      // Normalize role to lowercase for comparison
+      const normalizedRole = (currentUserRole || '').toLowerCase();
+      if (normalizedRole !== "superadmin" && normalizedRole !== "admin") {
         return res.status(403).json({
           success: false,
-          message: "Akses ditolak: Hanya superadmin yang dapat mengakses laporan",
+          message: "Akses ditolak: Hanya admin dan superadmin yang dapat mengakses laporan",
         });
       }
 
@@ -1566,9 +1568,39 @@ const trainingProposalController = {
         implementasiStatus: 'SUDAH_IMPLEMENTASI'
       };
 
-      // Add branch filter if provided
-      if (branchId) {
-        whereClause.branchId = Number(branchId);
+      // Admin hanya bisa melihat data dari branch mereka sendiri
+      if (normalizedRole === "admin") {
+        let adminBranchId = null;
+        
+        // Try to get from req.user first (should be set by middleware)
+        if (req.user && req.user.branchId) {
+          adminBranchId = req.user.branchId;
+        } else {
+          // Fallback: Query database to get admin's branchId
+          const admin = await User.findByPk(currentUserId, {
+            attributes: ['id', 'username', 'branchId']
+          });
+          if (admin && admin.branchId) {
+            adminBranchId = admin.branchId;
+          }
+        }
+        
+        if (adminBranchId) {
+          whereClause.branchId = Number(adminBranchId);
+        } else {
+          // Admin tanpa branchId tidak bisa melihat data
+          return res.json({
+            success: true,
+            reports: [],
+            total: 0,
+            message: 'Tidak ada data yang ditemukan'
+          });
+        }
+      } else if (normalizedRole === "superadmin") {
+        // Superadmin can filter by branchId if provided
+        if (branchId) {
+          whereClause.branchId = Number(branchId);
+        }
       }
 
       // Ambil data proposal yang sudah approved dan sudah implementasi

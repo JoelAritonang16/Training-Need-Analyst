@@ -7,22 +7,53 @@ class ErrorBoundary extends React.Component {
   }
 
   static getDerivedStateFromError(error) {
+    // Don't show error UI for timeout and network errors - let them be handled by components
+    const errorString = String(error || '');
+    const errorMessage = error?.message || errorString;
+    
+    if (error?.isTimeout || 
+        error?.name === 'TimeoutError' || 
+        errorString === 'Timeout' ||
+        errorMessage?.includes('timeout') || 
+        errorMessage?.includes('Timeout') ||
+        errorMessage?.includes('Request timeout') ||
+        errorMessage?.includes('Server tidak merespons') ||
+        error?.isNetworkError || 
+        error?.name === 'NetworkError' ||
+        errorMessage?.includes('Failed to fetch') || 
+        errorMessage?.includes('NetworkError') ||
+        errorMessage?.includes('Tidak dapat terhubung ke server')) {
+      return { hasError: false };
+    }
     // Update state so the next render will show the fallback UI
     return { hasError: true };
   }
 
   componentDidCatch(error, errorInfo) {
-    // Log error details
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
+    // Only show error UI for non-timeout and non-network errors
+    // Timeout and network errors should be handled gracefully
+    const errorString = String(error || '');
+    const errorMessage = error?.message || errorString;
     
-    // Only show error UI for non-timeout errors
-    // Timeout errors should be handled gracefully
-    if (error?.name === 'TimeoutError' || error?.message?.includes('timeout') || error?.message?.includes('Timeout')) {
-      console.warn('Timeout error caught by ErrorBoundary, handling gracefully');
-      // Don't show error UI for timeout, let it be handled by component
+    if (error?.isTimeout || 
+        error?.name === 'TimeoutError' || 
+        errorString === 'Timeout' ||
+        errorMessage?.includes('timeout') || 
+        errorMessage?.includes('Timeout') ||
+        errorMessage?.includes('Request timeout') ||
+        errorMessage?.includes('Server tidak merespons') ||
+        error?.isNetworkError || 
+        error?.name === 'NetworkError' ||
+        errorMessage?.includes('Failed to fetch') || 
+        errorMessage?.includes('NetworkError') ||
+        errorMessage?.includes('Tidak dapat terhubung ke server')) {
+      // Don't show error UI for timeout/network errors, let it be handled by component
       this.setState({ hasError: false, error: null, errorInfo: null });
       return;
     }
+
+    // Log error details for non-timeout errors
+    console.error('ErrorBoundary caught an error:', error, errorInfo);
 
     // Safely set error state, ensure errorInfo is not null
     this.setState({
@@ -37,14 +68,29 @@ class ErrorBoundary extends React.Component {
 
   render() {
     if (this.state.hasError) {
-      // Don't show error UI for timeout errors
-      if (this.state.error?.name === 'TimeoutError' || this.state.error?.message?.includes('timeout')) {
+      // Don't show error UI for timeout and network errors
+      const error = this.state.error;
+      const errorString = String(error || '');
+      const errorMessage = error?.message || errorString;
+      
+      if (error?.isTimeout || 
+          error?.name === 'TimeoutError' || 
+          errorString === 'Timeout' ||
+          errorMessage?.includes('timeout') || 
+          errorMessage?.includes('Timeout') ||
+          errorMessage?.includes('Request timeout') ||
+          errorMessage?.includes('Server tidak merespons') ||
+          error?.isNetworkError || 
+          error?.name === 'NetworkError' ||
+          errorMessage?.includes('Failed to fetch') || 
+          errorMessage?.includes('NetworkError') ||
+          errorMessage?.includes('Tidak dapat terhubung ke server')) {
         return this.props.children;
       }
 
       // Safely access errorInfo with null check
       const errorInfo = this.state.errorInfo || { componentStack: '' };
-      const errorMessage = this.state.error ? this.state.error.toString() : 'Unknown error';
+      const displayErrorMessage = this.state.error ? this.state.error.toString() : 'Unknown error';
       const componentStack = errorInfo.componentStack || '';
 
       // Custom fallback UI
@@ -69,7 +115,7 @@ class ErrorBoundary extends React.Component {
               overflow: 'auto',
               fontSize: '12px'
             }}>
-              {errorMessage}
+              {displayErrorMessage}
               {componentStack && (
                 <>
                   <br />

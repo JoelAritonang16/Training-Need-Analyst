@@ -1,26 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   LuUsers,
   LuCheckCircle2,
   LuClipboardList,
-  LuBookOpen,
   LuFileText,
   LuMapPin,
   LuBarChart3,
   LuWallet,
 } from 'react-icons/lu';
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { draftTNA2026API, tempatDiklatRealisasiAPI, trainingProposalAPI, divisiAPI, branchAPI } from '../../utils/api';
+import { draftTNA2026API, tempatDiklatRealisasiAPI, divisiAPI, branchAPI } from '../../utils/api';
 import './SuperAdminDashboardOverview.css';
 
-const SuperAdminDashboardOverview = ({ users, proposals, auditLogs, onNavigate }) => {
+const SuperAdminDashboardOverview = ({ users, proposals, onNavigate }) => {
   const [drafts, setDrafts] = useState([]);
   const [realisasiData, setRealisasiData] = useState([]);
   const [rekapPerBulan, setRekapPerBulan] = useState([]);
   const [rekapGabungan, setRekapGabungan] = useState(null);
   const [divisiList, setDivisiList] = useState([]);
   const [branchList, setBranchList] = useState([]);
-  const [loading, setLoading] = useState(true);
 
   const totalUsers = users ? users.length : 0;
   const activeUsers = users ? users.filter(u => u.status === 'active').length : 0;
@@ -41,7 +39,6 @@ const SuperAdminDashboardOverview = ({ users, proposals, auditLogs, onNavigate }
   // Participant calculations
   const totalParticipantsRequested = proposals ? proposals.filter(p => p.status === 'MENUNGGU').reduce((sum, p) => sum + (parseInt(p.JumlahPeserta) || 0), 0) : 0;
   const totalParticipantsApproved = proposals ? proposals.filter(p => p.status === 'APPROVE_ADMIN' || p.status === 'APPROVE_SUPERADMIN').reduce((sum, p) => sum + (parseInt(p.JumlahPeserta) || 0), 0) : 0;
-  const totalParticipants = proposals ? proposals.reduce((sum, p) => sum + (parseInt(p.JumlahPeserta) || 0), 0) : 0;
   
   // Realisasi data calculations
   const totalDrafts = drafts.length;
@@ -50,20 +47,16 @@ const SuperAdminDashboardOverview = ({ users, proposals, auditLogs, onNavigate }
   const totalPesertaRealisasi = realisasiData.reduce((sum, r) => sum + (parseInt(r.totalPeserta) || 0), 0);
   const totalBiayaRealisasi = realisasiData.reduce((sum, r) => sum + (parseFloat(r.totalBiaya) || 0), 0);
   
-  // Calculate rekap gabungan totals
-  const totalDraftGabungan = rekapGabungan ? rekapGabungan.total.totalDraft : 0;
-  const totalBiayaGabungan = rekapGabungan ? rekapGabungan.total.totalBiaya : 0;
-  const totalPesertaGabungan = rekapGabungan ? rekapGabungan.total.totalPeserta : 0;
+  // Calculate rekap gabungan totals (kept for potential future use)
+  // const totalDraftGabungan = rekapGabungan ? rekapGabungan.total.totalDraft : 0;
+  // const totalBiayaGabungan = rekapGabungan ? rekapGabungan.total.totalBiaya : 0;
+  // const totalPesertaGabungan = rekapGabungan ? rekapGabungan.total.totalPeserta : 0;
 
-  useEffect(() => {
-    fetchDashboardData();
-    
-  }, [proposals]); // Re-fetch when proposals change
+  const proposalsRef = useRef(proposals);
+  const isInitialMount = useRef(true);
 
   const fetchDashboardData = async () => {
     try {
-      setLoading(true);
-      
       // Fetch drafts
       try {
         const draftsResult = await draftTNA2026API.getAll();
@@ -125,10 +118,20 @@ const SuperAdminDashboardOverview = ({ users, proposals, auditLogs, onNavigate }
       }
     } catch (error) {
       // Don't throw - let component continue rendering
-    } finally {
-      setLoading(false);
     }
   };
+
+  useEffect(() => {
+    // Only fetch on initial mount, not when proposals change
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      fetchDashboardData();
+    } else {
+      // Update ref when proposals change, but don't re-fetch
+      proposalsRef.current = proposals;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Empty dependency array - only run on mount
 
   // Prepare chart data for proposals status
   const proposalStatusData = [
@@ -258,8 +261,6 @@ const SuperAdminDashboardOverview = ({ users, proposals, auditLogs, onNavigate }
       totalPesertaApproved: approved.reduce((sum, p) => sum + (parseInt(p.JumlahPeserta) || 0), 0),
     };
   }).filter(b => b.totalUsulan > 0) : [];
-  
-  console.log('SuperAdminDashboardOverview: proposalsByBranch count:', proposalsByBranch.length);
 
   // Chart data for divisi comparison
   const divisiChartData = proposalsByDivisi

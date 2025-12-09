@@ -31,17 +31,23 @@ export const DatabaseDataProvider = ({ children }) => {
       const proposalsData = data.proposals || data.data || [];
       setProposals(proposalsData);
     } catch (err) {
-      // Set appropriate error message
-      if (err.message.includes('login')) {
+      // Handle timeout and network errors gracefully
+      if (err?.isTimeout || err?.name === 'TimeoutError') {
+        setError('Request timeout: Server tidak merespons. Silakan coba lagi.');
+        setProposals([]);
+      } else if (err?.isNetworkError || err?.name === 'NetworkError') {
+        setError('Tidak dapat terhubung ke server. Pastikan server backend berjalan.');
+        setProposals([]);
+      } else if (err.message.includes('login')) {
         setError(err.message);
+        setProposals([]);
       } else if (err.message.includes('500')) {
         setError('Server sedang mengalami masalah. Silakan coba lagi nanti.');
+        setProposals([]);
       } else {
         setError(err.message);
+        setProposals([]);
       }
-      
-      // Set empty array instead of mock data
-      setProposals([]);
     } finally {
       setIsLoading(false);
     }

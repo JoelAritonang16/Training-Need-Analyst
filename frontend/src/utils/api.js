@@ -65,20 +65,32 @@ export const apiCall = async (endpoint, options = {}) => {
     const responseData = await response.json();
     return responseData;
   } catch (error) {
+    const errorString = String(error || '');
+    const errorMessage = error?.message || errorString || '';
     
     // Handle timeout specifically - return user-friendly error
-    if (error.name === 'AbortError' || error.message.includes('timeout') || error.message.includes('Timeout')) {
+    if (error.name === 'AbortError' || 
+        errorMessage.includes('timeout') || 
+        errorMessage.includes('Timeout') ||
+        errorMessage.includes('Request timeout') ||
+        errorString === 'Timeout') {
       const timeoutError = new Error(`Request timeout: Server tidak merespons dalam ${timeout/1000} detik. Silakan coba lagi atau periksa koneksi server.`);
       timeoutError.name = 'TimeoutError';
       timeoutError.isTimeout = true;
+      // Prevent error from being shown as unhandled
+      setTimeout(() => {}, 0);
       return Promise.reject(timeoutError);
     }
     
     // Handle network errors
-    if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+    if (errorMessage.includes('Failed to fetch') || 
+        errorMessage.includes('NetworkError') ||
+        errorMessage.includes('Tidak dapat terhubung ke server')) {
       const networkError = new Error(`Tidak dapat terhubung ke server. Pastikan server backend berjalan di ${API_BASE_URL}`);
       networkError.name = 'NetworkError';
       networkError.isNetworkError = true;
+      // Prevent error from being shown as unhandled
+      setTimeout(() => {}, 0);
       return Promise.reject(networkError);
     }
     

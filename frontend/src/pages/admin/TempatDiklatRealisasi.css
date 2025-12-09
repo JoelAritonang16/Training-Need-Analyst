@@ -5,6 +5,26 @@
   min-height: 100vh;
 }
 
+.loading-state {
+  text-align: center;
+  padding: 50px 20px;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  color: #94a3b8;
+  margin-top: 20px;
+  border: 1px solid rgba(2, 113, 182, 0.08);
+}
+
+.loading-state .spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 .realisasi-container .content-header {
   display: flex;
   justify-content: center;

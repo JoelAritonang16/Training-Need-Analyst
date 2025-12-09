@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { tempatDiklatRealisasiAPI, branchAPI } from '../../utils/api';
-import { LuMapPin, LuPlus, LuPencil, LuTrash2 } from 'react-icons/lu';
+import { LuPencil, LuTrash2 } from 'react-icons/lu';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import AlertModal from '../../components/AlertModal';
 import ConfirmModal from '../../components/ConfirmModal';
@@ -28,16 +28,7 @@ const TempatDiklatRealisasi = ({ user, currentUserRole, onNavigate }) => {
     itemId: null
   });
 
-  useEffect(() => {
-    fetchData();
-    fetchRekapPerBulan();
-    if (currentUserRole === 'superadmin') {
-      fetchBranches();
-    }
-    
-  }, [selectedYear, selectedMonth, currentUserRole]);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       const filters = { tahun: selectedYear };
@@ -56,9 +47,9 @@ const TempatDiklatRealisasi = ({ user, currentUserRole, onNavigate }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedYear, selectedMonth]);
 
-  const fetchRekapPerBulan = async () => {
+  const fetchRekapPerBulan = useCallback(async () => {
     try {
       const result = await tempatDiklatRealisasiAPI.getRekapPerBulan(selectedYear);
       if (result.success) {
@@ -67,7 +58,15 @@ const TempatDiklatRealisasi = ({ user, currentUserRole, onNavigate }) => {
     } catch (error) {
       console.error('Error fetching rekap:', error);
     }
-  };
+  }, [selectedYear]);
+
+  useEffect(() => {
+    fetchData();
+    fetchRekapPerBulan();
+    if (currentUserRole === 'superadmin') {
+      fetchBranches();
+    }
+  }, [selectedYear, selectedMonth, currentUserRole, fetchData, fetchRekapPerBulan]);
 
   const fetchBranches = async () => {
     try {
@@ -80,11 +79,6 @@ const TempatDiklatRealisasi = ({ user, currentUserRole, onNavigate }) => {
     }
   };
 
-  const handleCreate = () => {
-    setSelectedItem(null);
-    setIsEditMode(false);
-    setIsModalOpen(true);
-  };
 
   const handleEdit = (item) => {
     setSelectedItem(item);
@@ -136,19 +130,25 @@ const TempatDiklatRealisasi = ({ user, currentUserRole, onNavigate }) => {
   };
 
   const handleSave = async (formData) => {
+    // Hanya bisa edit, tidak bisa create (data dibuat otomatis dari database)
+    if (!isEditMode || !selectedItem) {
+      setAlertModal({
+        open: true,
+        title: 'Akses Ditolak',
+        message: 'Data realisasi dibuat otomatis dari proposal yang sudah direalisasikan. Hanya dapat mengedit data yang sudah ada.',
+        type: 'warning'
+      });
+      return;
+    }
+
     try {
-      let result;
-      if (isEditMode && selectedItem) {
-        result = await tempatDiklatRealisasiAPI.update(selectedItem.id, formData);
-      } else {
-        result = await tempatDiklatRealisasiAPI.create(formData);
-      }
+      const result = await tempatDiklatRealisasiAPI.update(selectedItem.id, formData);
 
       if (result.success) {
         setAlertModal({
           open: true,
           title: 'Berhasil!',
-          message: isEditMode ? 'Data realisasi berhasil diperbarui.' : 'Data realisasi berhasil ditambahkan.',
+          message: 'Data realisasi berhasil diperbarui.',
           type: 'success'
         });
         setIsModalOpen(false);
@@ -227,10 +227,6 @@ const TempatDiklatRealisasi = ({ user, currentUserRole, onNavigate }) => {
           <h2>Tempat Diklat Realisasi</h2>
           <p>Rekap tempat diklat yang sudah terealisasi per bulan per branch</p>
         </div>
-        <button className="btn-create" onClick={handleCreate}>
-          <LuPlus size={18} />
-          Tambah Data
-        </button>
       </div>
 
       {/* Filters */}
@@ -412,7 +408,7 @@ const RealisasiModal = ({ item, isEditMode, branches, currentUserRole, user, onS
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h3>{isEditMode ? 'Edit Data Realisasi' : 'Tambah Data Realisasi'}</h3>
+          <h3>Edit Data Realisasi</h3>
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
         <form onSubmit={handleSubmit}>

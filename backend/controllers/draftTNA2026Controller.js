@@ -142,6 +142,7 @@ const draftTNA2026Controller = {
       // - branchId yang sama
       // - status SUDAH_IMPLEMENTASI
       let evaluasiRealisasi = null;
+      let relatedProposal = null;
       try {
         // Format waktu pelaksanaan untuk perbandingan (hanya tanggal, tanpa waktu)
         const draftWaktuPelaksanaan = new Date(draft.waktuPelaksanaan);
@@ -151,7 +152,7 @@ const draftTNA2026Controller = {
         draftDateEnd.setHours(23, 59, 59, 999);
         
         // Cari proposal dengan uraian dan waktu pelaksanaan yang sama
-        const relatedProposal = await TrainingProposal.findOne({
+        relatedProposal = await TrainingProposal.findOne({
           where: {
             branchId: draft.branchId,
             implementasiStatus: 'SUDAH_IMPLEMENTASI',
@@ -160,7 +161,14 @@ const draftTNA2026Controller = {
               [Op.between]: [draftDateStart, draftDateEnd]
             }
           },
-          attributes: ['id', 'evaluasiRealisasi'],
+          include: [
+            {
+              model: User,
+              as: 'user',
+              attributes: ['id', 'username', 'fullName', 'email']
+            }
+          ],
+          attributes: ['id', 'evaluasiRealisasi', 'updated_at', 'Uraian', 'status'],
           order: [['updated_at', 'DESC']],
           limit: 1
         });
@@ -182,19 +190,25 @@ const draftTNA2026Controller = {
                   }
                 },
                 attributes: []
+              },
+              {
+                model: User,
+                as: 'user',
+                attributes: ['id', 'username', 'fullName', 'email']
               }
             ],
             where: {
               branchId: draft.branchId,
               implementasiStatus: 'SUDAH_IMPLEMENTASI'
             },
-            attributes: ['id', 'evaluasiRealisasi'],
+            attributes: ['id', 'evaluasiRealisasi', 'updated_at', 'Uraian', 'status'],
             order: [['updated_at', 'DESC']],
             limit: 1
           });
 
           if (relatedProposalFromItem && relatedProposalFromItem.evaluasiRealisasi) {
             evaluasiRealisasi = relatedProposalFromItem.evaluasiRealisasi;
+            relatedProposal = relatedProposalFromItem;
           }
         }
       } catch (evalError) {
@@ -205,6 +219,22 @@ const draftTNA2026Controller = {
       // Convert draft to plain object and add evaluation
       const draftData = draft.toJSON ? draft.toJSON() : draft;
       draftData.evaluasiRealisasi = evaluasiRealisasi;
+      
+      // Tambahkan informasi proposal terkait untuk konfirmasi realisasi
+      if (relatedProposal) {
+        draftData.relatedProposal = {
+          id: relatedProposal.id,
+          uraian: relatedProposal.Uraian,
+          status: relatedProposal.status,
+          confirmedAt: relatedProposal.updated_at,
+          confirmedBy: relatedProposal.user ? {
+            id: relatedProposal.user.id,
+            username: relatedProposal.user.username,
+            fullName: relatedProposal.user.fullName,
+            email: relatedProposal.user.email
+          } : null
+        };
+      }
 
       res.json({
         success: true,

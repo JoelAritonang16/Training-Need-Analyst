@@ -55,7 +55,14 @@ const UserDraftTNA = ({ user, onNavigate }) => {
         setError(result.message || 'Gagal memuat data draft');
       }
     } catch (err) {
-      setError(err.message || 'Terjadi kesalahan saat mengambil data');
+      // Handle timeout and network errors gracefully
+      if (err?.isTimeout || err?.name === 'TimeoutError') {
+        setError('Request timeout: Server tidak merespons. Silakan coba lagi.');
+      } else if (err?.isNetworkError || err?.name === 'NetworkError') {
+        setError('Tidak dapat terhubung ke server. Pastikan server backend berjalan.');
+      } else {
+        setError(err.message || 'Terjadi kesalahan saat mengambil data');
+      }
     } finally {
       setLoading(false);
     }
@@ -79,23 +86,6 @@ const UserDraftTNA = ({ user, onNavigate }) => {
     });
   };
 
-  const handleCreate = () => {
-    setFormData({
-      uraian: '',
-      waktuPelaksanaan: '',
-      jumlahPeserta: '',
-      jumlahHari: '',
-      levelTingkatan: 'STRUKTURAL',
-      beban: '0',
-      bebanTransportasi: '0',
-      bebanAkomodasi: '0',
-      bebanUangSaku: '0',
-      totalUsulan: '0'
-    });
-    setIsEditMode(false);
-    setIsViewMode(false);
-    setIsModalOpen(true);
-  };
 
   const handleEdit = (draft) => {
     if (draft.status !== 'DRAFT') {
@@ -241,6 +231,17 @@ const UserDraftTNA = ({ user, onNavigate }) => {
   const handleSave = async (e) => {
     e.preventDefault();
     
+    // Hanya bisa edit, tidak bisa create (draft dibuat otomatis dari database)
+    if (!isEditMode || !selectedDraft) {
+      setAlertModal({
+        open: true,
+        title: 'Akses Ditolak',
+        message: 'Draft TNA dibuat otomatis dari proposal yang sudah direalisasikan. Hanya dapat mengedit draft yang sudah ada.',
+        type: 'warning'
+      });
+      return;
+    }
+    
     // Validasi
     if (!formData.uraian || !formData.waktuPelaksanaan || !formData.jumlahPeserta || !formData.jumlahHari) {
       setAlertModal({
@@ -267,12 +268,7 @@ const UserDraftTNA = ({ user, onNavigate }) => {
         tahun: 2026
       };
 
-      let result;
-      if (isEditMode && selectedDraft) {
-        result = await draftTNA2026API.update(selectedDraft.id, draftData);
-      } else {
-        result = await draftTNA2026API.create(draftData);
-      }
+      const result = await draftTNA2026API.update(selectedDraft.id, draftData);
 
       if (result.success) {
         fetchDrafts();
@@ -280,7 +276,7 @@ const UserDraftTNA = ({ user, onNavigate }) => {
         setAlertModal({
           open: true,
           title: 'Berhasil!',
-          message: isEditMode ? 'Draft berhasil diupdate' : 'Draft berhasil dibuat',
+          message: 'Draft berhasil diupdate',
           type: 'success'
         });
       } else {
@@ -336,10 +332,6 @@ const UserDraftTNA = ({ user, onNavigate }) => {
           <h2>Draft TNA</h2>
           <p>Kelola draft Training Need Analysis Anda</p>
         </div>
-        <button className="btn-create" onClick={handleCreate}>
-          <LuPlus size={18} />
-          Buat Draft Baru
-        </button>
       </div>
 
       {error && (
@@ -352,11 +344,7 @@ const UserDraftTNA = ({ user, onNavigate }) => {
         <div className="empty-state">
           <LuFileText size={64} />
           <h3>Belum Ada Draft</h3>
-          <p>Mulai dengan membuat draft TNA baru untuk divisi/branch Anda</p>
-          <button className="btn-create-primary" onClick={handleCreate}>
-            <LuPlus size={18} />
-            Buat Draft Pertama
-          </button>
+          <p>Draft TNA akan dibuat otomatis dari proposal yang sudah direalisasikan</p>
         </div>
       ) : (
         <div className="drafts-grid">
@@ -426,7 +414,7 @@ const UserDraftTNA = ({ user, onNavigate }) => {
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3>
-                {isViewMode ? 'Detail Draft TNA' : isEditMode ? 'Edit Draft TNA' : 'Buat Draft TNA'}
+                {isViewMode ? 'Detail Draft TNA' : 'Edit Draft TNA'}
               </h3>
               <button className="modal-close" onClick={() => setIsModalOpen(false)}>×</button>
             </div>

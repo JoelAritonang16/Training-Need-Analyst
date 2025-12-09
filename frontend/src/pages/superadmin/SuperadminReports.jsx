@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { trainingProposalAPI, branchAPI, divisiAPI } from '../../utils/api';
 import { LuDownload, LuRefreshCw, LuFileBarChart, LuCheckCircle2, LuCalendar, LuUsers, LuDollarSign, LuFilter, LuAlertTriangle, LuCheckSquare, LuSquare } from 'react-icons/lu';
 import AlertModal from '../../components/AlertModal';
@@ -24,16 +24,10 @@ const SuperadminReports = () => {
     type: 'info'
   });
 
-  useEffect(() => {
-    fetchBranchAndDivisi();
-    fetchReports();
-  }, []);
+  const filtersRef = useRef({ branchFilter: 'all', divisiFilter: 'all' });
+  const isInitialMount = useRef(true);
 
-  useEffect(() => {
-    fetchReports();
-  }, [branchFilter, divisiFilter]);
-
-  const fetchBranchAndDivisi = async () => {
+  const fetchBranchAndDivisi = useCallback(async () => {
     try {
       const [branchResult, divisiResult] = await Promise.all([
         branchAPI.getAll(),
@@ -47,11 +41,16 @@ const SuperadminReports = () => {
         setDivisiList(divisiResult.divisi || []);
       }
     } catch (error) {
-      console.error('Error fetching branch and divisi:', error);
+      // Handle timeout and network errors gracefully
+      if (error?.isTimeout || error?.name === 'TimeoutError' || error?.isNetworkError || error?.name === 'NetworkError') {
+        // Don't show error for timeout/network errors on initial load
+      } else {
+        console.error('Error fetching branch and divisi:', error);
+      }
     }
-  };
+  }, []);
 
-  const fetchReports = async (silent = false) => {
+  const fetchReports = useCallback(async (silent = false) => {
     try {
       if (!silent) setLoading(true);
       setError(null);
@@ -60,18 +59,26 @@ const SuperadminReports = () => {
       if (branchFilter !== 'all') filters.branchId = branchFilter;
       if (divisiFilter !== 'all') filters.divisiId = divisiFilter;
       
-      console.log('[Reports Frontend] Fetching reports with filters:', filters);
+      // Check if filters actually changed
+      const filtersString = JSON.stringify(filters);
+      const currentFiltersString = JSON.stringify(filtersRef.current);
+      
+      // Skip if filters haven't changed (except on initial mount)
+      if (!isInitialMount.current && filtersString === currentFiltersString) {
+        if (!silent) setLoading(false);
+        return;
+      }
+      
+      filtersRef.current = filters;
+      
       const result = await trainingProposalAPI.getReportsData(filters);
-      console.log('[Reports Frontend] API response:', result);
       
       if (result && result.success) {
         setReports(result.reports || []);
         setLastUpdated(new Date());
-        setError(null); // Clear any previous errors
-        console.log(`[Reports Frontend] Loaded ${result.reports?.length || 0} reports`);
+        setError(null);
       } else {
         const errorMsg = result?.message || result?.error || 'Gagal memuat data laporan';
-        console.error('[Reports Frontend] API returned error:', errorMsg);
         setError(errorMsg);
         if (!silent) {
           setAlertModal({
@@ -83,38 +90,75 @@ const SuperadminReports = () => {
         }
       }
     } catch (err) {
-      console.error('[Reports Frontend] Error fetching reports:', err);
-      console.error('[Reports Frontend] Error details:', {
-        message: err.message,
-        stack: err.stack,
-        name: err.name
-      });
-      
       let errorMessage = 'Terjadi kesalahan saat mengambil data';
       
-      if (err.message) {
-        if (err.message.includes('Not Found') || err.message.includes('404')) {
-          errorMessage = 'Endpoint tidak ditemukan. Pastikan server berjalan dengan benar dan route sudah terdaftar.';
-        } else if (err.message.includes('Network') || err.message.includes('Failed to fetch')) {
-          errorMessage = 'Tidak dapat terhubung ke server. Pastikan server backend berjalan.';
-        } else {
-          errorMessage = err.message;
+      // Handle timeout and network errors gracefully
+      if (err?.isTimeout || err?.name === 'TimeoutError') {
+        errorMessage = 'Request timeout: Server tidak merespons saat memuat laporan. Silakan coba lagi.';
+        // Don't show alert for timeout errors, just set error state
+        setError(errorMessage);
+        if (!silent) {
+          setAlertModal({
+            open: true,
+            title: 'Timeout',
+            message: errorMessage,
+            type: 'warning'
+          });
         }
-      }
-      
-      setError(errorMessage);
-      if (!silent) {
-        setAlertModal({
-          open: true,
-          title: 'Terjadi Kesalahan',
-          message: errorMessage,
-          type: 'error'
-        });
+      } else if (err?.isNetworkError || err?.name === 'NetworkError' || 
+                 err?.message?.includes('Network') || err?.message?.includes('Failed to fetch')) {
+        errorMessage = 'Tidak dapat terhubung ke server. Pastikan server backend berjalan.';
+        setError(errorMessage);
+        if (!silent) {
+          setAlertModal({
+            open: true,
+            title: 'Koneksi Error',
+            message: errorMessage,
+            type: 'error'
+          });
+        }
+      } else if (err?.message?.includes('Not Found') || err?.message?.includes('404')) {
+        errorMessage = 'Endpoint tidak ditemukan. Pastikan server berjalan dengan benar dan route sudah terdaftar.';
+        setError(errorMessage);
+        if (!silent) {
+          setAlertModal({
+            open: true,
+            title: 'Error',
+            message: errorMessage,
+            type: 'error'
+          });
+        }
+      } else {
+        errorMessage = err.message || errorMessage;
+        setError(errorMessage);
+        if (!silent) {
+          setAlertModal({
+            open: true,
+            title: 'Terjadi Kesalahan',
+            message: errorMessage,
+            type: 'error'
+          });
+        }
       }
     } finally {
       if (!silent) setLoading(false);
     }
-  };
+  }, [branchFilter, divisiFilter]);
+
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      fetchBranchAndDivisi();
+      fetchReports();
+    }
+  }, [fetchBranchAndDivisi, fetchReports]);
+
+  // Handle filter changes - fetchReports will check if filters actually changed
+  useEffect(() => {
+    if (!isInitialMount.current) {
+      fetchReports();
+    }
+  }, [branchFilter, divisiFilter, fetchReports]);
 
   // Handle individual checkbox selection
   const handleSelectReport = (reportId) => {

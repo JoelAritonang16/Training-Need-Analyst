@@ -5,6 +5,8 @@ import UserManagement from './UserManagement.jsx';
 import ProposalApproval from './ProposalApproval.jsx';
 import ApprovedProposals from './ApprovedProposals.jsx';
 import Reports from './Reports.jsx';
+import AdminReports from './AdminReports.jsx';
+import AdminTempatDiklatRealisasi from './AdminTempatDiklatRealisasi.jsx';
 import UserCreateForAdmin from './UserCreateForAdmin.jsx';
 import DraftTNA2026 from './DraftTNA2026.jsx';
 import AlertModal from '../../components/AlertModal.jsx';
@@ -337,11 +339,12 @@ const AdminDashboard = ({ user, onLogout }) => {
       
       case 'reports':
         return (
-          <Reports 
-            proposals={proposals}
-            users={users}
-            onGenerateReport={handleGenerateReport}
-          />
+          <AdminReports user={user} />
+        );
+      
+      case 'tempat-diklat-realisasi':
+        return (
+          <AdminTempatDiklatRealisasi user={user} />
         );
       
       case 'draft-tna-2026':

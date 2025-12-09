@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { divisiAPI, branchAPI, anakPerusahaanAPI } from '../../utils/api';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { divisiAPI, branchAPI, anakPerusahaanAPI, apiCall } from '../../utils/api';
 import AlertModal from '../../components/AlertModal';
 import ConfirmModal from '../../components/ConfirmModal';
 import PageHeader from '../../components/PageHeader';
@@ -15,34 +15,16 @@ const UserManagement = ({
   onNavigate 
 }) => {
   // State management
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [selectedUser, setSelectedUser] = useState(null);
   const [loading, setLoading] = useState(false);
   const [userList, setUserList] = useState(users);
-  const [divisiList, setDivisiList] = useState([]);
-  const [branchList, setBranchList] = useState([]);
-  const [anakPerusahaanList, setAnakPerusahaanList] = useState([]);
-  const [formData, setFormData] = useState({
-    username: '',
-    password: '',
-    role: 'user',
-    email: '',
-    unit: '',
-    divisiId: '',
-    branchId: '',
-    anakPerusahaanId: ''
-  });
 
   // UI state
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState('all'); // all | user | admin
-  const [compactMode, setCompactMode] = useState(false);
-  const [selectedIds, setSelectedIds] = useState(new Set());
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
-  const [sortBy, setSortBy] = useState('username');
-  const [sortDir, setSortDir] = useState('asc');
+  const [sortBy] = useState('username');
+  const [sortDir] = useState('asc');
 
   // Modal states
   const [alertModal, setAlertModal] = useState({
@@ -60,89 +42,139 @@ const UserManagement = ({
 
   // Simple view detail modal state
   const [detailUser, setDetailUser] = useState(null);
+  
+  // Ref to track initial mount
+  const isInitialMount = useRef(true);
 
-  useEffect(() => {
-    fetchUsers();
-    fetchDivisiAndBranch();
-  }, [currentUserRole]);
-
-  const fetchDivisiAndBranch = async () => {
+  const fetchDivisiAndBranch = useCallback(async () => {
     try {
-      const promises = [branchAPI.getAll()];
+      // Fetch branch data (may be needed for future features)
+      await branchAPI.getAll();
       
       // Only fetch divisi and anak perusahaan if current user is superadmin
       if (currentUserRole === 'superadmin') {
-        promises.push(divisiAPI.getAll(), anakPerusahaanAPI.getAll());
-      }
-      
-      const results = await Promise.all(promises);
-      
-      if (results[0].success) {
-        setBranchList(results[0].branch || []);
-      }
-      
-      if (currentUserRole === 'superadmin') {
-        if (results[1]?.success) {
-          setDivisiList(results[1].divisi || []);
-        }
-        if (results[2]?.success) {
-          setAnakPerusahaanList(results[2].anakPerusahaan || []);
-        }
+        await Promise.all([divisiAPI.getAll(), anakPerusahaanAPI.getAll()]);
       }
     } catch (error) {
-      console.error('Error fetching data:', error);
+      // Handle all possible error formats (Error object, string, etc.)
+      const errorString = String(error || '');
+      const errorMessage = error?.message || errorString;
+      const isTimeout = error?.isTimeout || 
+                        error?.name === 'TimeoutError' || 
+                        errorString === 'Timeout' ||
+                        errorMessage?.includes('timeout') || 
+                        errorMessage?.includes('Timeout') ||
+                        errorMessage?.includes('Request timeout') ||
+                        errorMessage?.includes('Server tidak merespons');
+      
+      const isNetworkError = error?.isNetworkError || 
+                             error?.name === 'NetworkError' ||
+                             errorMessage?.includes('Failed to fetch') || 
+                             errorMessage?.includes('NetworkError') ||
+                             errorMessage?.includes('Tidak dapat terhubung ke server');
+      
+      // Handle timeout and network errors gracefully - don't show error for these
+      if (isTimeout || isNetworkError) {
+        // Silently handle - these are expected and handled by fetchUsers
+        return;
+      }
+      
+      // For other errors, show alert
+      setAlertModal({
+        open: true,
+        title: 'Terjadi Kesalahan',
+        message: 'Gagal memuat data divisi dan branch. Silakan refresh halaman.',
+        type: 'error'
+      });
     }
-  };
+  }, [currentUserRole]);
 
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
-      const headers = {
-        'Content-Type': 'application/json'
-      };
       
-      // Add Authorization header if token exists
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
+      const data = await apiCall(`/api/users?currentUserRole=${currentUserRole}`);
       
-      const response = await fetch(`http://localhost:5000/api/users?currentUserRole=${currentUserRole}`, {
-        method: 'GET',
-        headers: headers,
-        credentials: 'include'
-      });
-      const data = await response.json();
       if (data.success) {
-        console.log('=== FRONTEND FETCH USERS ===');
-        console.log('Users fetched:', data.users);
-        data.users.forEach(user => {
-          console.log(`User ${user.username}:`, {
-            divisiId: user.divisiId,
-            branchId: user.branchId,
-            divisi: user.divisi?.nama,
-            branch: user.branch?.nama
-          });
-        });
-        setUserList(data.users);
+        setUserList(data.users || []);
       } else {
-        console.error('Failed to fetch users:', data.message);
+        setAlertModal({
+          open: true,
+          title: 'Gagal Memuat Data',
+          message: data.message || 'Gagal memuat daftar user. Silakan coba lagi.',
+          type: 'error'
+        });
       }
     } catch (error) {
-      console.error('Error fetching users:', error);
+      // Handle all possible error formats (Error object, string, etc.)
+      const errorString = String(error || '');
+      const errorMessage = error?.message || errorString;
+      const isTimeout = error?.isTimeout || 
+                        error?.name === 'TimeoutError' || 
+                        errorString === 'Timeout' ||
+                        errorMessage?.includes('timeout') || 
+                        errorMessage?.includes('Timeout') ||
+                        errorMessage?.includes('Request timeout') ||
+                        errorMessage?.includes('Server tidak merespons');
+      
+      const isNetworkError = error?.isNetworkError || 
+                             error?.name === 'NetworkError' ||
+                             errorMessage?.includes('Failed to fetch') || 
+                             errorMessage?.includes('NetworkError') ||
+                             errorMessage?.includes('Tidak dapat terhubung ke server');
+      
+      // Handle timeout and network errors gracefully
+      if (isTimeout) {
+        setAlertModal({
+          open: true,
+          title: 'Timeout',
+          message: errorMessage || 'Server tidak merespons. Silakan coba lagi.',
+          type: 'warning'
+        });
+        // Don't update userList on timeout
+        setLoading(false);
+        return;
+      }
+      
+      if (isNetworkError) {
+        setAlertModal({
+          open: true,
+          title: 'Koneksi Error',
+          message: errorMessage || 'Tidak dapat terhubung ke server. Pastikan server backend berjalan.',
+          type: 'error'
+        });
+        // Don't update userList on network error
+        setLoading(false);
+        return;
+      }
+      
+      // For other errors
+      setAlertModal({
+        open: true,
+        title: 'Terjadi Kesalahan',
+        message: errorMessage || 'Gagal memuat daftar user. Silakan coba lagi.',
+        type: 'error'
+      });
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentUserRole]);
+
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      fetchUsers();
+      fetchDivisiAndBranch();
+    }
+  }, [fetchUsers, fetchDivisiAndBranch]);
 
   const handleAddUser = () => {
     if (onAddUser) {
       onAddUser();
     } else if (onNavigate) {
       onNavigate('user-create');
-    } else {
-      setShowAddModal(true);
     }
+    // Note: Internal modal functionality removed - using parent component handlers
   };
 
   const handleEditUser = (user) => {
@@ -151,147 +183,10 @@ const UserManagement = ({
       user = userList.find(u => u.id === user);
     }
     
-    if (user) {
-      setSelectedUser(user);
-      setFormData({
-        username: user.username,
-        password: '',
-        role: user.role,
-        email: user.email || '',
-        unit: user.unit || '',
-        divisiId: user.divisiId || '',
-        branchId: user.branchId || '',
-        anakPerusahaanId: user.anakPerusahaanId || ''
-      });
-      setShowEditModal(true);
+    if (user && onEditUser) {
+      onEditUser(user);
     }
-  };
-
-  const handleSubmitAdd = async (e) => {
-    e.preventDefault();
-    try {
-      setLoading(true);
-      const response = await fetch('http://localhost:5000/api/users/role-based', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          ...formData,
-          currentUserRole,
-          divisiId: formData.divisiId || null,
-          branchId: formData.branchId || null,
-          anakPerusahaanId: formData.anakPerusahaanId || null
-        })
-      });
-      
-      const data = await response.json();
-      if (data.success) {
-        setShowAddModal(false);
-        fetchUsers();
-        const roleText = formData.role === 'admin' ? 'Admin' : 'User';
-        setAlertModal({
-          open: true,
-          title: 'Berhasil!',
-          message: `Akun ${roleText} "${formData.username}" berhasil ditambahkan ke sistem.`,
-          type: 'success'
-        });
-        // Reset form
-        setFormData({
-          username: '',
-          password: '',
-          role: 'user',
-          email: '',
-          unit: '',
-          divisiId: '',
-          branchId: '',
-          anakPerusahaanId: ''
-        });
-      } else {
-        setAlertModal({
-          open: true,
-          title: 'Gagal Menambahkan',
-          message: data.message || 'Gagal menambahkan user. Silakan coba lagi.',
-          type: 'error'
-        });
-      }
-    } catch (error) {
-      console.error('Error adding user:', error);
-      setAlertModal({
-        open: true,
-        title: 'Terjadi Kesalahan',
-        message: 'Terjadi kesalahan saat menambahkan user. Silakan coba lagi.',
-        type: 'error'
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSubmitEdit = async (e) => {
-    e.preventDefault();
-    try {
-      setLoading(true);
-      
-      const requestData = {
-        username: formData.username,
-        role: formData.role,
-        email: formData.email,
-        unit: formData.unit,
-        currentUserRole,
-        divisiId: formData.divisiId || null,
-        branchId: formData.branchId || null,
-        anakPerusahaanId: formData.anakPerusahaanId || null
-      };
-      
-      console.log('=== FRONTEND EDIT USER REQUEST ===');
-      console.log('User ID:', selectedUser.id);
-      console.log('Request Data:', requestData);
-      console.log('Form Data:', formData);
-      
-      const response = await fetch(`http://localhost:5000/api/users/role-based/${selectedUser.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify(requestData)
-      });
-      
-      const data = await response.json();
-      console.log('=== FRONTEND EDIT USER RESPONSE ===');
-      console.log('Response:', data);
-      
-      if (data.success) {
-        setShowEditModal(false);
-        fetchUsers();
-        setAlertModal({
-          open: true,
-          title: 'Berhasil!',
-          message: `Data user "${formData.username}" berhasil diperbarui.`,
-          type: 'success'
-        });
-      } else {
-        console.log('Edit failed:', data.message);
-        setAlertModal({
-          open: true,
-          title: 'Gagal Memperbarui',
-          message: data.message || 'Gagal mengupdate user. Silakan coba lagi.',
-          type: 'error'
-        });
-      }
-    } catch (error) {
-      console.error('Error updating user:', error);
-      setAlertModal({
-        open: true,
-        title: 'Terjadi Kesalahan',
-        message: 'Terjadi kesalahan saat mengupdate user. Silakan coba lagi.',
-        type: 'error'
-      });
-    } finally {
-      setLoading(false);
-    }
+    // Note: Internal modal functionality removed - using parent component handlers
   };
 
   const handleDeleteUser = (userId) => {
@@ -308,16 +203,12 @@ const UserManagement = ({
     
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:5000/api/users/role-based/${userId}`, {
+      
+      const data = await apiCall(`/api/users/role-based/${userId}`, {
         method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
         body: JSON.stringify({ currentUserRole })
       });
       
-      const data = await response.json();
       if (data.success) {
         fetchUsers();
         const deletedUser = userList.find(u => u.id === userId);
@@ -327,6 +218,7 @@ const UserManagement = ({
           message: `User "${deletedUser?.username || 'yang dipilih'}" berhasil dihapus dari sistem.`,
           type: 'success'
         });
+        setConfirmDelete({ open: false, userId: null, isBulk: false });
       } else {
         setAlertModal({
           open: true,
@@ -336,14 +228,35 @@ const UserManagement = ({
         });
       }
     } catch (error) {
-      console.error('Error deleting user:', error);
+      // Handle timeout and network errors
+      if (error?.isTimeout || error?.name === 'TimeoutError') {
+        setAlertModal({
+          open: true,
+          title: 'Timeout',
+          message: error.message || 'Server tidak merespons. Silakan coba lagi.',
+          type: 'warning'
+        });
+        return;
+      }
+      
+      if (error?.isNetworkError || error?.name === 'NetworkError') {
+        setAlertModal({
+          open: true,
+          title: 'Koneksi Error',
+          message: error.message || 'Tidak dapat terhubung ke server.',
+          type: 'error'
+        });
+        return;
+      }
+      
       setAlertModal({
         open: true,
         title: 'Terjadi Kesalahan',
-        message: 'Terjadi kesalahan saat menghapus user. Silakan coba lagi.',
+        message: error.message || 'Terjadi kesalahan saat menghapus user. Silakan coba lagi.',
         type: 'error'
       });
-        setLoading(false);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -559,7 +472,7 @@ const UserManagement = ({
         title="Konfirmasi Hapus"
         message={
           confirmDelete?.isBulk
-            ? `Apakah Anda yakin ingin menghapus ${selectedIds.size} user terpilih?`
+            ? `Apakah Anda yakin ingin menghapus beberapa user terpilih?`
             : `Apakah Anda yakin ingin menghapus user "${userList.find(u => u.id === confirmDelete?.userId)?.username || 'ini'}"?`
         }
         confirmText="Hapus"

@@ -48,14 +48,24 @@ const DashboardOverview = ({ user, proposals, onNavigate }) => {
           setDrafts(userDivisiDrafts);
         }
       } catch (err) {
-        console.warn('Error fetching drafts:', err);
-        // Set empty array if fetch fails
-        setDrafts([]);
+        // Handle timeout and network errors gracefully
+        if (err?.isTimeout || err?.name === 'TimeoutError' || err?.isNetworkError || err?.name === 'NetworkError') {
+          // Set empty array and continue - don't show error UI
+          setDrafts([]);
+        } else {
+          // For other errors, also set empty array
+          setDrafts([]);
+        }
       }
     } catch (error) {
-      console.error('Error fetching dashboard data:', error);
-      // Don't throw - let component continue rendering
-      setDrafts([]);
+      // Handle timeout and network errors gracefully
+      if (error?.isTimeout || error?.name === 'TimeoutError' || error?.isNetworkError || error?.name === 'NetworkError') {
+        // Set empty array and continue - don't show error UI
+        setDrafts([]);
+      } else {
+        // For other errors, also set empty array
+        setDrafts([]);
+      }
     } finally {
       setLoading(false);
     }

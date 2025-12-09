@@ -233,17 +233,25 @@ const TrainingProposalForm = ({ user, proposal = null, onSuccess }) => {
       }
 
     } catch (error) {
-      console.error('Form submission error:', error);
-      setError(error.message || 'Terjadi kesalahan saat menyimpan usulan pelatihan');
+      let errorMessage = 'Terjadi kesalahan saat menyimpan usulan pelatihan';
+      
+      if (error?.isTimeout || error?.name === 'TimeoutError') {
+        errorMessage = 'Request timeout: Server tidak merespons. Silakan coba lagi.';
+      } else if (error?.isNetworkError || error?.name === 'NetworkError') {
+        errorMessage = 'Tidak dapat terhubung ke server. Pastikan server backend berjalan.';
+      } else {
+        errorMessage = error.message || errorMessage;
+      }
+      
+      setError(errorMessage);
       setAlertModal({
         type: 'error',
         title: 'Error',
-        message: error.message || 'Terjadi kesalahan saat menyimpan usulan pelatihan',
+        message: errorMessage,
         onClose: () => setAlertModal(null)
       });
     } finally {
       setIsSubmitting(false);
-      console.log('=== FORM SUBMISSION END ===');
     }
   };
 

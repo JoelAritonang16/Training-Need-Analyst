@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { API_BASE_URL, branchAPI, divisiAPI } from '../../utils/api';
 import AlertModal from '../../components/AlertModal';
 import './AllProposals.css';
@@ -104,7 +104,9 @@ const AllProposals = ({ proposals, onFinalApprove, onFinalReject, onViewDetail, 
     }
   };
 
-  // Handle filter changes and notify parent
+  // Handle filter changes and notify parent - use ref to prevent infinite loop
+  const prevFiltersRef = useRef({});
+  
   useEffect(() => {
     if (onFilterChange) {
       const filters = {
@@ -118,9 +120,17 @@ const AllProposals = ({ proposals, onFinalApprove, onFinalReject, onViewDetail, 
                   statusFilter === 'rejected' ? 'DITOLAK' : undefined
         })
       };
-      onFilterChange(filters);
+      
+      // Only call onFilterChange if filters actually changed
+      const filtersString = JSON.stringify(filters);
+      const prevFiltersString = JSON.stringify(prevFiltersRef.current);
+      
+      if (filtersString !== prevFiltersString) {
+        prevFiltersRef.current = filters;
+        onFilterChange(filters);
+      }
     }
-  }, [branchFilter, divisiFilter, statusFilter, onFilterChange]);
+  }, [branchFilter, divisiFilter, statusFilter]); // Removed onFilterChange from dependencies
 
   const filteredProposals = proposals.filter(proposal => {
     const statusMatch = statusFilter === 'all' || 

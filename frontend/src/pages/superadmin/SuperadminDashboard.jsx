@@ -1,12 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Sidebar from '../../components/Sidebar.jsx';
 import TrainingProposalForm from '../user/TrainingProposalForm.jsx';
 import SuperAdminDashboardOverview from './SuperAdminDashboardOverview.jsx';
 import FinalApproval from './FinalApproval.jsx';
 import AllProposals from './AllProposals.jsx';
 import ProposalApproval from './ProposalApproval.jsx';
-import SystemConfig from './SystemConfig.jsx';
-import AuditLogs from './AuditLogs.jsx';
 import UserManagement from '../admin/UserManagement.jsx';
 import UserCreate from '../admin/UserCreate.jsx';
 import UserEdit from '../admin/UserEdit.jsx';
@@ -63,9 +61,11 @@ const SuperadminDashboard = ({ user, onLogout, onUserUpdate }) => {
 
   // Proposal filters state - harus dideklarasikan sebelum useEffect yang menggunakannya
   const [proposalFilters, setProposalFilters] = useState({});
+  const filtersRef = useRef({});
+  const isInitialMount = useRef(true);
 
   // Fetch proposals function - harus dideklarasikan sebelum useEffect yang menggunakannya
-  const fetchProposals = async (filters = {}) => {
+  const fetchProposals = useCallback(async (filters = {}) => {
     try {
       const data = await trainingProposalAPI.getAll(filters);
       
@@ -73,11 +73,14 @@ const SuperadminDashboard = ({ user, onLogout, onUserUpdate }) => {
         setProposals(data.proposals || []);
       }
     } catch (err) {
-      // Error fetching proposals
+      // Error fetching proposals - handle timeout and network errors gracefully
+      if (err?.isTimeout || err?.name === 'TimeoutError' || err?.isNetworkError || err?.name === 'NetworkError') {
+        // Don't update proposals on timeout/network error
+      }
     }
-  };
+  }, []);
 
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
       const headers = {
@@ -99,27 +102,47 @@ const SuperadminDashboard = ({ user, onLogout, onUserUpdate }) => {
         setUsers(data.users || []);
       }
     } catch (error) {
-      // Error fetching users
+      // Error fetching users - handle timeout and network errors gracefully
+      if (error?.isTimeout || error?.name === 'TimeoutError' || error?.isNetworkError || error?.name === 'NetworkError') {
+        // Don't update users on timeout/network error
+      }
     }
-  };
+  }, []);
   
-  const handleProposalFilterChange = (filters) => {
-    setProposalFilters(filters);
-    fetchProposals(filters);
-  };
+  const handleProposalFilterChange = useCallback((filters) => {
+    // Compare filters to prevent unnecessary updates
+    const filtersString = JSON.stringify(filters);
+    const currentFiltersString = JSON.stringify(filtersRef.current);
+    
+    if (filtersString !== currentFiltersString) {
+      filtersRef.current = filters;
+      setProposalFilters(filters);
+      fetchProposals(filters);
+    }
+  }, [fetchProposals]);
 
-  // Fetch proposals and users from database
+  // Fetch proposals and users from database - only on mount
   useEffect(() => {
-    fetchProposals();
-    fetchUsers();
-  }, [proposalFilters]);
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      fetchProposals();
+      fetchUsers();
+    }
+  }, [fetchProposals, fetchUsers]);
+  
+  // Fetch proposals when filters change (but only if filters actually changed)
+  useEffect(() => {
+    if (!isInitialMount.current) {
+      const filtersString = JSON.stringify(proposalFilters);
+      const currentFiltersString = JSON.stringify(filtersRef.current);
+      
+      if (filtersString !== currentFiltersString) {
+        filtersRef.current = proposalFilters;
+        fetchProposals(proposalFilters);
+      }
+    }
+  }, [proposalFilters, fetchProposals]);
 
-  const [auditLogs, setAuditLogs] = useState([
-    { id: 1, user: 'admin_user', action: 'APPROVE_PROPOSAL', target: 'Workshop Project Management', timestamp: '2024-01-15T10:30:00Z' },
-    { id: 2, user: 'john_doe', action: 'SUBMIT_PROPOSAL', target: 'Pelatihan Leadership Management', timestamp: '2024-01-15T09:15:00Z' },
-    { id: 3, user: 'superadmin', action: 'FINAL_APPROVE', target: 'Pelatihan Cyber Security', timestamp: '2024-01-14T14:20:00Z' },
-    { id: 4, user: 'admin_user', action: 'CREATE_USER', target: 'jane_smith', timestamp: '2024-01-14T11:45:00Z' }
-  ]);
 
   const handleMenuChange = (menuId) => {
     setActiveMenu(menuId);
@@ -138,16 +161,6 @@ const SuperadminDashboard = ({ user, onLogout, onUserUpdate }) => {
         });
         // Refresh data from database
         fetchProposals();
-        
-        // Add audit log
-        const proposal = proposals.find(p => p.id === proposalId);
-        setAuditLogs(prev => [{
-          id: Date.now(),
-          user: user.username,
-          action: 'FINAL_APPROVE',
-          target: proposal?.Uraian || 'Unknown',
-          timestamp: new Date().toISOString()
-        }, ...prev]);
       } else {
         setAlertModal({
           open: true,
@@ -180,8 +193,6 @@ const SuperadminDashboard = ({ user, onLogout, onUserUpdate }) => {
     }
     
     try {
-      console.log('SuperadminDashboard: Final rejecting proposal:', proposalId, 'Reason:', alasan);
-      
       const data = await updateProposalStatusAPI(proposalId, 'DITOLAK', alasan);
       
       if (data.success) {
@@ -202,7 +213,6 @@ const SuperadminDashboard = ({ user, onLogout, onUserUpdate }) => {
         });
       }
     } catch (error) {
-      console.error('SuperadminDashboard: Error final rejecting proposal:', error);
       setAlertModal({
         open: true,
         title: 'Terjadi Kesalahan',
@@ -216,16 +226,6 @@ const SuperadminDashboard = ({ user, onLogout, onUserUpdate }) => {
 
   const handleDeleteUser = (userId) => {
     setUsers(prev => prev.filter(u => u.id !== userId));
-    
-    // Add audit log
-    const user = users.find(u => u.id === userId);
-    setAuditLogs(prev => [{
-      id: Date.now(),
-      user: user.username,
-      action: 'DELETE_USER',
-      target: user.username,
-      timestamp: new Date().toISOString()
-    }, ...prev]);
   };
 
   const handleToggleUserStatus = (userId) => {
@@ -236,14 +236,6 @@ const SuperadminDashboard = ({ user, onLogout, onUserUpdate }) => {
     ));
   };
 
-  const handleAddUser = (userData) => {
-    const newUser = {
-      id: Date.now(),
-      ...userData,
-      createdAt: new Date().toISOString()
-    };
-    setUsers(prev => [...prev, newUser]);
-  };
 
   const handleStartEditUser = (user) => {
     setSelectedUserForEdit(user);
@@ -333,20 +325,9 @@ const SuperadminDashboard = ({ user, onLogout, onUserUpdate }) => {
   };
 
   const handleEditProposal = (proposalId) => {
-    console.log('Edit proposal:', proposalId);
+    // Edit proposal handler
   };
 
-  const handleSaveConfig = (config) => {
-    console.log('Save system config:', config);
-  };
-
-  const handleBackupSystem = () => {
-    console.log('Backup system initiated');
-  };
-
-  const handleRestoreSystem = () => {
-    console.log('Restore system initiated');
-  };
 
   const handleNavigate = (menuId) => {
     setActiveMenu(menuId);
@@ -446,15 +427,6 @@ const SuperadminDashboard = ({ user, onLogout, onUserUpdate }) => {
           />
         );
       
-      case 'system-config':
-        return (
-          <SystemConfig 
-            onSaveConfig={handleSaveConfig}
-            onBackupSystem={handleBackupSystem}
-            onRestoreSystem={handleRestoreSystem}
-          />
-        );
-      
       case 'divisi-management':
         return <DivisiManagement />;
       
@@ -463,13 +435,6 @@ const SuperadminDashboard = ({ user, onLogout, onUserUpdate }) => {
       
       case 'anak-perusahaan-management':
         return <AnakPerusahaanManagement />;
-      
-      case 'audit-logs':
-        return (
-          <AuditLogs 
-            auditLogs={auditLogs}
-          />
-        );
       
       case 'draft-tna-2026':
         return (
@@ -511,7 +476,6 @@ const SuperadminDashboard = ({ user, onLogout, onUserUpdate }) => {
           <SuperAdminDashboardOverview 
             users={users}
             proposals={proposals}
-            auditLogs={auditLogs}
             onNavigate={handleNavigate}
           />
         );
@@ -543,11 +507,9 @@ const SuperadminDashboard = ({ user, onLogout, onUserUpdate }) => {
             {activeMenu === 'user-edit' && ''}
             {activeMenu === 'final-approval' && ''}
             {activeMenu === 'all-proposals' && ''}
-            {activeMenu === 'system-config' && ''}
             {activeMenu === 'divisi-management' && ''}
             {activeMenu === 'branch-management' && ''}
             {activeMenu === 'anak-perusahaan-management' && ''}
-            {activeMenu === 'audit-logs' && ''}
           </div>
           <div className="user-menu">
             <button 
