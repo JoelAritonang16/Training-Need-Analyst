@@ -1,4 +1,3 @@
-// API utility functions
 export const API_BASE_URL = process.env.NODE_ENV === 'development' ? 'http://localhost:5000' : '';
 export const getAuthHeaders = () => {
   const token = localStorage.getItem('token');
@@ -9,13 +8,10 @@ export const getAuthHeaders = () => {
   };
 };
 
-// Generic API call function with timeout
 export const apiCall = async (endpoint, options = {}) => {
   const url = `${API_BASE_URL}${endpoint}`;
-  // Increase timeout for endpoints that might take longer
-  const defaultTimeout = endpoint.includes('/reports') || endpoint.includes('/rekap') ? 60000 : 45000; // 60s for reports, 45s default
+  const defaultTimeout = endpoint.includes('/reports') || endpoint.includes('/rekap') ? 60000 : 45000;
   const timeout = options.timeout || defaultTimeout;
-  // Remove timeout from options before passing to fetch
   const { timeout: _, ...fetchOptions } = options;
   const config = {
     headers: getAuthHeaders(),
@@ -24,7 +20,6 @@ export const apiCall = async (endpoint, options = {}) => {
   };
 
   try {
-    // Create AbortController for timeout
     const controller = new AbortController();
     const timeoutId = setTimeout(() => {
       controller.abort();
@@ -37,14 +32,12 @@ export const apiCall = async (endpoint, options = {}) => {
 
     clearTimeout(timeoutId);
     
-    // Handle 401 Unauthorized
     if (response.status === 401) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       throw new Error('Session expired. Please login again.');
     }
 
-    // Handle 404 Not Found
     if (response.status === 404) {
       throw new Error(`Endpoint tidak ditemukan: ${endpoint}`);
     }
@@ -68,7 +61,6 @@ export const apiCall = async (endpoint, options = {}) => {
     const errorString = String(error || '');
     const errorMessage = error?.message || errorString || '';
     
-    // Handle timeout specifically - return user-friendly error
     if (error.name === 'AbortError' || 
         errorMessage.includes('timeout') || 
         errorMessage.includes('Timeout') ||
@@ -77,29 +69,24 @@ export const apiCall = async (endpoint, options = {}) => {
       const timeoutError = new Error(`Request timeout: Server tidak merespons dalam ${timeout/1000} detik. Silakan coba lagi atau periksa koneksi server.`);
       timeoutError.name = 'TimeoutError';
       timeoutError.isTimeout = true;
-      // Prevent error from being shown as unhandled
       setTimeout(() => {}, 0);
       return Promise.reject(timeoutError);
     }
     
-    // Handle network errors
     if (errorMessage.includes('Failed to fetch') || 
         errorMessage.includes('NetworkError') ||
         errorMessage.includes('Tidak dapat terhubung ke server')) {
       const networkError = new Error(`Tidak dapat terhubung ke server. Pastikan server backend berjalan di ${API_BASE_URL}`);
       networkError.name = 'NetworkError';
       networkError.isNetworkError = true;
-      // Prevent error from being shown as unhandled
       setTimeout(() => {}, 0);
       return Promise.reject(networkError);
     }
     
-    // Re-throw other errors
     return Promise.reject(error);
   }
 };
 
-// Specific API functions
 export const authAPI = {
   login: async (credentials) => {
     return apiCall('/api/auth/login', {
@@ -203,7 +190,6 @@ export const trainingProposalAPI = {
   }
 };
 
-// Divisi API
 export const divisiAPI = {
   getAll: async () => {
     return apiCall('/api/divisi');
@@ -234,7 +220,6 @@ export const divisiAPI = {
   }
 };
 
-// Branch API
 export const branchAPI = {
   getAll: async () => {
     return apiCall('/api/branch');
@@ -265,7 +250,6 @@ export const branchAPI = {
   }
 };
 
-// Anak Perusahaan API
 export const anakPerusahaanAPI = {
   getAll: async () => {
     return apiCall('/api/anak-perusahaan');
@@ -312,7 +296,6 @@ export const anakPerusahaanAPI = {
   }
 };
 
-// User Profile API
 export const userProfileAPI = {
   updateProfile: async (profileData) => {
     const token = localStorage.getItem('token');
@@ -340,7 +323,6 @@ export const userProfileAPI = {
   }
 };
 
-// Draft TNA 2026 API
 export const draftTNA2026API = {
   getAll: async (filters = {}) => {
     const queryParams = new URLSearchParams();
@@ -384,12 +366,11 @@ export const draftTNA2026API = {
   
   getRekapGabungan: async () => {
     return apiCall('/api/draft-tna-2026/rekap/gabungan', {
-      timeout: 90000 // 90 seconds for rekap gabungan as it processes 20 branches + 18 divisions
+      timeout: 90000
     });
   }
 };
 
-// Tempat Diklat Realisasi API
 export const tempatDiklatRealisasiAPI = {
   getAll: async (filters = {}) => {
     const queryParams = new URLSearchParams();
@@ -432,7 +413,6 @@ export const tempatDiklatRealisasiAPI = {
   }
 };
 
-// Notification API
 export const notificationAPI = {
   getAll: async () => {
     return apiCall('/api/notifications');
@@ -465,7 +445,6 @@ export const notificationAPI = {
   }
 };
 
-// Training Proposal Status Update API
 export const updateImplementationStatusAPI = async (proposalId, implementasiStatus, evaluasiRealisasi = null) => {
   const body = { implementasiStatus };
   if (evaluasiRealisasi) {
@@ -484,7 +463,6 @@ export const updateProposalStatusAPI = async (proposalId, status, alasan = '') =
   });
 };
 
-// Demografi API
 export const demografiAPI = {
   getData: async (filters = {}) => {
     const queryParams = new URLSearchParams();

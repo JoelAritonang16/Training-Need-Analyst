@@ -23,125 +23,95 @@ const SuperAdminDashboardOverview = ({ users, proposals, onNavigate }) => {
   const totalUsers = users ? users.length : 0;
   const activeUsers = users ? users.filter(u => u.status === 'active').length : 0;
   const totalProposals = proposals ? proposals.length : 0;
-  
-  // Status breakdown
   const pendingCount = proposals ? proposals.filter(p => p.status === 'MENUNGGU').length : 0;
   const waitingFinalCount = proposals ? proposals.filter(p => p.status === 'APPROVE_ADMIN').length : 0;
   const finalApprovedCount = proposals ? proposals.filter(p => p.status === 'APPROVE_SUPERADMIN').length : 0;
   const rejectedCount = proposals ? proposals.filter(p => p.status === 'DITOLAK').length : 0;
-  
-  // Budget calculations - based on approved proposals
   const totalBudgetRequested = proposals ? proposals.filter(p => p.status === 'MENUNGGU').reduce((sum, p) => sum + (parseFloat(p.TotalUsulan) || 0), 0) : 0;
   const totalBudgetApprovedAdmin = proposals ? proposals.filter(p => p.status === 'APPROVE_ADMIN').reduce((sum, p) => sum + (parseFloat(p.TotalUsulan) || 0), 0) : 0;
   const totalBudgetApprovedFinal = proposals ? proposals.filter(p => p.status === 'APPROVE_SUPERADMIN').reduce((sum, p) => sum + (parseFloat(p.TotalUsulan) || 0), 0) : 0;
   const totalBudgetAllApproved = totalBudgetApprovedAdmin + totalBudgetApprovedFinal;
-  
-  // Participant calculations
   const totalParticipantsRequested = proposals ? proposals.filter(p => p.status === 'MENUNGGU').reduce((sum, p) => sum + (parseInt(p.JumlahPeserta) || 0), 0) : 0;
   const totalParticipantsApproved = proposals ? proposals.filter(p => p.status === 'APPROVE_ADMIN' || p.status === 'APPROVE_SUPERADMIN').reduce((sum, p) => sum + (parseInt(p.JumlahPeserta) || 0), 0) : 0;
-  
-  // Realisasi data calculations
   const totalDrafts = drafts.length;
   const totalRealisasi = realisasiData.length;
   const totalKegiatanRealisasi = realisasiData.reduce((sum, r) => sum + (parseInt(r.jumlahKegiatan) || 0), 0);
   const totalPesertaRealisasi = realisasiData.reduce((sum, r) => sum + (parseInt(r.totalPeserta) || 0), 0);
   const totalBiayaRealisasi = realisasiData.reduce((sum, r) => sum + (parseFloat(r.totalBiaya) || 0), 0);
-  
-  // Calculate rekap gabungan totals (kept for potential future use)
-  // const totalDraftGabungan = rekapGabungan ? rekapGabungan.total.totalDraft : 0;
-  // const totalBiayaGabungan = rekapGabungan ? rekapGabungan.total.totalBiaya : 0;
-  // const totalPesertaGabungan = rekapGabungan ? rekapGabungan.total.totalPeserta : 0;
 
   const proposalsRef = useRef(proposals);
   const isInitialMount = useRef(true);
 
   const fetchDashboardData = async () => {
     try {
-      // Fetch drafts
       try {
         const draftsResult = await draftTNA2026API.getAll();
         if (draftsResult.success) {
           setDrafts(draftsResult.drafts || []);
         }
       } catch (err) {
-        // Error fetching drafts
       }
 
-      // Fetch tempat diklat realisasi
       try {
         const realisasiResult = await tempatDiklatRealisasiAPI.getAll();
         if (realisasiResult.success) {
           setRealisasiData(realisasiResult.data || []);
         }
       } catch (err) {
-        // Error fetching realisasi
       }
 
-      // Fetch rekap per bulan
       try {
         const rekapResult = await tempatDiklatRealisasiAPI.getRekapPerBulan(new Date().getFullYear());
         if (rekapResult.success) {
           setRekapPerBulan(rekapResult.rekap || []);
         }
       } catch (err) {
-        // Error fetching rekap per bulan
       }
 
-      // Fetch rekap gabungan (20 cabang + 18 divisi) - might take longer
       try {
         const rekapGabunganResult = await draftTNA2026API.getRekapGabungan();
         if (rekapGabunganResult.success) {
           setRekapGabungan(rekapGabunganResult.rekap);
         }
       } catch (err) {
-        // Error fetching rekap gabungan
       }
 
-      // Fetch divisi list
       try {
         const divisiResult = await divisiAPI.getAll();
         if (divisiResult.success) {
           setDivisiList(divisiResult.divisi || []);
         }
       } catch (err) {
-        // Error fetching divisi
       }
 
-      // Fetch branch list
       try {
         const branchResult = await branchAPI.getAll();
         if (branchResult.success) {
           setBranchList(branchResult.branch || []);
         }
       } catch (err) {
-        // Error fetching branch
       }
     } catch (error) {
-      // Don't throw - let component continue rendering
     }
   };
 
   useEffect(() => {
-    // Only fetch on initial mount, not when proposals change
     if (isInitialMount.current) {
       isInitialMount.current = false;
       fetchDashboardData();
     } else {
-      // Update ref when proposals change, but don't re-fetch
       proposalsRef.current = proposals;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Empty dependency array - only run on mount
+  }, []);
 
-  // Prepare chart data for proposals status
   const proposalStatusData = [
     { name: 'Menunggu', value: pendingCount, color: '#FFA500' },
     { name: 'Disetujui Admin', value: waitingFinalCount, color: '#4CAF50' },
     { name: 'Disetujui Superadmin', value: finalApprovedCount, color: '#2196F3' },
     { name: 'Ditolak', value: rejectedCount, color: '#F44336' },
-  ].filter(item => item.value > 0); // Only show non-zero values
+  ].filter(item => item.value > 0);
 
-  // Chart data for budget comparison (Requested vs Approved vs Realized)
   const budgetComparisonData = [
     { 
       name: 'Di Request', 
@@ -166,14 +136,12 @@ const SuperAdminDashboardOverview = ({ users, proposals, onNavigate }) => {
     },
   ];
 
-  // Chart data for budget breakdown by status
   const budgetByStatusData = [
     { name: 'Menunggu', value: totalBudgetRequested, color: '#FFA500' },
     { name: 'Disetujui Admin', value: totalBudgetApprovedAdmin, color: '#4CAF50' },
     { name: 'Disetujui Superadmin', value: totalBudgetApprovedFinal, color: '#2196F3' },
   ].filter(item => item.value > 0);
 
-  // Prepare chart data for rekap per bulan
   const chartDataPerBulan = rekapPerBulan.map(month => ({
     name: month.namaBulan,
     'Total Kegiatan': month.total.totalKegiatan,
@@ -181,14 +149,12 @@ const SuperAdminDashboardOverview = ({ users, proposals, onNavigate }) => {
     'Total Biaya (Juta)': parseFloat((month.total.totalBiaya / 1000000).toFixed(2)),
   }));
 
-  // Prepare chart data for drafts
   const draftStatusData = [
     { name: 'Draft', value: drafts.filter(d => d.status === 'DRAFT').length, color: '#2196F3' },
     { name: 'Submitted', value: drafts.filter(d => d.status === 'SUBMITTED').length, color: '#FF9800' },
     { name: 'Approved', value: drafts.filter(d => d.status === 'APPROVED').length, color: '#4CAF50' },
   ];
 
-  // Prepare chart data for rekap gabungan - top 10 branches
   const topBranchesData = rekapGabungan?.branches
     ?.sort((a, b) => b.totalBiaya - a.totalBiaya)
     .slice(0, 10)
@@ -199,7 +165,6 @@ const SuperAdminDashboardOverview = ({ users, proposals, onNavigate }) => {
       'Total Peserta': b.totalPeserta,
     })) || [];
 
-  // Prepare chart data for rekap gabungan - top 10 divisi
   const topDivisiData = rekapGabungan?.divisi
     ?.sort((a, b) => b.totalBiaya - a.totalBiaya)
     .slice(0, 10)
@@ -210,10 +175,8 @@ const SuperAdminDashboardOverview = ({ users, proposals, onNavigate }) => {
       'Total Peserta': d.totalPeserta,
     })) || [];
 
-  // Group proposals by divisi - Fixed to properly get divisi from user relation
   const proposalsByDivisi = (proposals && divisiList && divisiList.length > 0) ? divisiList.map(divisi => {
     const divisiProposals = proposals.filter(p => {
-      // Check multiple possible paths to divisi
       if (p.user) {
         const userDivisiId = p.user.divisiId || (p.user.divisi && p.user.divisi.id);
         return userDivisiId === divisi.id;
@@ -236,10 +199,8 @@ const SuperAdminDashboardOverview = ({ users, proposals, onNavigate }) => {
     };
   }).filter(d => d.totalUsulan > 0) : [];
 
-  // Group proposals by branch - Fixed to properly get branch from multiple sources
   const proposalsByBranch = (proposals && proposals.length > 0 && branchList && branchList.length > 0) ? branchList.map(branch => {
     const branchProposals = proposals.filter(p => {
-      // Check multiple possible paths to branch
       if (p.branchId === branch.id) return true;
       if (p.branch && p.branch.id === branch.id) return true;
       if (p.user && p.user.branchId === branch.id) return true;
@@ -262,7 +223,6 @@ const SuperAdminDashboardOverview = ({ users, proposals, onNavigate }) => {
     };
   }).filter(b => b.totalUsulan > 0) : [];
 
-  // Chart data for divisi comparison
   const divisiChartData = proposalsByDivisi
     .sort((a, b) => b.totalBiayaApproved - a.totalBiayaApproved)
     .slice(0, 10)
@@ -273,7 +233,6 @@ const SuperAdminDashboardOverview = ({ users, proposals, onNavigate }) => {
       'Jumlah Usulan': d.totalUsulan,
     }));
 
-  // Chart data for branch comparison
   const branchChartData = proposalsByBranch
     .sort((a, b) => b.totalBiayaApproved - a.totalBiayaApproved)
     .slice(0, 10)
@@ -287,13 +246,11 @@ const SuperAdminDashboardOverview = ({ users, proposals, onNavigate }) => {
 
   return (
     <div className="dashboard-overview">
-      {/* Modern Header Banner */}
       <div className="dashboard-header-banner" role="region" aria-label="Dashboard Header">
         <h1>Dashboard Superadmin</h1>
         <p>Selamat datang di panel administrasi PT Pelindo - Overview lengkap semua cabang dan divisi</p>
       </div>
 
-      {/* Stats Grid */}
       <div className="stats-grid">
         <div className="stat-card">
           <div className="stat-icon"><LuUsers size={18} /></div>
@@ -399,12 +356,10 @@ const SuperAdminDashboardOverview = ({ users, proposals, onNavigate }) => {
         )}
       </div>
 
-      {/* Charts Section */}
       <div className="charts-section">
         <h3>Grafik dan Analisis</h3>
         
         <div className="charts-grid">
-          {/* Proposal Status Donut Chart */}
           <div className="chart-card">
             <h4>Status Usulan Pelatihan</h4>
             <ResponsiveContainer width="100%" height={280}>
@@ -444,7 +399,6 @@ const SuperAdminDashboardOverview = ({ users, proposals, onNavigate }) => {
             </ResponsiveContainer>
           </div>
 
-          {/* Budget Comparison Chart - Requested vs Approved vs Realized */}
           <div className="chart-card chart-full-width">
             <h4>Perbandingan: Di Request vs Disetujui vs Telah Terlaksana</h4>
             <ResponsiveContainer width="100%" height={180}>
@@ -470,7 +424,6 @@ const SuperAdminDashboardOverview = ({ users, proposals, onNavigate }) => {
             </ResponsiveContainer>
           </div>
 
-          {/* Budget Breakdown by Status */}
           {budgetByStatusData.length > 0 && (
             <div className="chart-card">
               <h4>Rincian Biaya Berdasarkan Status</h4>
@@ -509,7 +462,6 @@ const SuperAdminDashboardOverview = ({ users, proposals, onNavigate }) => {
             </div>
           )}
 
-          {/* Draft Status Donut Chart */}
           <div className="chart-card">
             <h4>Status Draft TNA</h4>
             <ResponsiveContainer width="100%" height={280}>
@@ -549,7 +501,6 @@ const SuperAdminDashboardOverview = ({ users, proposals, onNavigate }) => {
             </ResponsiveContainer>
           </div>
 
-          {/* Top 10 Branches Bar Chart */}
           {topBranchesData.length > 0 && (
             <div className="chart-card chart-full-width">
               <h4>Top 10 Cabang - Total Draft dan Biaya</h4>
@@ -568,7 +519,6 @@ const SuperAdminDashboardOverview = ({ users, proposals, onNavigate }) => {
             </div>
           )}
 
-          {/* Top 10 Divisi Bar Chart */}
           {topDivisiData.length > 0 && (
             <div className="chart-card chart-full-width">
               <h4>Top 10 Divisi Korporat - Total Draft dan Biaya</h4>
@@ -587,7 +537,6 @@ const SuperAdminDashboardOverview = ({ users, proposals, onNavigate }) => {
             </div>
           )}
 
-          {/* Rekap Per Bulan Line Chart */}
           <div className="chart-card chart-full-width">
             <h4>Rekap Tempat Diklat Realisasi Per Bulan ({new Date().getFullYear()})</h4>
             <ResponsiveContainer width="100%" height={180}>
@@ -603,7 +552,6 @@ const SuperAdminDashboardOverview = ({ users, proposals, onNavigate }) => {
             </ResponsiveContainer>
           </div>
 
-          {/* Rekap Per Bulan Bar Chart - Biaya */}
           <div className="chart-card chart-full-width">
             <h4>Total Biaya Realisasi Per Bulan ({new Date().getFullYear()}) - Juta Rupiah</h4>
             <ResponsiveContainer width="100%" height={180}>
@@ -620,7 +568,6 @@ const SuperAdminDashboardOverview = ({ users, proposals, onNavigate }) => {
             </ResponsiveContainer>
           </div>
 
-          {/* Summary Analysis Card */}
           <div className="chart-card chart-full-width">
             <h4>Ringkasan Analisis</h4>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', padding: '12px 0' }}>
@@ -661,7 +608,6 @@ const SuperAdminDashboardOverview = ({ users, proposals, onNavigate }) => {
             </div>
           </div>
 
-          {/* Divisi Chart */}
           {divisiChartData.length > 0 && (
             <div className="chart-card chart-full-width">
               <h4>Perbandingan Usulan per Divisi Korporat</h4>
@@ -688,7 +634,6 @@ const SuperAdminDashboardOverview = ({ users, proposals, onNavigate }) => {
             </div>
           )}
 
-          {/* Branch Chart */}
           {branchChartData.length > 0 && (
             <div className="chart-card chart-full-width">
               <h4>Perbandingan Usulan per Cabang</h4>
@@ -715,7 +660,6 @@ const SuperAdminDashboardOverview = ({ users, proposals, onNavigate }) => {
             </div>
           )}
 
-          {/* Data Table by Divisi */}
           {proposalsByDivisi.length > 0 ? (
             <div className="chart-card chart-full-width">
               <h4>Rekap Usulan per Divisi Korporat</h4>
@@ -763,7 +707,6 @@ const SuperAdminDashboardOverview = ({ users, proposals, onNavigate }) => {
             </div>
           )}
 
-          {/* Data Table by Branch */}
           {proposalsByBranch.length > 0 ? (
             <div className="chart-card chart-full-width">
               <h4>Rekap Usulan per Cabang</h4>

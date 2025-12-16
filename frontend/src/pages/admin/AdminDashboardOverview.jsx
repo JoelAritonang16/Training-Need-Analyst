@@ -4,7 +4,6 @@ import {
   LuClipboardList,
   LuCheckCircle2,
   LuWallet,
-  LuFileCheck2,
   LuFileText,
   LuMapPin,
 } from 'react-icons/lu';
@@ -28,18 +27,12 @@ const AdminDashboardOverview = ({ users, proposals, user, onNavigate }) => {
   const rejectedCount = proposals ? proposals.filter((p) => p.status === "DITOLAK").length : 0;
   const totalDrafts = drafts.length;
   const totalRealisasi = realisasiData.length;
-  
-  // Budget calculations - based on status
   const totalBudgetRequested = proposals ? proposals.filter(p => p.status === 'MENUNGGU').reduce((sum, p) => sum + (parseFloat(p.TotalUsulan) || 0), 0) : 0;
   const totalBudgetApproved = proposals ? proposals.filter(p => p.status === 'APPROVE_ADMIN').reduce((sum, p) => sum + (parseFloat(p.TotalUsulan) || 0), 0) : 0;
   const totalBudget = proposals ? proposals.reduce((sum, p) => sum + (parseFloat(p.TotalUsulan) || 0), 0) : 0;
-  
-  // Participant calculations
   const totalParticipantsRequested = proposals ? proposals.filter(p => p.status === 'MENUNGGU').reduce((sum, p) => sum + (parseInt(p.JumlahPeserta) || 0), 0) : 0;
   const totalParticipantsApproved = proposals ? proposals.filter(p => p.status === 'APPROVE_ADMIN').reduce((sum, p) => sum + (parseInt(p.JumlahPeserta) || 0), 0) : 0;
   const totalParticipants = proposals ? proposals.reduce((sum, p) => sum + (parseInt(p.JumlahPeserta) || 0), 0) : 0;
-  
-  // Realisasi data calculations
   const totalKegiatanRealisasi = realisasiData.reduce((sum, r) => sum + (parseInt(r.jumlahKegiatan) || 0), 0);
   const totalPesertaRealisasi = realisasiData.reduce((sum, r) => sum + (parseInt(r.totalPeserta) || 0), 0);
   const totalBiayaRealisasi = realisasiData.reduce((sum, r) => sum + (parseFloat(r.totalBiaya) || 0), 0);
@@ -53,50 +46,41 @@ const AdminDashboardOverview = ({ users, proposals, user, onNavigate }) => {
     try {
       setLoading(true);
       
-      // Fetch drafts (view only for admin)
       try {
         const draftsResult = await draftTNA2026API.getAll();
         if (draftsResult.success) {
           setDrafts(draftsResult.drafts || []);
         }
       } catch (err) {
-        // Continue with other data fetches
       }
 
-      // Fetch tempat diklat realisasi
       try {
         const realisasiResult = await tempatDiklatRealisasiAPI.getAll();
         if (realisasiResult.success) {
           setRealisasiData(realisasiResult.data || []);
         }
       } catch (err) {
-        // Continue with other data fetches
       }
 
-      // Fetch rekap per bulan
       try {
         const rekapResult = await tempatDiklatRealisasiAPI.getRekapPerBulan(new Date().getFullYear());
         if (rekapResult.success) {
           setRekapPerBulan(rekapResult.rekap || []);
         }
       } catch (err) {
-        // Continue - this is not critical
       }
     } catch (error) {
-      // Don't throw - let component continue rendering
     } finally {
       setLoading(false);
     }
   };
 
-  // Prepare chart data for proposals status
   const proposalStatusData = [
     { name: 'Menunggu', value: pendingCount, color: '#FFA500' },
     { name: 'Disetujui Admin', value: approvedCount, color: '#4CAF50' },
     { name: 'Ditolak', value: rejectedCount, color: '#F44336' },
-  ].filter(item => item.value > 0); // Only show non-zero values
+  ].filter(item => item.value > 0);
 
-  // Prepare chart data for rekap per bulan
   const chartDataPerBulan = rekapPerBulan.map(month => ({
     name: month.namaBulan,
     'Total Kegiatan': month.total.totalKegiatan,
@@ -104,7 +88,6 @@ const AdminDashboardOverview = ({ users, proposals, user, onNavigate }) => {
     'Total Biaya (Juta)': (month.total.totalBiaya / 1000000).toFixed(2),
   }));
 
-  // Prepare chart data for drafts
   const draftStatusData = [
     { name: 'Draft', value: drafts.filter(d => d.status === 'DRAFT').length, color: '#2196F3' },
     { name: 'Submitted', value: drafts.filter(d => d.status === 'SUBMITTED').length, color: '#FF9800' },
@@ -113,7 +96,6 @@ const AdminDashboardOverview = ({ users, proposals, user, onNavigate }) => {
 
   return (
     <div className="dashboard-overview">
-      {/* Modern Header Banner */}
       <div className="dashboard-header-banner">
         <h1>Dashboard Admin</h1>
         <p>Selamat datang di panel administrasi - Kelola pengguna, review usulan pelatihan, dan monitoring sistem</p>
@@ -187,12 +169,10 @@ const AdminDashboardOverview = ({ users, proposals, user, onNavigate }) => {
         </div>
       </div>
 
-      {/* Charts Section */}
       <div className="charts-section">
         <h3>Grafik dan Analisis</h3>
         
         <div className="charts-grid">
-          {/* Proposal Status Donut Chart */}
           <div className="chart-card">
             <h4>Status Usulan Pelatihan</h4>
             <ResponsiveContainer width="100%" height={280}>
@@ -232,7 +212,6 @@ const AdminDashboardOverview = ({ users, proposals, user, onNavigate }) => {
             </ResponsiveContainer>
           </div>
 
-          {/* Draft Status Donut Chart */}
           <div className="chart-card">
             <h4>Status Draft TNA</h4>
             <ResponsiveContainer width="100%" height={280}>
@@ -272,7 +251,6 @@ const AdminDashboardOverview = ({ users, proposals, user, onNavigate }) => {
             </ResponsiveContainer>
           </div>
 
-          {/* Rekap Per Bulan Line Chart */}
           <div className="chart-card chart-full-width">
             <h4>Rekap Tempat Diklat Realisasi Per Bulan ({new Date().getFullYear()})</h4>
             <ResponsiveContainer width="100%" height={200}>
@@ -288,7 +266,6 @@ const AdminDashboardOverview = ({ users, proposals, user, onNavigate }) => {
             </ResponsiveContainer>
           </div>
 
-          {/* Rekap Per Bulan Bar Chart - Biaya */}
           <div className="chart-card chart-full-width">
             <h4>Total Biaya Realisasi Per Bulan ({new Date().getFullYear()}) - Juta Rupiah</h4>
             <ResponsiveContainer width="100%" height={200}>

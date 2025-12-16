@@ -8,9 +8,6 @@ const authController = {
     try {
       const { username, password, recaptchaToken } = req.body;
       
-      console.log('Login attempt for username:', username);
-      console.log('Session before login:', req.session);
-      
       // Validate input
       if (!username || !password) {
         return res.status(400).json({ 
@@ -31,20 +28,14 @@ const authController = {
       const recaptchaSecretKey = process.env.RECAPTCHA_SECRET_KEY;
       if (!recaptchaSecretKey) {
         console.error('RECAPTCHA_SECRET_KEY is not set in environment variables');
-        console.error('Please add RECAPTCHA_SECRET_KEY to backend/.env file');
-        console.error('Secret Key: 6LeeXxMsAAAAAEh2juyPSRhp46CjpukamWpMqAAV');
         return res.status(500).json({ 
           success: false, 
           message: "Konfigurasi keamanan tidak lengkap. Silakan hubungi administrator." 
         });
       }
 
-      console.log('Verifying reCAPTCHA token with Google...');
-
       try {
         const recaptchaVerifyUrl = 'https://www.google.com/recaptcha/api/siteverify';
-        console.log('Sending reCAPTCHA verification request to Google...');
-        
         const recaptchaResponse = await axios.post(recaptchaVerifyUrl, null, {
           params: {
             secret: recaptchaSecretKey,
@@ -52,8 +43,6 @@ const authController = {
           },
           timeout: 10000 // 10 seconds timeout
         });
-
-        console.log('reCAPTCHA API response:', recaptchaResponse.data);
 
         if (!recaptchaResponse.data.success) {
           console.error('reCAPTCHA verification failed:', recaptchaResponse.data);
@@ -76,14 +65,11 @@ const authController = {
 
         // Optional: Check score for reCAPTCHA v3 (not needed for v2, but good to have)
         if (recaptchaResponse.data.score !== undefined && recaptchaResponse.data.score < 0.5) {
-          console.log('reCAPTCHA score too low:', recaptchaResponse.data.score);
           return res.status(400).json({ 
             success: false, 
             message: "Verifikasi keamanan gagal. Silakan coba lagi." 
           });
         }
-
-        console.log('reCAPTCHA verification successful');
       } catch (recaptchaError) {
         console.error('reCAPTCHA verification error:', recaptchaError);
         console.error('Error details:', recaptchaError.message);
@@ -126,7 +112,6 @@ const authController = {
       });
 
       if (!user) {
-        console.log('User not found:', username);
         return res.status(401).json({ 
           success: false, 
           message: "Username atau password salah" 
@@ -137,7 +122,6 @@ const authController = {
       const isValidPassword = await bcrypt.compare(password, user.password);
       
       if (!isValidPassword) {
-        console.log('Invalid password for user:', username);
         return res.status(401).json({ 
           success: false, 
           message: "Username atau password salah" 
@@ -164,15 +148,10 @@ const authController = {
           });
         }
         
-        console.log('Session after setting user:', req.session);
-        console.log('User data stored in session:', req.session.user);
-        console.log('Session ID:', req.sessionID);
-
         // Generate a simple token for frontend use
         const token = `token_${user.id}_${Date.now()}`;
         
         // Login successful
-        console.log('Login successful - returning user data with branchId:', user.branchId);
         res.json({
           success: true,
           message: "Login berhasil",
@@ -241,9 +220,6 @@ const authController = {
   // Check authentication status
   async checkAuth(req, res) {
     try {
-      console.log('CheckAuth - Session:', req.session);
-      console.log('CheckAuth - Headers:', req.headers);
-      
       // First try session-based authentication
       if (req.session && req.session.user) {
         const user = await User.findByPk(req.session.user.id, {
@@ -268,13 +244,6 @@ const authController = {
         });
 
         if (user) {
-          console.log('CheckAuth - Found user from token:', {
-            id: user.id,
-            username: user.username,
-            branchId: user.branchId,
-            branch: user.branch?.nama
-          });
-          
           return res.json({
             success: true,
             user: {
@@ -302,7 +271,6 @@ const authController = {
       const authHeader = req.headers.authorization;
       if (authHeader && authHeader.startsWith('Bearer ')) {
         const token = authHeader.substring(7);
-        console.log('CheckAuth - Token:', token);
         
         // Extract user ID from token format: token_${userId}_${timestamp}
         if (token.startsWith('token_')) {
@@ -331,7 +299,6 @@ const authController = {
             });
             
         if (user) {
-          console.log('CheckAuth - Session user found, returning data with branchId:', user.branchId);
           return res.json({
             success: true,
             user: {

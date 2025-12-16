@@ -28,14 +28,72 @@ const DraftTNA2026 = ({ user, currentUserRole, onNavigate }) => {
   const fetchDrafts = useCallback(async () => {
     try {
       setLoading(true);
-      const result = await draftTNA2026API.getAll();
-      if (result.success) {
-        setDrafts(result.drafts || []);
-      } else {
-        setError(result.message || 'Gagal memuat data draft');
+      setError(null);
+      
+      try {
+        const result = await draftTNA2026API.getAll();
+        if (result && result.success) {
+          setDrafts(result.drafts || []);
+          setError(null);
+        } else {
+          const errorMsg = result?.message || 'Gagal memuat data draft';
+          setError(errorMsg);
+          setAlertModal({
+            open: true,
+            title: 'Error',
+            message: errorMsg,
+            type: 'error'
+          });
+        }
+      } catch (apiError) {
+        throw apiError;
       }
     } catch (err) {
-      setError(err.message || 'Terjadi kesalahan saat mengambil data');
+      let errorMessage = 'Terjadi kesalahan saat mengambil data';
+      const errString = String(err || '');
+      const errMessage = err?.message || errString || '';
+      
+      if (err?.isTimeout || 
+          err?.name === 'TimeoutError' || 
+          errString === 'Timeout' ||
+          errMessage?.includes('timeout') || 
+          errMessage?.includes('Timeout') ||
+          errMessage?.includes('Request timeout') ||
+          errMessage?.includes('Server tidak merespons')) {
+        errorMessage = 'Request timeout: Server tidak merespons saat memuat data draft. Silakan coba lagi.';
+        setError(errorMessage);
+        setAlertModal({
+          open: true,
+          title: 'Timeout',
+          message: errorMessage,
+          type: 'warning'
+        });
+      } else if (err?.isNetworkError || 
+                 err?.name === 'NetworkError' || 
+                 errMessage?.includes('Failed to fetch') ||
+                 errMessage?.includes('NetworkError') ||
+                 errMessage?.includes('network') ||
+                 errMessage?.includes('Tidak dapat terhubung ke server')) {
+        errorMessage = 'Tidak dapat terhubung ke server. Pastikan server backend berjalan.';
+        setError(errorMessage);
+        setAlertModal({
+          open: true,
+          title: 'Koneksi Error',
+          message: errorMessage,
+          type: 'error'
+        });
+      } else {
+        errorMessage = errMessage || errorMessage;
+        setError(errorMessage);
+        setAlertModal({
+          open: true,
+          title: 'Error',
+          message: errorMessage,
+          type: 'error'
+        });
+      }
+      
+      setDrafts([]);
     } finally {
       setLoading(false);
     }
@@ -55,7 +113,9 @@ const DraftTNA2026 = ({ user, currentUserRole, onNavigate }) => {
         setDivisi(divisiResult.divisi || []);
       }
     } catch (error) {
-      // Error fetching branches and divisi
+      if (error?.isTimeout || error?.name === 'TimeoutError' || error?.isNetworkError || error?.name === 'NetworkError') {
+        // Silently fail for branch/divisi fetch - not critical
+      }
     }
   }, []);
 
@@ -216,11 +276,19 @@ const DraftTNA2026 = ({ user, currentUserRole, onNavigate }) => {
   };
 
   if (loading) {
-    return <div className="draft-container"><p>Memuat data...</p></div>;
-  }
-
-  if (error) {
-    return <div className="draft-container"><p className="error">{error}</p></div>;
+    return (
+      <div className="draft-container">
+        <div className="content-header">
+          <div>
+            <h2>Draft TNA</h2>
+            <p>Manajemen draft usulan Training Need Analysis</p>
+          </div>
+        </div>
+        <div style={{ textAlign: 'center', padding: '40px' }}>
+          <p>Memuat data...</p>
+        </div>
+      </div>
+    );
   }
 
   return (

@@ -9,10 +9,6 @@ const tempatDiklatRealisasiController = {
       const { id: currentUserId, role: currentUserRole } = req.user;
       const { branchId, bulan, tahun } = req.query;
 
-      console.log('=== GET ALL TEMPAT DIKLAT REALISASI ===');
-      console.log('Current User Role:', currentUserRole);
-      console.log('Query params:', { branchId, bulan, tahun });
-
       let whereClause = {};
 
       // Filter berdasarkan role

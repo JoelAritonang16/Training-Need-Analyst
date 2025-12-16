@@ -74,8 +74,6 @@ const UserCreateForAdmin = ({ currentUser, onNavigate }) => {
         anakPerusahaanId: null // User tidak perlu anak perusahaan
       };
 
-      console.log('Creating user with payload:', payload);
-
       const res = await fetch('http://localhost:5000/api/users/role-based', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

@@ -4,6 +4,913 @@
   min-height: 100vh;
   width: 100%;
   box-sizing: border-box;
+  position: relative;
+  overflow: visible;
+}
+
+/* Print tuning for landscape A4 */
+@media print {
+  .print-only-section {
+    padding: 0;
+    margin: 0;
+    width: 100%;
+  }
+
+  body {
+    width: 100%;
+  }
+
+  .rekap-container {
+    padding: 12px;
+  }
+
+  .print-charts-grid-horizontal {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+
+  .print-chart-visualization {
+    height: 150px;
+  }
+}
+
+/* Ensure all elements are visible for PDF export */
+.rekap-container * {
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+  color-adjust: exact !important;
+}
+
+/* Print-Only Section - Hidden on screen, visible on print */
+.print-only-section {
+  display: none;
+}
+
+/* Print Header Kuning */
+.print-header-yellow {
+  background-color: #ffd700 !important;
+  padding: 20px;
+  text-align: center;
+  margin-bottom: 20px;
+  page-break-after: avoid;
+  border-radius: 4px;
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+  color-adjust: exact !important;
+}
+
+.print-title-main {
+  font-size: 16px;
+  font-weight: bold;
+  margin: 0 0 8px 0;
+  color: #000;
+  line-height: 1.4;
+}
+
+.print-title-sub {
+  font-size: 14px;
+  font-weight: bold;
+  margin: 0 0 6px 0;
+  color: #000;
+  line-height: 1.4;
+}
+
+.print-title-company {
+  font-size: 12px;
+  font-weight: normal;
+  margin: 0;
+  color: #000;
+  line-height: 1.4;
+}
+
+.print-table-section {
+  margin-bottom: 20px;
+  page-break-inside: avoid;
+}
+
+.print-demografi-table,
+.print-jumlah-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 15px 0;
+  font-size: 11px;
+  table-layout: fixed;
+  border: 1px solid #000;
+}
+
+.print-demografi-table th,
+.print-jumlah-table th {
+  background-color: #f0f0f0 !important;
+  border: 1px solid #000;
+  padding: 12px 10px;
+  text-align: center;
+  font-weight: bold;
+  font-size: 12px;
+  vertical-align: middle;
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+}
+
+.print-demografi-table td,
+.print-jumlah-table td {
+  border: 1px solid #000;
+  padding: 10px;
+  font-size: 11px;
+  vertical-align: middle;
+}
+
+.print-demografi-table td {
+  text-align: right;
+  padding-right: 15px;
+}
+
+.print-demografi-table td strong {
+  font-weight: bold;
+}
+
+.print-jumlah-table {
+  width: 100%;
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.print-jumlah-table td {
+  text-align: left;
+  padding-left: 12px;
+}
+
+.print-jumlah-table td:last-child {
+  text-align: right;
+  padding-right: 12px;
+}
+
+.print-jumlah-table th:first-child {
+  width: 65%;
+}
+
+.print-jumlah-table th:last-child {
+  width: 35%;
+}
+
+.print-jumlah-table td strong {
+  font-weight: bold;
+}
+
+/* Print Charts Section Biru */
+.print-charts-section-blue {
+  background-color: #e3f2fd !important;
+  padding: 20px;
+  margin-bottom: 20px;
+  page-break-inside: avoid;
+  border-radius: 4px;
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+  color-adjust: exact !important;
+}
+
+.print-section-title {
+  font-size: 14px;
+  font-weight: bold;
+  text-align: center;
+  margin: 0 0 15px 0;
+  color: #000;
+}
+
+.print-charts-grid-horizontal {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
+}
+
+.print-chart-card {
+  border: none;
+  padding: 10px;
+  page-break-inside: avoid;
+  background: transparent;
+}
+
+.print-chart-title {
+  font-size: 12px;
+  font-weight: bold;
+  text-align: center;
+  margin: 0 0 10px 0;
+  color: #000;
+}
+
+.print-chart-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.print-chart-visualization {
+  width: 100%;
+  height: 200px;
+}
+
+.print-chart-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  width: 100%;
+  font-size: 10px;
+}
+
+.print-legend-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 3px 0;
+}
+
+.print-legend-label {
+  font-weight: 500;
+  color: #000;
+}
+
+.print-legend-value {
+  font-weight: bold;
+  color: #000;
+}
+
+/* Print Summary Section Biru */
+.print-summary-section-blue {
+  background-color: #e3f2fd !important;
+  padding: 20px;
+  margin-bottom: 20px;
+  page-break-inside: avoid;
+  border-radius: 4px;
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+  color-adjust: exact !important;
+}
+
+.print-summary-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 15px;
+  margin-top: 15px;
+}
+
+.print-summary-card {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.print-summary-value {
+  font-size: 32px;
+  font-weight: bold;
+  color: #000;
+  margin-bottom: 8px;
+}
+
+.print-summary-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #333;
+}
+
+.print-summary-card-stacked {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.print-summary-card-small {
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  flex: 1;
+}
+
+.print-summary-value-small {
+  font-size: 24px;
+  font-weight: bold;
+  color: #000;
+  margin-bottom: 5px;
+}
+
+.print-summary-label-small {
+  font-size: 10px;
+  font-weight: 600;
+  color: #333;
+  line-height: 1.2;
+}
+
+/* Print Footer Kuning */
+.print-footer-yellow {
+  background-color: #ffd700 !important;
+  padding: 20px;
+  margin-top: 20px;
+  page-break-inside: avoid;
+  border-radius: 4px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+  color-adjust: exact !important;
+}
+
+.print-footer-section {
+  background: rgba(255, 255, 255, 0.3);
+  padding: 15px;
+  border-radius: 4px;
+}
+
+.print-footer-title {
+  font-size: 12px;
+  font-weight: bold;
+  color: #000;
+  margin: 0 0 8px 0;
+}
+
+.print-footer-text {
+  font-size: 11px;
+  color: #333;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Print Settings Modal Styles */
+.print-settings-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 20px;
+  animation: fadeIn 0.2s ease;
+}
+
+.print-settings-content {
+  background: white;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease;
+}
+
+.print-settings-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 2px solid #e5e7eb;
+  background: linear-gradient(135deg, #0271B6 0%, #015a94 100%);
+  color: white;
+  border-radius: 16px 16px 0 0;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.print-settings-header h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.print-settings-close {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  font-size: 24px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  line-height: 1;
+}
+
+.print-settings-close:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: rotate(90deg);
+}
+
+.print-settings-body {
+  padding: 24px;
+}
+
+.print-setting-group {
+  margin-bottom: 24px;
+}
+
+.print-setting-group:last-child {
+  margin-bottom: 0;
+}
+
+.print-setting-label {
+  display: block;
+  font-weight: 600;
+  font-size: 14px;
+  color: #1f2937;
+  margin-bottom: 12px;
+}
+
+.print-setting-options {
+  display: flex;
+  gap: 12px;
+}
+
+.print-setting-option {
+  flex: 1;
+  padding: 12px 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: white;
+}
+
+.print-setting-option:hover {
+  border-color: #0271B6;
+  background: #f0f9ff;
+}
+
+.print-setting-option.active {
+  border-color: #0271B6;
+  background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+  color: #0271B6;
+  font-weight: 600;
+}
+
+.print-setting-option input[type="radio"] {
+  margin: 0;
+  cursor: pointer;
+}
+
+.print-setting-select {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 14px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.print-setting-select:hover {
+  border-color: #0271B6;
+}
+
+.print-setting-select:focus {
+  outline: none;
+  border-color: #0271B6;
+  box-shadow: 0 0 0 3px rgba(2, 113, 182, 0.1);
+}
+
+.print-setting-range {
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: #e5e7eb;
+  outline: none;
+  -webkit-appearance: none;
+  margin: 12px 0;
+}
+
+.print-setting-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #0271B6;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.print-setting-range::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #0271B6;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.print-setting-range-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 4px;
+}
+
+.print-setting-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  padding: 12px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.print-setting-checkbox-label:hover {
+  border-color: #0271B6;
+  background: #f0f9ff;
+}
+
+.print-setting-checkbox-label input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: #0271B6;
+}
+
+.print-setting-checkbox-label span {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1f2937;
+}
+
+.print-settings-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 24px;
+  border-top: 2px solid #e5e7eb;
+  background: #f9fafb;
+  border-radius: 0 0 16px 16px;
+  position: sticky;
+  bottom: 0;
+}
+
+.print-btn-print {
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #0271B6 0%, #015a94 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(2, 113, 182, 0.3);
+}
+
+.print-btn-print:hover {
+  background: linear-gradient(135deg, #015a94 0%, #014a7a 100%);
+  box-shadow: 0 4px 12px rgba(2, 113, 182, 0.4);
+  transform: translateY(-1px);
+}
+
+/* Print Modal Styles */
+.print-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 20px;
+  animation: fadeIn 0.2s ease;
+}
+
+.print-modal-content {
+  background: white;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 500px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease;
+}
+
+.print-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 2px solid #e5e7eb;
+  background: linear-gradient(135deg, #0271B6 0%, #015a94 100%);
+  color: white;
+  border-radius: 16px 16px 0 0;
+}
+
+.print-modal-header h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.print-modal-close {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  font-size: 24px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  line-height: 1;
+}
+
+.print-modal-close:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: rotate(90deg);
+}
+
+.print-modal-body {
+  padding: 24px;
+}
+
+.print-orientation-options {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.print-orientation-option {
+  position: relative;
+  cursor: pointer;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 20px;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.print-orientation-option:hover {
+  border-color: #0271B6;
+  box-shadow: 0 4px 12px rgba(2, 113, 182, 0.15);
+  transform: translateY(-2px);
+}
+
+.print-orientation-option.active {
+  border-color: #0271B6;
+  background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+  box-shadow: 0 4px 16px rgba(2, 113, 182, 0.25);
+}
+
+.print-orientation-option input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.print-orientation-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.print-orientation-icon {
+  font-size: 48px;
+  transition: transform 0.3s ease;
+}
+
+.print-orientation-icon.landscape {
+  transform: rotate(90deg);
+}
+
+.print-orientation-option.active .print-orientation-icon {
+  transform: scale(1.1);
+}
+
+.print-orientation-option.active .print-orientation-icon.landscape {
+  transform: rotate(90deg) scale(1.1);
+}
+
+.print-orientation-label {
+  font-weight: 600;
+  font-size: 16px;
+  color: #1f2937;
+}
+
+.print-orientation-size {
+  font-size: 12px;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.print-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 24px;
+  border-top: 2px solid #e5e7eb;
+  background: #f9fafb;
+  border-radius: 0 0 16px 16px;
+}
+
+.print-btn-cancel {
+  padding: 10px 20px;
+  background: white;
+  color: #6b7280;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.print-btn-cancel:hover {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+  color: #374151;
+}
+
+.print-btn-export {
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+}
+
+.print-btn-export:hover {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+  transform: translateY(-1px);
+}
+
+/* Print Styles */
+@media print {
+  /* Tampilkan hanya print-only-section, sembunyikan yang lain */
+  body * {
+    visibility: hidden !important;
+  }
+  .print-only-section,
+  .print-only-section * {
+    visibility: visible !important;
+  }
+  .print-only-section {
+    display: block !important;
+    width: 100%;
+    page-break-inside: avoid;
+    position: absolute;
+    left: 0;
+    top: 0;
+    padding: 0;
+    margin: 0;
+  }
+
+  /* Ensure container takes full page */
+  body {
+    margin: 0;
+    padding: 0;
+    background: white !important;
+  }
+
+  .rekap-container {
+    padding: 10px;
+    margin: 0;
+    background: white !important;
+    width: 100%;
+    min-height: auto;
+  }
+
+  .print-only-section {
+    padding: 0;
+    margin: 0;
+  }
+
+  /* Ensure all colors are printed */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  /* Print banner */
+  .demografi-banner {
+    background: linear-gradient(135deg, #0271B6 0%, #015a94 100%) !important;
+    color: white !important;
+    padding: 20px 24px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    page-break-after: avoid;
+  }
+
+  .demografi-banner h2 {
+    color: white !important;
+    margin: 0;
+  }
+
+  /* Print stats grid */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+    page-break-inside: avoid;
+  }
+
+  .stat-card {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    page-break-inside: avoid;
+  }
+
+  /* Print charts section */
+  .charts-section {
+    page-break-inside: avoid;
+    margin-bottom: 20px;
+  }
+
+  .charts-section h3 {
+    margin-bottom: 16px;
+    font-size: 18px;
+    color: #1f2937;
+  }
+
+  .charts-grid-donut {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+    page-break-inside: avoid;
+  }
+
+  .chart-card-donut {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 20px;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Ensure SVG charts are visible in print */
+  .chart-donut-visualization svg,
+  .chart-visualization svg {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* Page setup (orientasi diatur dinamis via JS) */
+  @page {
+    margin: 1cm;
+  }
+
+  /* Footer sections */
+  .footer-sections {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Ensure proper spacing */
+  .demografi-banner {
+    margin-bottom: 20px;
+  }
+
+  .stats-grid {
+    margin-bottom: 20px;
+  }
+
+  .charts-section {
+    margin-bottom: 20px;
+  }
 }
 
 /* Header Section */
@@ -69,6 +976,460 @@
   justify-content: flex-end;
   margin-bottom: 32px;
   padding: 0;
+}
+
+.pdf-export-group {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.print-actions-group {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.print-orientation-select {
+  padding: 10px 16px;
+  background-color: white;
+  color: #333;
+  border: 2px solid #0271B6;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  min-width: 120px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%230271B6' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 12px;
+  padding-right: 36px;
+}
+
+.print-orientation-select:hover:not(:disabled) {
+  border-color: #015a94;
+  box-shadow: 0 2px 6px rgba(2, 113, 182, 0.2);
+}
+
+.print-orientation-select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: #f5f5f5;
+}
+
+.pdf-orientation-select {
+  padding: 10px 16px;
+  background-color: white;
+  color: #333;
+  border: 2px solid #0271B6;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  min-width: 120px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%230271B6' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 12px;
+  padding-right: 36px;
+}
+
+.pdf-orientation-select:hover:not(:disabled) {
+  border-color: #015a94;
+  box-shadow: 0 2px 6px rgba(2, 113, 182, 0.2);
+}
+
+.pdf-orientation-select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: #f5f5f5;
+}
+
+/* Export Modal Styles */
+.export-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 20px;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.export-modal-content {
+  background: white;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.export-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 28px;
+  border-bottom: 2px solid #e5e7eb;
+  background: linear-gradient(135deg, #0271B6 0%, #015a94 100%);
+  color: white;
+  border-radius: 16px 16px 0 0;
+}
+
+.export-modal-header h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.export-modal-close {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  font-size: 28px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  line-height: 1;
+}
+
+.export-modal-close:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: rotate(90deg);
+}
+
+.export-modal-body {
+  padding: 28px;
+}
+
+.export-detail-section {
+  margin-bottom: 32px;
+}
+
+.export-detail-section h3 {
+  margin: 0 0 16px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f2937;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.export-detail-section h3::before {
+  content: '📊';
+  font-size: 20px;
+}
+
+.export-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  background: #f9fafb;
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+}
+
+.export-detail-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.export-detail-item:last-child {
+  border-bottom: none;
+}
+
+.export-detail-label {
+  font-weight: 500;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.export-detail-value {
+  font-weight: 600;
+  color: #1f2937;
+  font-size: 14px;
+  text-align: right;
+}
+
+.export-orientation-section h3 {
+  margin: 0 0 20px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f2937;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.export-orientation-section h3::before {
+  content: '📐';
+  font-size: 20px;
+}
+
+.orientation-options {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.orientation-option {
+  position: relative;
+  cursor: pointer;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 20px;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.orientation-option:hover {
+  border-color: #0271B6;
+  box-shadow: 0 4px 12px rgba(2, 113, 182, 0.15);
+  transform: translateY(-2px);
+}
+
+.orientation-option.active {
+  border-color: #0271B6;
+  background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+  box-shadow: 0 4px 16px rgba(2, 113, 182, 0.25);
+}
+
+.orientation-option input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.orientation-option-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.orientation-icon {
+  font-size: 48px;
+  transition: transform 0.3s ease;
+}
+
+.orientation-option.active .orientation-icon {
+  transform: scale(1.1);
+}
+
+.portrait-icon {
+  transform: rotate(0deg);
+}
+
+.landscape-icon {
+  transform: rotate(90deg);
+}
+
+.orientation-label {
+  font-weight: 600;
+  font-size: 16px;
+  color: #1f2937;
+}
+
+.orientation-size {
+  font-size: 12px;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.export-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 20px 28px;
+  border-top: 2px solid #e5e7eb;
+  background: #f9fafb;
+  border-radius: 0 0 16px 16px;
+}
+
+.btn-modal-cancel {
+  padding: 12px 24px;
+  background: white;
+  color: #6b7280;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-modal-cancel:hover {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+  color: #374151;
+}
+
+.btn-modal-export {
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+}
+
+.btn-modal-export:hover:not(:disabled) {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+  transform: translateY(-1px);
+}
+
+.btn-modal-export:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.spinner-small {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  margin-right: 8px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Export Loading Overlay */
+.export-loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10001;
+  animation: fadeIn 0.2s ease;
+}
+
+.export-loading-content {
+  background: white;
+  border-radius: 16px;
+  padding: 40px;
+  text-align: center;
+  max-width: 400px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.export-loading-content h3 {
+  margin: 20px 0 10px 0;
+  color: #1f2937;
+  font-size: 20px;
+}
+
+.export-loading-content p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.loading-spinner-large {
+  width: 60px;
+  height: 60px;
+  border: 4px solid #e5e7eb;
+  border-top-color: #0271B6;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto;
+}
+
+/* Responsive Modal */
+@media (max-width: 768px) {
+  .export-modal-content {
+    max-width: 95%;
+    margin: 10px;
+  }
+
+  .export-modal-header {
+    padding: 20px;
+  }
+
+  .export-modal-header h2 {
+    font-size: 20px;
+  }
+
+  .export-modal-body {
+    padding: 20px;
+  }
+
+  .orientation-options {
+    grid-template-columns: 1fr;
+  }
+
+  .export-modal-footer {
+    flex-direction: column-reverse;
+    padding: 16px 20px;
+  }
+
+  .btn-modal-cancel,
+  .btn-modal-export {
+    width: 100%;
+  }
 }
 
 .btn-export-excel {
@@ -601,6 +1962,15 @@
   .export-actions-container {
     justify-content: stretch;
     margin-bottom: 24px;
+  }
+
+  .pdf-export-group {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .pdf-orientation-select {
+    width: 100%;
   }
 
   .btn-export-excel,

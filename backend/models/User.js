@@ -61,6 +61,26 @@ const User = (sequelize, Sequelize) => {
         allowNull: true,
         comment: 'Path/URL foto profil user'
       },
+      jenisKelamin: {
+        type: DataTypes.ENUM('Laki-laki', 'Perempuan'),
+        allowNull: true,
+        comment: 'Jenis kelamin user'
+      },
+      pendidikan: {
+        type: DataTypes.ENUM('SMA', 'Diploma', 'S1', 'S2', 'S3'),
+        allowNull: true,
+        comment: 'Tingkat pendidikan user'
+      },
+      jenisPekerja: {
+        type: DataTypes.ENUM('Organik', 'Non Organik'),
+        allowNull: true,
+        comment: 'Jenis pekerja (Organik/Non Organik)'
+      },
+      pusatPelayanan: {
+        type: DataTypes.ENUM('Operasional', 'Non Operasional'),
+        allowNull: true,
+        comment: 'Pusat pelayanan (Operasional/Non Operasional)'
+      },
       divisiId: {
         type: DataTypes.INTEGER,
         allowNull: true,

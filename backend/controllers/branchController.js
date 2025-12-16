@@ -5,13 +5,9 @@ const branchController = {
   // Get all branch
   async getAll(req, res) {
     try {
-      console.log('=== GET ALL BRANCH ===');
-      
       const branch = await Branch.findAll({
         order: [['nama', 'ASC']]
       });
-      
-      console.log('Branch found:', branch.length);
       
       res.json({
         success: true,
@@ -33,9 +29,6 @@ const branchController = {
     try {
       const { id } = req.params;
       
-      console.log('=== GET BRANCH BY ID ===');
-      console.log('Branch ID:', id);
-      
       const branch = await Branch.findByPk(id);
       
       if (!branch) {
@@ -44,8 +37,6 @@ const branchController = {
           message: "Branch tidak ditemukan",
         });
       }
-      
-      console.log('Branch found:', branch.nama);
       
       res.json({
         success: true,
@@ -66,9 +57,6 @@ const branchController = {
   async create(req, res) {
     try {
       const { nama } = req.body;
-      
-      console.log('=== CREATE BRANCH ===');
-      console.log('Nama:', nama);
       
       // Validation
       if (!nama || nama.trim() === '') {
@@ -95,8 +83,6 @@ const branchController = {
         nama: nama.trim()
       });
       
-      console.log('Branch created:', newBranch.nama);
-      
       res.status(201).json({
         success: true,
         message: "Branch berhasil dibuat",
@@ -117,10 +103,6 @@ const branchController = {
     try {
       const { id } = req.params;
       const { nama } = req.body;
-      
-      console.log('=== UPDATE BRANCH ===');
-      console.log('Branch ID:', id);
-      console.log('New Nama:', nama);
       
       // Validation
       if (!nama || nama.trim() === '') {
@@ -159,8 +141,6 @@ const branchController = {
         nama: nama.trim()
       });
       
-      console.log('Branch updated:', branch.nama);
-      
       res.json({
         success: true,
         message: "Branch berhasil diupdate",
@@ -181,9 +161,6 @@ const branchController = {
     try {
       const { id } = req.params;
       
-      console.log('=== DELETE BRANCH ===');
-      console.log('Branch ID:', id);
-      
       // Check if branch exists
       const branch = await Branch.findByPk(id);
       if (!branch) {
@@ -195,8 +172,6 @@ const branchController = {
       
       // Delete branch
       await branch.destroy();
-      
-      console.log('Branch deleted:', branch.nama);
       
       res.json({
         success: true,

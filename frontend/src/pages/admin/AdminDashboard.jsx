@@ -62,15 +62,15 @@ const AdminDashboard = ({ user, onLogout }) => {
     fetchProposals();
   }, [fetchProposals]);
 
-  const handleMenuChange = (menuId) => {
+  const handleMenuChange = useCallback((menuId) => {
     setActiveMenu(menuId);
-  };
+  }, []);
 
-  const handleUpdateProfile = (updatedUser) => {
+  const handleUpdateProfile = useCallback((updatedUser) => {
     // Update user data in parent component if needed
-  };
+  }, []);
 
-  const handleApproveProposal = async (proposalId) => {
+  const handleApproveProposal = useCallback(async (proposalId) => {
     try {
       
       // Call API to update status to APPROVE_ADMIN
@@ -109,9 +109,9 @@ const AdminDashboard = ({ user, onLogout }) => {
         type: 'error'
       });
     }
-  };
+  }, [fetchProposals]);
 
-  const handleRejectProposal = async (proposalId, alasan) => {
+  const handleRejectProposal = useCallback(async (proposalId, alasan) => {
     if (!alasan || alasan.trim() === '') {
       setAlertModal({
         open: true,
@@ -158,9 +158,9 @@ const AdminDashboard = ({ user, onLogout }) => {
         type: 'error'
       });
     }
-  };
+  }, [fetchProposals]);
 
-  const handleConfirmToUser = async (proposalId) => {
+  const handleConfirmToUser = useCallback(async (proposalId) => {
     // Admin konfirmasi ke user bahwa proposal sudah disetujui
     try {
       // Update status ke APPROVE_ADMIN untuk menandai sudah dikonfirmasi ke user
@@ -190,29 +190,29 @@ const AdminDashboard = ({ user, onLogout }) => {
         type: 'error'
       });
     }
-  };
+  }, [fetchProposals]);
 
-  const handleAddUser = () => {
+  const handleAddUser = useCallback(() => {
     setActiveMenu('user-create');
-  };
+  }, []);
 
-  const handleEditUser = (userId) => {
+  const handleEditUser = useCallback((userId) => {
     // Edit user
-  };
+  }, []);
 
-  const handleDeleteUser = (userId) => {
+  const handleDeleteUser = useCallback((userId) => {
     setUsers(prev => prev.filter(u => u.id !== userId));
-  };
+  }, []);
 
-  const handleToggleUserStatus = (userId) => {
+  const handleToggleUserStatus = useCallback((userId) => {
     setUsers(prev => prev.map(u => 
       u.id === userId 
         ? { ...u, status: u.status === 'active' ? 'inactive' : 'active' }
         : u
     ));
-  };
+  }, []);
 
-  const handleViewDetail = async (proposalId) => {
+  const handleViewDetail = useCallback(async (proposalId) => {
     // Cari proposal dari list terlebih dahulu
     let proposal = proposals.find(p => p.id === proposalId);
     
@@ -232,31 +232,30 @@ const AdminDashboard = ({ user, onLogout }) => {
       setSelectedProposal(proposal);
       setIsModalOpen(true);
     }
-  };
+  }, [proposals]);
 
-  const closeModal = () => {
+  const closeModal = useCallback(() => {
     setIsModalOpen(false);
     setSelectedProposal(null);
-  };
+  }, []);
 
-  const formatDate = (dateString) => {
+  const formatDate = useCallback((dateString) => {
     if (!dateString) return '-';
     return new Date(dateString).toLocaleDateString('id-ID', {
       year: 'numeric',
       month: 'long',
       day: 'numeric'
     });
-  };
+  }, []);
 
-  const formatCurrency = (value) => {
+  const formatCurrency = useCallback((value) => {
     if (value === null || value === undefined || value === '') return 'Rp 0';
     const numValue = parseFloat(value);
     if (isNaN(numValue)) return 'Rp 0';
     return `Rp ${numValue.toLocaleString('id-ID')}`;
-  };
+  }, []);
 
-  // Helper function to calculate totals from items or use header values
-  const getProposalCosts = (proposal) => {
+  const getProposalCosts = useCallback((proposal) => {
     if (!proposal) {
       return { beban: 0, transportasi: 0, akomodasi: 0, uangSaku: 0, total: 0 };
     }
@@ -282,9 +281,9 @@ const AdminDashboard = ({ user, onLogout }) => {
       uangSaku: parseFloat(proposal.BebanUangSaku) || 0,
       total: parseFloat(proposal.TotalUsulan) || 0
     };
-  };
+  }, []);
 
-  const getStatusText = (status) => {
+  const getStatusText = useCallback((status) => {
     const statusTexts = {
       'MENUNGGU': 'Menunggu',
       'APPROVE_ADMIN': 'Disetujui Admin',
@@ -292,10 +291,10 @@ const AdminDashboard = ({ user, onLogout }) => {
       'DITOLAK': 'Ditolak'
     };
     return statusTexts[status] || status;
-  };
+  }, []);
 
-  const handleGenerateReport = (reportType, dateRange) => {
-  };
+  const handleGenerateReport = useCallback((reportType, dateRange) => {
+  }, []);
 
   const renderContent = () => {
     switch (activeMenu) {
@@ -387,9 +386,9 @@ const AdminDashboard = ({ user, onLogout }) => {
       <main className="main-content">
         <div className="topbar">
           <div className="topbar-logos">
-            <img src={danantaraLogo} alt="Danantara" className="topbar-logo" />
+            <img src={danantaraLogo} alt="Danantara" className="topbar-logo" loading="eager" />
             <div className="topbar-divider"></div>
-            <img src={pelindoLogo} alt="Pelindo" className="topbar-logo" />
+            <img src={pelindoLogo} alt="Pelindo" className="topbar-logo" loading="eager" />
           </div>
           <div className="topbar-title">
             {activeMenu === 'dashboard' && ''}

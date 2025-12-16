@@ -5,7 +5,6 @@ import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, L
 import AlertModal from '../../components/AlertModal';
 import './TempatDiklatRealisasi.css';
 
-// Memoized table row component untuk performa
 const RealisasiRow = React.memo(({ item, index, selectedYear, formatCurrency }) => (
   <tr key={item.id}>
     <td>{index + 1}</td>

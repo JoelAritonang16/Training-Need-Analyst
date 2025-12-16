@@ -4,8 +4,6 @@ import './TrainingProposalCreate.css';
 
 const TrainingProposalCreate = ({ onSuccess, user }) => {
   const handleSuccess = (proposal) => {
-    // Redirect to dashboard utama setelah konfirmasi
-    console.log('Proposal created successfully:', proposal);
     if (onSuccess) {
       onSuccess(proposal);
     }

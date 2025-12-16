@@ -98,11 +98,6 @@ const userController = {
         ]
       });
       
-      console.log('GetAllUsers - Found users count:', users.length);
-      users.forEach(u => {
-        console.log(`  - User: ${u.username}, BranchId: ${u.branchId}, Branch: ${u.branch?.nama || 'N/A'}`);
-      });
-      
       // Additional validation: Double-check if admin, filter out any users that don't match branchId
       if (currentUserRole === 'admin' && whereClause.branchId) {
         // Ensure both are numbers for comparison
@@ -270,12 +265,6 @@ const userController = {
       const userId = req.params.id;
       const { username, role, divisiId, branchId } = req.body;
 
-      console.log('=== UPDATE USER (ORIGINAL METHOD) ===');
-      console.log('User ID:', userId);
-      console.log('Request body:', req.body);
-      console.log('Divisi ID:', divisiId);
-      console.log('Branch ID:', branchId);
-
       // Validate input
       if (!username || !role) {
         return res.status(400).json({
@@ -314,10 +303,6 @@ const userController = {
         divisiId: divisiId || null,
         branchId: branchId || null
       });
-      
-      console.log('User updated successfully (original method)');
-      console.log('Updated divisi ID:', updatedUser.divisiId);
-      console.log('Updated branch ID:', updatedUser.branchId);
 
       res.json({
         success: true,
@@ -434,50 +419,34 @@ const userController = {
       let branchId = coerceId(req.body.branchId);
       let anakPerusahaanId = coerceId(req.body.anakPerusahaanId);
 
-      console.log('=== CREATE USER WITH ROLE VALIDATION ===');
-      console.log('Payload:', { username, role, currentUserRole, divisiId, branchId, anakPerusahaanId });
-
       // Auto-assign branchId from admin user if currentUserRole is admin
       if (currentUserRole === 'admin') {
-        console.log('Admin user creating user - checking session/token for branchId');
-        console.log('Session user:', req.session?.user);
-        
         // Get current admin user from session/token
         let currentAdminUser = null;
         
         // Try session first
         if (req.session && req.session.user) {
-          console.log('Using session-based auth');
-          console.log('Session user ID:', req.session.user.id);
-          console.log('Session user branchId:', req.session.user.branchId);
-          
           // If branchId is already in session, use it directly
           if (req.session.user.branchId) {
             branchId = req.session.user.branchId;
-            console.log(`Auto-assigned branchId ${branchId} from session`);
           } else {
             // Fallback: fetch from database
             currentAdminUser = await User.findByPk(req.session.user.id, {
               attributes: ['id', 'branchId', 'anakPerusahaanId']
             });
-            console.log('Fetched admin user from DB:', currentAdminUser);
           }
         } else {
-          console.log('No session found, trying token-based auth');
           // Try token-based auth
           const authHeader = req.headers.authorization;
           if (authHeader && authHeader.startsWith('Bearer ')) {
             const token = authHeader.substring(7);
-            console.log('Token:', token);
             if (token.startsWith('token_')) {
               const parts = token.split('_');
               if (parts.length >= 2) {
                 const userId = parts[1];
-                console.log('Extracted userId from token:', userId);
                 currentAdminUser = await User.findByPk(userId, {
                   attributes: ['id', 'branchId', 'anakPerusahaanId']
                 });
-                console.log('Fetched admin user from token:', currentAdminUser);
               }
             }
           }
@@ -485,9 +454,6 @@ const userController = {
         
         if (currentAdminUser && currentAdminUser.branchId) {
           branchId = currentAdminUser.branchId; // Auto-assign admin's branch
-          console.log(`Auto-assigned branchId ${branchId} from admin user ${currentAdminUser.id}`);
-        } else {
-          console.log('Could not determine admin branchId - currentAdminUser:', currentAdminUser);
         }
       }
 
@@ -574,13 +540,6 @@ const userController = {
     try {
       const userId = req.params.id;
       const { username, role, email, unit, currentUserRole, divisiId, branchId, anakPerusahaanId } = req.body;
-      
-      console.log('=== UPDATE USER WITH ROLE VALIDATION ===');
-      console.log('User ID:', userId);
-      console.log('Request body:', req.body);
-      console.log('Divisi ID:', divisiId);
-      console.log('Branch ID:', branchId);
-      console.log('Anak Perusahaan ID:', anakPerusahaanId);
 
       // Check if user exists
       const user = await User.findByPk(userId);
@@ -727,10 +686,6 @@ const userController = {
   // Update own profile
   async updateOwnProfile(req, res) {
     try {
-      console.log('=== UPDATE OWN PROFILE START ===');
-      console.log('Headers:', req.headers);
-      console.log('req.user:', req.user);
-      console.log('Request body:', req.body);
       
       const userId = req.user?.id; // From auth middleware
       const { username, fullName, email, phone, unit } = req.body;
@@ -744,14 +699,6 @@ const userController = {
         });
       }
 
-      console.log('User ID:', userId);
-      console.log('Request body:', req.body);
-      console.log('Username from body:', username);
-      console.log('FullName from body:', fullName);
-      console.log('Email from body:', email);
-      console.log('Phone from body:', phone);
-      console.log('Unit from body:', unit);
-
       // Validasi input
       if (!username) {
         return res.status(400).json({
@@ -761,21 +708,16 @@ const userController = {
       }
 
       // Check if user exists
-      console.log('Mencari user dengan ID:', userId);
       const user = await User.findByPk(userId);
       if (!user) {
-        console.error(`User dengan ID ${userId} tidak ditemukan`);
         return res.status(404).json({
           success: false,
           message: 'User tidak ditemukan'
         });
       }
 
-      console.log('User ditemukan:', user.toJSON());
-
       // Check if new username already exists (if username is being changed)
       if (username && username !== user.username) {
-        console.log('Memeriksa ketersediaan username:', username);
         const existingUser = await User.findOne({ 
           where: { 
             username,
@@ -784,7 +726,6 @@ const userController = {
         });
         
         if (existingUser) {
-          console.log('Username sudah digunakan oleh user lain');
           return res.status(400).json({
             success: false,
             message: 'Username sudah digunakan oleh user lain'
@@ -801,17 +742,12 @@ const userController = {
         unit: unit !== undefined ? unit : user.unit
       };
 
-      console.log('Data yang akan diupdate:', updateData);
-
       try {
         // Update data user
         await user.update(updateData);
         
         // Ambil data terbaru dari database
         const updatedUser = await User.findByPk(userId);
-        
-        console.log('Profile updated successfully');
-        console.log('Updated user:', updatedUser.toJSON());
 
         return res.json({
           success: true,
@@ -866,9 +802,6 @@ const userController = {
   // Upload profile photo
   async uploadProfilePhoto(req, res) {
     try {
-      console.log('=== UPLOAD PROFILE PHOTO ===');
-      console.log('User:', req.user);
-      console.log('File:', req.file);
       
       const userId = req.user.id;
       
@@ -893,24 +826,19 @@ const userController = {
       if (user.profilePhoto) {
         try {
           const oldPhotoPath = path.join(__dirname, '..', user.profilePhoto);
-          console.log('Trying to delete old photo:', oldPhotoPath);
           if (fs.existsSync(oldPhotoPath)) {
             fs.unlinkSync(oldPhotoPath);
-            console.log('Old photo deleted');
           }
         } catch (deleteError) {
-          console.log('Could not delete old photo:', deleteError.message);
-          // Continue anyway
+          // Continue anyway if deletion fails
         }
       }
 
       // Save new photo path
       const photoPath = `uploads/profiles/${req.file.filename}`;
-      console.log('Saving photo path:', photoPath);
       
       try {
         await user.update({ profilePhoto: photoPath });
-        console.log('Photo path saved to database');
       } catch (dbError) {
         console.error('Database update error:', dbError);
         throw dbError;

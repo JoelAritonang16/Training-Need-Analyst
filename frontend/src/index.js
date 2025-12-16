@@ -5,7 +5,6 @@ import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 
-// Unregister any existing service workers to prevent cache issues
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.getRegistrations().then(function(registrations) {
     for(let registration of registrations) {
@@ -15,73 +14,75 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-// Global error handler untuk menangkap unhandled promise rejections
 window.addEventListener('unhandledrejection', (event) => {
   const reason = event.reason;
   const reasonString = String(reason || '');
-  const reasonMessage = reason?.message || reasonString;
+  const reasonMessage = reason?.message || reasonString || '';
+  const lowerMessage = reasonMessage.toLowerCase();
   
-  // Prevent default error display for timeout errors (check all possible variations)
   if (reason?.isTimeout || 
       reason?.name === 'TimeoutError' || 
       reasonString === 'Timeout' ||
-      reasonMessage?.includes('timeout') || 
-      reasonMessage?.includes('Timeout') ||
-      reasonMessage?.includes('Request timeout') ||
-      reasonMessage?.includes('Server tidak merespons')) {
-    // Silently handle timeout - component should handle it with user-friendly message
+      reasonString.toLowerCase() === 'timeout' ||
+      lowerMessage.includes('timeout') || 
+      lowerMessage.includes('server tidak merespons') ||
+      lowerMessage.includes('request timeout') ||
+      lowerMessage.includes('tidak merespons')) {
     event.preventDefault();
     event.stopPropagation();
+    console.warn('Timeout error handled:', reasonMessage);
     return;
   }
   
-  // Prevent default error display for network errors
   if (reason?.isNetworkError || 
       reason?.name === 'NetworkError' ||
-      reasonMessage?.includes('Failed to fetch') || 
-      reasonMessage?.includes('NetworkError') ||
-      reasonMessage?.includes('Tidak dapat terhubung ke server')) {
-    // Silently handle network errors - component should handle it with user-friendly message
+      lowerMessage.includes('failed to fetch') || 
+      lowerMessage.includes('networkerror') ||
+      lowerMessage.includes('network error') ||
+      lowerMessage.includes('tidak dapat terhubung ke server') ||
+      lowerMessage.includes('network request failed')) {
     event.preventDefault();
     event.stopPropagation();
+    console.warn('Network error handled:', reasonMessage);
     return;
   }
   
-  // Log other unhandled rejections (but don't prevent default for debugging)
   console.error('Unhandled promise rejection:', reason);
 });
 
-// Global error handler untuk menangkap JavaScript errors
 window.addEventListener('error', (event) => {
   const error = event.error;
   const errorString = String(error || event.message || '');
-  const errorMessage = error?.message || errorString;
+  const errorMessage = error?.message || errorString || '';
+  const lowerMessage = errorMessage.toLowerCase();
   
-  // Prevent default error display for timeout errors (check all possible variations)
   if (error?.isTimeout || 
       error?.name === 'TimeoutError' || 
       errorString === 'Timeout' ||
-      errorMessage?.includes('timeout') || 
-      errorMessage?.includes('Timeout') ||
-      errorMessage?.includes('Request timeout') ||
-      errorMessage?.includes('Server tidak merespons')) {
+      errorString.toLowerCase() === 'timeout' ||
+      lowerMessage.includes('timeout') || 
+      lowerMessage.includes('server tidak merespons') ||
+      lowerMessage.includes('request timeout') ||
+      lowerMessage.includes('tidak merespons')) {
     event.preventDefault();
     event.stopPropagation();
+    console.warn('Timeout error handled:', errorMessage);
     return;
   }
   
-  // Prevent default error display for network errors
   if (error?.isNetworkError || 
       error?.name === 'NetworkError' ||
-      errorMessage?.includes('Failed to fetch') || 
-      errorMessage?.includes('NetworkError') ||
-      errorMessage?.includes('Tidak dapat terhubung ke server')) {
+      lowerMessage.includes('failed to fetch') || 
+      lowerMessage.includes('networkerror') ||
+      lowerMessage.includes('network error') ||
+      lowerMessage.includes('tidak dapat terhubung ke server') ||
+      lowerMessage.includes('network request failed')) {
     event.preventDefault();
     event.stopPropagation();
+    console.warn('Network error handled:', errorMessage);
     return;
   }
   
-  // Log other errors
   console.error('Global error:', error);
 });
 

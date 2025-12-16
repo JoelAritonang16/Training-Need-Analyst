@@ -144,11 +144,11 @@ const SuperadminDashboard = ({ user, onLogout, onUserUpdate }) => {
   }, [proposalFilters, fetchProposals]);
 
 
-  const handleMenuChange = (menuId) => {
+  const handleMenuChange = useCallback((menuId) => {
     setActiveMenu(menuId);
-  };
+  }, []);
 
-  const handleFinalApprove = async (proposalId) => {
+  const handleFinalApprove = useCallback(async (proposalId) => {
     try {
       const data = await updateProposalStatusAPI(proposalId, 'APPROVE_SUPERADMIN');
       
@@ -177,11 +177,11 @@ const SuperadminDashboard = ({ user, onLogout, onUserUpdate }) => {
         type: 'error'
       });
     }
-  };
+  }, [fetchProposals]);
 
   const handleApproveProposal = handleFinalApprove;
 
-  const handleFinalReject = async (proposalId, alasan) => {
+  const handleFinalReject = useCallback(async (proposalId, alasan) => {
     if (!alasan || alasan.trim() === '') {
       setAlertModal({
         open: true,
@@ -220,29 +220,28 @@ const SuperadminDashboard = ({ user, onLogout, onUserUpdate }) => {
         type: 'error'
       });
     }
-  };
+  }, [fetchProposals]);
 
   const handleRejectProposal = handleFinalReject;
 
-  const handleDeleteUser = (userId) => {
+  const handleDeleteUser = useCallback((userId) => {
     setUsers(prev => prev.filter(u => u.id !== userId));
-  };
+  }, []);
 
-  const handleToggleUserStatus = (userId) => {
+  const handleToggleUserStatus = useCallback((userId) => {
     setUsers(prev => prev.map(u => 
       u.id === userId 
         ? { ...u, status: u.status === 'active' ? 'inactive' : 'active' }
         : u
     ));
-  };
+  }, []);
 
-
-  const handleStartEditUser = (user) => {
+  const handleStartEditUser = useCallback((user) => {
     setSelectedUserForEdit(user);
     setActiveMenu('user-edit');
-  };
+  }, []);
 
-  const handleViewDetail = async (proposalId) => {
+  const handleViewDetail = useCallback(async (proposalId) => {
     // Cari proposal dari list terlebih dahulu
     let proposal = proposals.find(p => p.id === proposalId);
     
@@ -262,31 +261,30 @@ const SuperadminDashboard = ({ user, onLogout, onUserUpdate }) => {
       setSelectedProposal(proposal);
       setIsModalOpen(true);
     }
-  };
+  }, [proposals]);
 
-  const closeModal = () => {
+  const closeModal = useCallback(() => {
     setIsModalOpen(false);
     setSelectedProposal(null);
-  };
+  }, []);
 
-  const formatDate = (dateString) => {
+  const formatDate = useCallback((dateString) => {
     if (!dateString) return '-';
     return new Date(dateString).toLocaleDateString('id-ID', {
       year: 'numeric',
       month: 'long',
       day: 'numeric'
     });
-  };
+  }, []);
 
-  const formatCurrency = (value) => {
+  const formatCurrency = useCallback((value) => {
     if (value === null || value === undefined || value === '') return 'Rp 0';
     const numValue = parseFloat(value);
     if (isNaN(numValue)) return 'Rp 0';
     return `Rp ${numValue.toLocaleString('id-ID')}`;
-  };
+  }, []);
 
-  // Helper function to calculate totals from items or use header values
-  const getProposalCosts = (proposal) => {
+  const getProposalCosts = useCallback((proposal) => {
     if (!proposal) {
       return { beban: 0, transportasi: 0, akomodasi: 0, uangSaku: 0, total: 0 };
     }
@@ -312,9 +310,9 @@ const SuperadminDashboard = ({ user, onLogout, onUserUpdate }) => {
       uangSaku: parseFloat(proposal.BebanUangSaku) || 0,
       total: parseFloat(proposal.TotalUsulan) || 0
     };
-  };
+  }, []);
 
-  const getStatusText = (status) => {
+  const getStatusText = useCallback((status) => {
     const statusTexts = {
       'MENUNGGU': 'Menunggu',
       'APPROVE_ADMIN': 'Disetujui Admin',
@@ -322,16 +320,15 @@ const SuperadminDashboard = ({ user, onLogout, onUserUpdate }) => {
       'DITOLAK': 'Ditolak'
     };
     return statusTexts[status] || status;
-  };
+  }, []);
 
-  const handleEditProposal = (proposalId) => {
+  const handleEditProposal = useCallback((proposalId) => {
     // Edit proposal handler
-  };
+  }, []);
 
-
-  const handleNavigate = (menuId) => {
+  const handleNavigate = useCallback((menuId) => {
     setActiveMenu(menuId);
-  };
+  }, []);
 
   const renderContent = () => {
     switch (activeMenu) {
@@ -493,9 +490,9 @@ const SuperadminDashboard = ({ user, onLogout, onUserUpdate }) => {
       <main className="main-content">
         <div className="topbar">
           <div className="topbar-logos">
-            <img src={danantaraLogo} alt="Danantara" className="topbar-logo" />
+            <img src={danantaraLogo} alt="Danantara" className="topbar-logo" loading="eager" />
             <div className="topbar-divider"></div>
-            <img src={pelindoLogo} alt="Pelindo" className="topbar-logo" />
+            <img src={pelindoLogo} alt="Pelindo" className="topbar-logo" loading="eager" />
           </div>
           <div className="topbar-title">
             {activeMenu === 'dashboard' && ''}
@@ -525,8 +522,8 @@ const SuperadminDashboard = ({ user, onLogout, onUserUpdate }) => {
                     src={`http://localhost:5000/${currentUser.profilePhoto}?t=${new Date().getTime()}`} 
                     alt="Profile" 
                     style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }}
+                    loading="lazy"
                     onError={(e) => {
-                      // Fallback jika gambar gagal dimuat
                       e.target.onerror = null;
                       e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser?.username || 'User')}&background=random`;
                     }}

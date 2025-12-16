@@ -5,13 +5,9 @@ const divisiController = {
   // Get all divisi
   async getAll(req, res) {
     try {
-      console.log('=== GET ALL DIVISI ===');
-      
       const divisi = await Divisi.findAll({
         order: [['nama', 'ASC']]
       });
-      
-      console.log('Divisi found:', divisi.length);
       
       res.json({
         success: true,
@@ -33,9 +29,6 @@ const divisiController = {
     try {
       const { id } = req.params;
       
-      console.log('=== GET DIVISI BY ID ===');
-      console.log('Divisi ID:', id);
-      
       const divisi = await Divisi.findByPk(id);
       
       if (!divisi) {
@@ -44,8 +37,6 @@ const divisiController = {
           message: "Divisi tidak ditemukan",
         });
       }
-      
-      console.log('Divisi found:', divisi.nama);
       
       res.json({
         success: true,
@@ -66,9 +57,6 @@ const divisiController = {
   async create(req, res) {
     try {
       const { nama } = req.body;
-      
-      console.log('=== CREATE DIVISI ===');
-      console.log('Nama:', nama);
       
       // Validation
       if (!nama || nama.trim() === '') {
@@ -95,8 +83,6 @@ const divisiController = {
         nama: nama.trim()
       });
       
-      console.log('Divisi created:', newDivisi.nama);
-      
       res.status(201).json({
         success: true,
         message: "Divisi berhasil dibuat",
@@ -117,10 +103,6 @@ const divisiController = {
     try {
       const { id } = req.params;
       const { nama } = req.body;
-      
-      console.log('=== UPDATE DIVISI ===');
-      console.log('Divisi ID:', id);
-      console.log('New Nama:', nama);
       
       // Validation
       if (!nama || nama.trim() === '') {
@@ -159,8 +141,6 @@ const divisiController = {
         nama: nama.trim()
       });
       
-      console.log('Divisi updated:', divisi.nama);
-      
       res.json({
         success: true,
         message: "Divisi berhasil diupdate",
@@ -181,9 +161,6 @@ const divisiController = {
     try {
       const { id } = req.params;
       
-      console.log('=== DELETE DIVISI ===');
-      console.log('Divisi ID:', id);
-      
       // Check if divisi exists
       const divisi = await Divisi.findByPk(id);
       if (!divisi) {
@@ -195,8 +172,6 @@ const divisiController = {
       
       // Delete divisi
       await divisi.destroy();
-      
-      console.log('Divisi deleted:', divisi.nama);
       
       res.json({
         success: true,

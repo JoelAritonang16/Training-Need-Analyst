@@ -81,16 +81,6 @@ const TrainingProposalForm = ({ user, proposal = null, onSuccess }) => {
     }
   };
 
-  // Fungsi untuk menghitung total usulan
-  const calculateTotalUsulan = () => {
-    const beban = parseFloat(formData.Beban) || 0;
-    const bebanTransportasi = parseFloat(formData.BebanTransportasi) || 0;
-    const bebanAkomodasi = parseFloat(formData.BebanAkomodasi) || 0;
-    const bebanUangSaku = parseFloat(formData.BebanUangSaku) || 0;
-
-    return beban + bebanTransportasi + bebanAkomodasi + bebanUangSaku;
-  };
-
   // Validasi form sesuai dengan controller
   const validateForm = () => {
     const errors = [];
@@ -173,8 +163,6 @@ const TrainingProposalForm = ({ user, proposal = null, onSuccess }) => {
         items: normalizedItems,
       };
 
-      console.log('Processed proposal data:', proposalData);
-      
       // Cek token
       const token = localStorage.getItem('token');
       if (!token) {
@@ -206,7 +194,6 @@ const TrainingProposalForm = ({ user, proposal = null, onSuccess }) => {
         if (!onSuccess) {
           // Jika tidak ada onSuccess callback, langsung reset form
           if (!proposal) {
-            console.log('Resetting form for new submission...');
             setFormData({
               Uraian: '',
               WaktuPelaksanan: '',
@@ -277,8 +264,6 @@ const TrainingProposalForm = ({ user, proposal = null, onSuccess }) => {
     }
     setError('');
   };
-
-  const totalUsulan = calculateTotalUsulan();
 
   return (
     <div className="proposal-form-container">

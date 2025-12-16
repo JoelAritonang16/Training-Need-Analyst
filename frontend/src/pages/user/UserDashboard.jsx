@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import Sidebar from '../../components/Sidebar.jsx';
 import DashboardOverview from './DashboardOverview.jsx';
 import TrainingProposalList from './TrainingProposalList.jsx';
@@ -10,7 +10,7 @@ import danantaraLogo from '../../assets/Danantara2.png';
 import pelindoLogo from '../../assets/LogoFixx.png';
 import './UserDashboard.css';
 
-const UserDashboard = ({ user, onLogout, onUserUpdate, proposals = [] }) => {
+const UserDashboard = React.memo(({ user, onLogout, onUserUpdate, proposals = [] }) => {
   const [activeMenu, setActiveMenu] = useState('dashboard');
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [selectedProposalId, setSelectedProposalId] = useState(null);
@@ -21,32 +21,31 @@ const UserDashboard = ({ user, onLogout, onUserUpdate, proposals = [] }) => {
     setCurrentUser(user);
   }, [user]);
 
-  const handleMenuChange = (menuId) => {
+  const handleMenuChange = useCallback((menuId) => {
     setActiveMenu(menuId);
     setSelectedProposalId(null);
-  };
+  }, []);
 
-  const handleEditProposal = (proposalId) => {
+  const handleEditProposal = useCallback((proposalId) => {
     setSelectedProposalId(proposalId);
     setActiveMenu('proposal-edit');
-  };
+  }, []);
 
-  const handleViewDetail = (proposalId) => {
+  const handleViewDetail = useCallback((proposalId) => {
     setSelectedProposalId(proposalId);
     setActiveMenu('proposal-detail');
-  };
+  }, []);
 
-  const handleCreateProposal = () => {
+  const handleCreateProposal = useCallback(() => {
     setActiveMenu('proposal-create');
-  };
+  }, []);
 
-  const handleBackToList = () => {
+  const handleBackToList = useCallback(() => {
     setActiveMenu('proposal-list');
     setSelectedProposalId(null);
-  };
+  }, []);
 
-  const handleUpdateProfile = (updatedUserData) => {
-    // Update local user state with new profile data
+  const handleUpdateProfile = useCallback((updatedUserData) => {
     setCurrentUser(prevUser => {
       const updatedUser = {
         ...prevUser,
@@ -55,12 +54,10 @@ const UserDashboard = ({ user, onLogout, onUserUpdate, proposals = [] }) => {
       return updatedUser;
     });
     
-    // Call parent update handler to update App.jsx state
     if (onUserUpdate) {
       onUserUpdate(updatedUserData);
     }
     
-    // Force re-render of the profile image by updating the timestamp
     const timestamp = new Date().getTime();
     if (updatedUserData.profilePhoto) {
       const photoWithTimestamp = `${updatedUserData.profilePhoto}${updatedUserData.profilePhoto.includes('?') ? '&' : '?'}t=${timestamp}`;
@@ -69,7 +66,7 @@ const UserDashboard = ({ user, onLogout, onUserUpdate, proposals = [] }) => {
         profilePhoto: photoWithTimestamp
       }));
     }
-  };
+  }, [onUserUpdate]);
 
   const renderContent = () => {
     switch (activeMenu) {
@@ -147,9 +144,9 @@ const UserDashboard = ({ user, onLogout, onUserUpdate, proposals = [] }) => {
       <main className="main-content">
         <div className="topbar">
           <div className="topbar-logos">
-            <img src={danantaraLogo} alt="Danantara" className="topbar-logo" />
+            <img src={danantaraLogo} alt="Danantara" className="topbar-logo" loading="eager" />
             <div className="topbar-divider"></div>
-            <img src={pelindoLogo} alt="Pelindo" className="topbar-logo" />
+            <img src={pelindoLogo} alt="Pelindo" className="topbar-logo" loading="eager" />
           </div>
           <div className="topbar-title">
             {activeMenu === 'dashboard' && ''}
@@ -192,6 +189,8 @@ const UserDashboard = ({ user, onLogout, onUserUpdate, proposals = [] }) => {
       </main>
     </div>
   );
-};
+});
+
+UserDashboard.displayName = 'UserDashboard';
 
 export default UserDashboard;

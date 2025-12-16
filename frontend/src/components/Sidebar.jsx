@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import './Sidebar.css';
 import { notificationAPI } from '../utils/api';
 import {
@@ -19,35 +19,33 @@ import {
   LuBarChart3
 } from 'react-icons/lu';
 
-const Sidebar = ({ user, activeMenu, onMenuChange, onLogout }) => {
+const Sidebar = React.memo(({ user, activeMenu, onMenuChange, onLogout }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [draftTNANotificationCount, setDraftTNANotificationCount] = useState(0);
 
-  // Fetch draft TNA notification count
-  useEffect(() => {
-    const fetchDraftTNANotificationCount = async () => {
-      if (user && (user.role?.toLowerCase() === 'admin' || user.role?.toLowerCase() === 'superadmin')) {
-        try {
-          const result = await notificationAPI.getDraftTNANotificationCount();
-          if (result.success) {
-            setDraftTNANotificationCount(result.count || 0);
-          }
-        } catch (error) {
+  const fetchDraftTNANotificationCount = useCallback(async () => {
+    if (user && (user.role?.toLowerCase() === 'admin' || user.role?.toLowerCase() === 'superadmin')) {
+      try {
+        const result = await notificationAPI.getDraftTNANotificationCount();
+        if (result.success) {
+          setDraftTNANotificationCount(result.count || 0);
+        }
+      } catch (error) {
+        if (error?.name !== 'AbortError') {
           console.error('Error fetching draft TNA notification count:', error);
         }
       }
-    };
+    }
+  }, [user]);
 
+  useEffect(() => {
     fetchDraftTNANotificationCount();
-    // Refresh every 30 seconds
     const interval = setInterval(fetchDraftTNANotificationCount, 30000);
 
     return () => clearInterval(interval);
-  }, [user]);
+  }, [fetchDraftTNANotificationCount]);
 
-  // Update body class when sidebar collapses/expands
   React.useEffect(() => {
-    // Set initial state on mount
     if (isCollapsed) {
       document.body.classList.add('sidebar-collapsed');
       document.body.classList.remove('sidebar-expanded');
@@ -62,16 +60,15 @@ const Sidebar = ({ user, activeMenu, onMenuChange, onLogout }) => {
       document.body.classList.remove('sidebar-expanded');
     };
   }, [isCollapsed]);
-  // Submenu state for "Semua Usulan"
+
   const childProposalIds = ['proposal-approval', 'approved-proposals', 'final-approval'];
   const [isAllProposalsOpen, setIsAllProposalsOpen] = useState(
     childProposalIds.includes(activeMenu)
   );
-  // Submenu state for "Manajemen Perusahaan"
   const companyChildren = ['divisi-management', 'branch-management', 'anak-perusahaan-management'];
   const [isCompanyOpen, setIsCompanyOpen] = useState(companyChildren.includes(activeMenu));
 
-  const getUserMenuItems = () => {
+  const menuItems = useMemo(() => {
     const role = user?.role?.toLowerCase();
     
     const baseMenus = {
@@ -105,9 +102,7 @@ const Sidebar = ({ user, activeMenu, onMenuChange, onLogout }) => {
     };
 
     return baseMenus[role] || baseMenus.user;
-  };
-
-  const menuItems = getUserMenuItems();
+  }, [user?.role]);
 
   return (
     <div className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
@@ -243,7 +238,6 @@ const Sidebar = ({ user, activeMenu, onMenuChange, onLogout }) => {
             </li>
           );
         }
-        // Add notification badge for Draft TNA 2026
         const showNotificationBadge = item.id === 'draft-tna-2026' && 
           (user?.role?.toLowerCase() === 'admin' || user?.role?.toLowerCase() === 'superadmin') &&
           draftTNANotificationCount > 0;
@@ -274,13 +268,13 @@ const Sidebar = ({ user, activeMenu, onMenuChange, onLogout }) => {
     </ul>
   </nav>
 
-  {/* Gambar Batik Pelindo sebagai latar belakang */}
   <div className="batik-background">
-    <img src="/batikpelindo.png" alt="Motif Batik Pelindo" className="batik-image" />
+    <img src="/batikpelindo.png" alt="Motif Batik Pelindo" className="batik-image" loading="lazy" />
   </div>
 </div>
-
   );
-};
+});
+
+Sidebar.displayName = 'Sidebar';
 
 export default Sidebar;

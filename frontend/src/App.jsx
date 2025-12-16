@@ -1,12 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense, lazy } from "react";
 import ConfirmModal from "./components/ConfirmModal.jsx";
 import Login from "./components/Login.jsx";
-import AdminDashboard from "./pages/admin/AdminDashboard.jsx";
-import SuperadminDashboard from "./pages/superadmin/SuperadminDashboard.jsx";
-import UserDashboardWrapper from "./components/UserDashboardWrapper.jsx";
 import { DatabaseDataProvider } from "./components/DatabaseDataProvider.jsx";
 import ErrorBoundary from "./components/ErrorBoundary.jsx";
 import "./App.css";
+
+const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard.jsx"));
+const SuperadminDashboard = lazy(() => import("./pages/superadmin/SuperadminDashboard.jsx"));
+const UserDashboardWrapper = lazy(() => import("./components/UserDashboardWrapper.jsx"));
 
 
 function App() {
@@ -29,14 +30,20 @@ function App() {
         return;
       }
 
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+
       const response = await fetch('http://localhost:5000/api/auth/check', {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
-        credentials: 'include'
+        credentials: 'include',
+        signal: controller.signal
       });
+      
+      clearTimeout(timeoutId);
       
       if (response.ok) {
         const data = await response.json();
@@ -54,7 +61,9 @@ function App() {
         setUser(null);
       }
     } catch (error) {
-      console.error('Auth check error:', error);
+      if (error.name !== 'AbortError') {
+        console.error('Auth check error:', error);
+      }
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       setUser(null);
@@ -75,19 +84,26 @@ function App() {
     try {
       const token = localStorage.getItem('token');
       if (token) {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+        
         await fetch('http://localhost:5000/api/auth/logout', {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
           },
-          credentials: 'include'
+          credentials: 'include',
+          signal: controller.signal
         });
+        
+        clearTimeout(timeoutId);
       }
     } catch (error) {
-      console.error('Logout error:', error);
+      if (error.name !== 'AbortError') {
+        console.error('Logout error:', error);
+      }
     } finally {
-      // Clear localStorage
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       setUser(null);
@@ -120,9 +136,25 @@ function App() {
   const renderDashboard = () => {
     const role = (user?.role || '').toLowerCase();
     
-    if (role === 'admin') return <AdminDashboard user={user} onLogout={handleLogout} onUserUpdate={handleUserUpdate} />;
-    if (role === 'superadmin') return <SuperadminDashboard user={user} onLogout={handleLogout} onUserUpdate={handleUserUpdate} />;
-    return <UserDashboardWrapper user={user} onLogout={handleLogout} onUserUpdate={handleUserUpdate} />;
+    if (role === 'admin') {
+      return (
+        <Suspense fallback={<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>Loading...</div>}>
+          <AdminDashboard user={user} onLogout={handleLogout} onUserUpdate={handleUserUpdate} />
+        </Suspense>
+      );
+    }
+    if (role === 'superadmin') {
+      return (
+        <Suspense fallback={<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>Loading...</div>}>
+          <SuperadminDashboard user={user} onLogout={handleLogout} onUserUpdate={handleUserUpdate} />
+        </Suspense>
+      );
+    }
+    return (
+      <Suspense fallback={<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>Loading...</div>}>
+        <UserDashboardWrapper user={user} onLogout={handleLogout} onUserUpdate={handleUserUpdate} />
+      </Suspense>
+    );
   };
 
   if (loading) {

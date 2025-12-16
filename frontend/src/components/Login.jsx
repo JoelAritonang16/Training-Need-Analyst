@@ -1,11 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './Login.css';
-import batikImage from '../assets/BatikPelindo.png';
 import danantaraLogo from '../assets/Danantara2.png';
 import pelindoLogo from '../assets/LogoFixx.png';
 
 const Login = ({ onLoginSuccess }) => {
-  // Semua state dan fungsi Anda tetap sama (tidak ada perubahan di sini)
   const [formData, setFormData] = useState({
     username: '',
     password: ''
@@ -97,25 +95,12 @@ const Login = ({ onLoginSuccess }) => {
     const hasWidget = recaptchaRef.current.querySelector('[data-sitekey]');
     
     if (hasIframe || hasWidget) {
-      console.log('reCAPTCHA widget already exists in element, skipping render');
-      // Try to find existing widget ID
-      try {
-        // Get all widgets and find the one in this element
-        const allWidgets = window.grecaptcha?.getResponse ? Object.keys(window.grecaptcha) : [];
-        // This is a workaround - we'll just skip rendering if widget exists
-        return;
-      } catch (e) {
-        // Ignore
-      }
+      // Widget already exists, skip rendering
       return;
     }
 
     // Get site key from environment variable
-    // Site Key yang benar dari Google reCAPTCHA Admin Console
     const siteKey = process.env.REACT_APP_RECAPTCHA_SITE_KEY || '6LeeXxMsAAAAALPTcM9IhOkshVoHrbSyY6a95aKn';
-    
-    console.log('reCAPTCHA Site Key:', siteKey);
-    console.log('Environment variable:', process.env.REACT_APP_RECAPTCHA_SITE_KEY);
     
     if (!siteKey || siteKey === 'YOUR_SITE_KEY') {
       console.error('reCAPTCHA site key is not configured');
@@ -131,13 +116,11 @@ const Login = ({ onLoginSuccess }) => {
     try {
       const widgetId = window.grecaptcha.render(recaptchaRef.current, {
         sitekey: siteKey,
-        callback: (token) => {
-          // Optional: handle successful verification
-          console.log('reCAPTCHA verified successfully');
+        callback: () => {
+          // reCAPTCHA verified successfully
         },
         'expired-callback': () => {
-          // Optional: handle expired token
-          console.log('reCAPTCHA token expired');
+          // reCAPTCHA token expired
         },
         'error-callback': (error) => {
           // Handle error
@@ -157,14 +140,10 @@ const Login = ({ onLoginSuccess }) => {
       
       if (widgetId !== null && widgetId !== undefined) {
         setRecaptchaWidgetId(widgetId);
-        console.log('reCAPTCHA widget rendered successfully with ID:', widgetId);
       }
     } catch (err) {
-      console.error('Error rendering reCAPTCHA:', err);
       if (err.message && err.message.includes('already been rendered')) {
-        console.log('Widget already rendered, this is expected on re-render');
-        // Try to find existing widget
-        // For now, just log and don't show error to user
+        // Widget already rendered, this is expected on re-render
       } else {
         setError('Gagal memuat reCAPTCHA. Silakan refresh halaman.');
       }

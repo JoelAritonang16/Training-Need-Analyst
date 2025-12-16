@@ -4,7 +4,6 @@ import { LuRefreshCw, LuFileBarChart, LuCheckCircle2, LuCalendar, LuUsers, LuDol
 import AlertModal from '../../components/AlertModal';
 import '../superadmin/SuperadminReports.css';
 
-// Memoized table row component untuk performa
 const ReportRow = React.memo(({ report, index, formatDate, formatCurrency, getStatusText }) => (
   <tr key={report.id}>
     <td>{index + 1}</td>

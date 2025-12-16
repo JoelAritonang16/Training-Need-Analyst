@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { draftTNA2026API } from '../../utils/api';
-import { LuFileText, LuPlus, LuPencil, LuTrash2, LuEye, LuSend, LuSave } from 'react-icons/lu';
+import { LuFileText, LuPencil, LuTrash2, LuEye, LuSend, LuSave } from 'react-icons/lu';
 import AlertModal from '../../components/AlertModal';
 import ConfirmModal from '../../components/ConfirmModal';
 import './UserDraftTNA.css';

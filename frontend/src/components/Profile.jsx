@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { userProfileAPI } from '../utils/api';
 import '../pages/user/UserProfile.css';
-import { FiX, FiUpload, FiCheck, FiXCircle, FiLoader, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
+import { FiX, FiUpload, FiLoader, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
 
 const Profile = ({ user: userProp, proposals = [], onUpdateProfile }) => {
   // Initialize state first, before any conditional returns
@@ -51,17 +51,14 @@ const Profile = ({ user: userProp, proposals = [], onUpdateProfile }) => {
 
   // Update profile data when user prop changes
   useEffect(() => {
-    console.log('User prop changed:', userProp);
     const user = getSafeUser(userProp);
-    console.log('Safe user:', user);
     if (user) {
-      console.log('Setting profile data:', user);
       setProfileData(user);
       if (!isEditing) {
         setOriginalData(user);
       }
     }
-  }, [userProp]);
+  }, [userProp, isEditing]);
   
   // Handle loading state
   const safeUser = getSafeUser(userProp);
@@ -103,20 +100,16 @@ const Profile = ({ user: userProp, proposals = [], onUpdateProfile }) => {
         throw new Error('Anda harus login terlebih dahulu');
       }
 
-      console.log('Mengupload foto profil...');
-      
       const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/users/profile/photo`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
-          // Biarkan browser mengatur Content-Type untuk FormData
         },
         credentials: 'include',
         body: formData
       });
 
       const data = await response.json();
-      console.log('Response upload foto:', data);
 
       if (!response.ok) {
         throw new Error(data.message || 'Gagal mengupload foto');
@@ -138,8 +131,6 @@ const Profile = ({ user: userProp, proposals = [], onUpdateProfile }) => {
         // Tambahkan timestamp untuk menghindari cache
         const timestamp = new Date().getTime();
         const photoUrlWithTimestamp = `${photoUrl}${photoUrl.includes('?') ? '&' : '?'}t=${timestamp}`;
-        
-        console.log('Foto berhasil diupload, URL:', photoUrlWithTimestamp);
         
         // Update state dengan foto baru
         const updatedProfile = {
@@ -185,7 +176,6 @@ const Profile = ({ user: userProp, proposals = [], onUpdateProfile }) => {
             role: profileData.role || userData.role
           };
           localStorage.setItem('user', JSON.stringify(updatedUserData));
-          console.log('LocalStorage updated with new profile data');
         }
         
         setSuccessMessage('Foto profil berhasil diupdate!');
@@ -206,22 +196,14 @@ const Profile = ({ user: userProp, proposals = [], onUpdateProfile }) => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    console.log('Input changed - Name:', name, 'Value:', value);
-    
-    setProfileData(prev => {
-      const newData = {
-        ...prev,
-        [name]: value
-      };
-      console.log('New profile data:', newData);
-      return newData;
-    });
+    setProfileData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
   const handleSave = async () => {
     try {
-      console.log('Saving profile data for role:', userProp?.role, 'Data:', profileData);
-      
       // Data dasar yang dibutuhkan semua role
       const baseData = {
         fullName: profileData.fullName?.trim() || null,
@@ -251,12 +233,10 @@ const Profile = ({ user: userProp, proposals = [], onUpdateProfile }) => {
         return;
       }
       
-      console.log('Data to send to server:', baseData);
       setUploading(true);
       
       try {
         const response = await userProfileAPI.updateProfile(baseData);
-        console.log('Server response:', response);
         
         if (response) {
           // Pastikan data yang diterima dari server lengkap
@@ -265,8 +245,6 @@ const Profile = ({ user: userProp, proposals = [], onUpdateProfile }) => {
             ...(response.user || {}),
             profilePhoto: response.user?.profilePhoto || userProp?.profilePhoto || ''
           };
-          
-          console.log('Profile updated successfully:', updatedUser);
           
           // Update state
           setProfileData(updatedUser);
@@ -304,7 +282,6 @@ const Profile = ({ user: userProp, proposals = [], onUpdateProfile }) => {
   };
 
   const toggleEdit = () => {
-    console.log('Toggling edit mode. Current state:', isEditing);
     if (!isEditing) {
       // Ketika masuk mode edit, simpan data asli
       setOriginalData(profileData);
@@ -316,22 +293,11 @@ const Profile = ({ user: userProp, proposals = [], onUpdateProfile }) => {
   };
 
   const handleCancel = () => {
-    console.log('Canceling edit, resetting to original data');
     if (originalData) {
       setProfileData(originalData);
     }
     setIsEditing(false);
   };
-
-  // Function to reset file input
-  const resetFileInput = () => {
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  };
-
-  const approvedCount = proposals.filter(p => p.status === 'APPROVED').length;
-  const pendingCount = proposals.filter(p => p.status === 'PENDING').length;
 
   return (
     <div className="profile-container">

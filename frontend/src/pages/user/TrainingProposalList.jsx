@@ -58,7 +58,6 @@ const TrainingProposalList = ({ onCreateNew, onEdit, onViewDetail }) => {
   const paginatedProposals = filteredProposals.slice(startIndex, startIndex + itemsPerPage);
 
   const handleEdit = (id) => {
-    console.log('Edit proposal with ID:', id);
     if (onEdit) {
       onEdit(id);
     }

@@ -28,10 +28,8 @@ const TrainingProposalEdit = ({ proposalId, onSuccess, onBack }) => {
     }
   };
 
-  const handleSuccess = (updatedProposal) => {
-    console.log('Proposal updated successfully:', updatedProposal);
-    // You can add navigation logic here
-    // window.location.href = '/training-proposals';
+  const handleSuccess = () => {
+    // Proposal updated successfully
   };
 
   if (isLoading) {

@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { 
   LuClipboardList, 
-  LuBookOpen, 
   LuFileText, 
   LuCheckCircle2, 
   LuClock, 
   LuWallet, 
-  LuUsers,
-  LuFileCheck2
+  LuUsers
 } from 'react-icons/lu';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { draftTNA2026API, trainingProposalAPI } from '../../utils/api';
@@ -22,11 +20,7 @@ const DashboardOverview = ({ user, proposals, onNavigate }) => {
   const approvedProposals = proposals ? proposals.filter(p => p.status === 'APPROVE_ADMIN' || p.status === 'APPROVE_SUPERADMIN').length : 0;
   const rejectedProposals = proposals ? proposals.filter(p => p.status === 'DITOLAK').length : 0;
   const totalDrafts = drafts.length;
-  
-  // Calculate total budget from proposals
   const totalBudget = proposals ? proposals.reduce((sum, p) => sum + (parseFloat(p.TotalUsulan) || 0), 0) : 0;
-  
-  // Calculate total participants
   const totalParticipants = proposals ? proposals.reduce((sum, p) => sum + (parseInt(p.JumlahPeserta) || 0), 0) : 0;
 
   useEffect(() => {
@@ -37,48 +31,30 @@ const DashboardOverview = ({ user, proposals, onNavigate }) => {
     try {
       setLoading(true);
       
-      // Fetch drafts sesuai divisi user
       try {
         const draftsResult = await draftTNA2026API.getAll();
         if (draftsResult.success) {
-          // Filter drafts sesuai divisi user
           const userDivisiDrafts = draftsResult.drafts?.filter(d => 
             d.divisiId === user?.divisiId || d.branchId === user?.branchId
           ) || [];
           setDrafts(userDivisiDrafts);
         }
       } catch (err) {
-        // Handle timeout and network errors gracefully
-        if (err?.isTimeout || err?.name === 'TimeoutError' || err?.isNetworkError || err?.name === 'NetworkError') {
-          // Set empty array and continue - don't show error UI
-          setDrafts([]);
-        } else {
-          // For other errors, also set empty array
-          setDrafts([]);
-        }
+        setDrafts([]);
       }
     } catch (error) {
-      // Handle timeout and network errors gracefully
-      if (error?.isTimeout || error?.name === 'TimeoutError' || error?.isNetworkError || error?.name === 'NetworkError') {
-        // Set empty array and continue - don't show error UI
-        setDrafts([]);
-      } else {
-        // For other errors, also set empty array
-        setDrafts([]);
-      }
+      setDrafts([]);
     } finally {
       setLoading(false);
     }
   };
 
-  // Prepare chart data for proposals status
   const proposalStatusData = [
     { name: 'Menunggu', value: pendingProposals, color: '#FFA500' },
     { name: 'Disetujui', value: approvedProposals, color: '#4CAF50' },
     { name: 'Ditolak', value: rejectedProposals, color: '#F44336' },
-  ].filter(item => item.value > 0); // Only show non-zero values
+  ].filter(item => item.value > 0);
 
-  // Prepare chart data for drafts
   const draftStatusData = [
     { name: 'Draft', value: drafts.filter(d => d.status === 'DRAFT').length, color: '#2196F3' },
     { name: 'Submitted', value: drafts.filter(d => d.status === 'SUBMITTED').length, color: '#FF9800' },
@@ -87,13 +63,11 @@ const DashboardOverview = ({ user, proposals, onNavigate }) => {
 
   return (
     <div className="dashboard-overview">
-      {/* Modern Header Banner */}
       <div className="dashboard-header-banner">
         <h1>Dashboard User</h1>
         <p>Selamat datang di panel dashboard user - Kelola usulan pelatihan dan draft TNA Anda</p>
       </div>
 
-      {/* Metric Cards with Icons */}
       <div className="stats-grid">
         <div className="stat-card">
           <div className="stat-icon"><LuClipboardList size={20} /></div>
@@ -150,12 +124,10 @@ const DashboardOverview = ({ user, proposals, onNavigate }) => {
         </div>
       </div>
 
-      {/* Charts Section */}
       <div className="charts-section">
         <h3>Grafik dan Analisis</h3>
         
         <div className="charts-grid">
-          {/* Proposal Status Donut Chart */}
           <div className="chart-card">
             <h4>Status Usulan Pelatihan</h4>
             <ResponsiveContainer width="100%" height={280}>
@@ -195,7 +167,6 @@ const DashboardOverview = ({ user, proposals, onNavigate }) => {
             </ResponsiveContainer>
           </div>
 
-          {/* Draft Status Donut Chart */}
           {totalDrafts > 0 && (
             <div className="chart-card">
               <h4>Status Draft TNA</h4>
